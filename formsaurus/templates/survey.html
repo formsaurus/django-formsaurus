@@ -1,0 +1,80 @@
+{% extends "skeleton.html" %}
+{% load static %}
+
+{% block content %}
+<main class="container">
+    <div class="row">
+        <div class="col">
+            <div class="vertical-center">
+                {% if question.type == 'WS' %}
+                    {% include 'templates/welcome_screen.html' %}
+                {% elif question.type == 'MC' %}
+                    {% include 'templates/multiple_choice.html' %}
+                {% elif question.type == 'TS' %}
+                    {% include 'templates/thank_you_screen.html' %}
+                {% elif question.type == 'PN' %}
+                    {% include 'templates/phone_number.html' %}
+                {% elif question.type == 'ST' %}
+                    {% include 'templates/short_text.html' %}
+                {% elif question.type == 'LT' %}
+                    {% include 'templates/long_text.html' %}
+                {% elif question.type == 'S_' %}
+                    {% include 'templates/statement.html' %}
+                {% elif question.type == 'PC' %}
+                    {% include 'templates/picture_choice.html' %}
+                {% elif question.type == 'YN' %}
+                    {% include 'templates/yes_no.html' %}
+                {% elif question.type == 'E_' %}
+                    {% include 'templates/email.html' %}
+                {% elif question.type == 'OS' %}
+                    {% include 'templates/opinion_scale.html' %}
+                {% elif question.type == 'R_' %}
+                    {% include 'templates/rating.html' %}
+                {% elif question.type == 'D_' %}
+                    {% include 'templates/date.html' %}
+                {% elif question.type == 'N_' %}
+                    {% include 'templates/number.html' %}
+                {% elif question.type == 'DD' %}
+                    {% include 'templates/dropdown.html' %}
+                {% elif question.type == 'L_' %}
+                    {% include 'templates/legal.html' %}
+                {% elif question.type == 'W_' %}
+                    {% include 'templates/website.html' %}
+                {% endif %}
+            </div>
+        </div>
+    </div>    
+</main>
+{% endblock %}
+
+{% block javascript %}
+<script>
+$(document).ready(function() {
+    console.log('Hooking things up');
+    form = $('#ze_form')
+    form.find('textarea').keyup(function() {
+        this.style.height = '1px';
+        this.style.height = (this.scrollHeight)+"px";
+    })
+
+    date = $('.datepicker')
+    if (date.length > 0) {
+        date = date[0]
+        format = $(date).attr('data-format')
+        new Pikaday({
+                field: date,
+                format: format,
+                onSelect: function() {
+                    console.log(this.getMoment().format(format));
+                }   
+            });
+    }
+    $('.dropdown').select2({
+        allowClear: true,
+        placeholder: 'Select an option',
+    });
+
+});
+</script>
+
+{% endblock %}

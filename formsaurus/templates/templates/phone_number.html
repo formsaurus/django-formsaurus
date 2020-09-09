@@ -1,0 +1,10 @@
+{% extends "templates/base.html" %}
+
+
+{% block input %}
+
+<input type="tel" name="answer" autofocus placeholder="800-555-5555" class="survey-input" pattern="[0-9]{3}-[0-9]{3}-[0-9]{4}" {% if question.required %}required{% endif %} />
+{% endblock %}
+
+{% block button %}
+{% endblock %}

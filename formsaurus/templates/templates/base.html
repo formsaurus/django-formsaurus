@@ -1,0 +1,32 @@
+{% if submission %}
+<form method="POST" class="w-100" action="{% url 'formsaurus:question' survey.id question.id submission.id %}" id="ze_form">
+{% else %}
+<form method="POST" class="w-100" action="{% url 'formsaurus:first_question' survey.id question.id %}" id="ze_form">
+{% endif %}
+    {% csrf_token %}
+    <div class="mb-4">
+        {% block header %}
+            {% if question.parameters.image_url %}
+                <img src="{{ question.parameters.image_url }}" class="img-fluid mb-4">
+            {% endif %}
+            <h2 class="mb-0">
+                {% if question.parameters.show_quotation_mark %}
+                <i class="fas fa-quote-right fa-2x mr-2"></i>
+                {% endif %}
+                {{question.question}}
+            </h2>
+            {% if question.description %}
+                <p class="text-secondary">{{question.description}}</p>
+            {% endif %}
+        {% endblock %}
+    </div>
+    <div class="mb-3">
+        {% block input %}
+        {% endblock %}
+    </div>
+    <div>
+        {% block button %}
+            <button type="submit" class="btn btn-primary">Next</button>
+        {% endblock %}
+    </div>
+</form>

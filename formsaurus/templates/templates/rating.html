@@ -1,0 +1,16 @@
+{% extends "templates/base.html" %}
+
+{% block input %}
+{% for choice in question.choices %}
+<button type="submit" value="{{ forloop.counter }}" name="answer" class="text-center btn btn-secondary opinion">
+    {% if question.parameters.shape == 'S_' %}
+    <i class="fas fa-star"></i>
+    {% elif question.parameters.shape == 'T_' %}
+    <i class="fas fa-thumbs-up"></i>
+    {% endif %}
+</button>
+{% endfor %}
+{% endblock %}
+
+{% block button %}
+{% endblock %}

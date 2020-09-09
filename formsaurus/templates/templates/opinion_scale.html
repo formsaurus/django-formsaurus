@@ -1,0 +1,12 @@
+{% extends "templates/base.html" %}
+
+{% block input %}
+{% for choice in question.choices %}
+    <input type="submit" name="answer" value="{{choice.choice}}" class="text-center btn btn-secondary opinion">
+{% endfor %}
+{% if question.parameters.show_labels %}
+{% endif %}
+{% endblock %}
+
+{% block button %}
+{% endblock %}

@@ -1,0 +1,8 @@
+{% extends "templates/base.html" %}
+
+{% block input %}
+    <input type="email" name="answer" autofocus placeholder="marty@mclfy.com" class="survey-input" {% if question.required %}required{% endif %}/>
+{% endblock %}
+
+{% block button %}
+{% endblock %}

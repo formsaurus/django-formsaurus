@@ -1,0 +1,13 @@
+{% extends "templates/base.html" %}
+
+
+{% block input %}
+{% for choice in question.choices %}
+<div class="mb-1">
+    <button type="submit" name="answer" value="{{choice.id}}" class="text-left btn btn-secondary choice">{{ choice.choice }}</button>
+</div>
+{% endfor %}
+{% endblock %}
+
+{% block button %}
+{% endblock %}

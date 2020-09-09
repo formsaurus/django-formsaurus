@@ -1,0 +1,10 @@
+{% extends "templates/base.html" %}
+
+{% block input %}
+<select class="dropdown w-100" name="answer">
+    <option></option>
+    {% for choice in question.choices %}
+    <option value="{{ choice.id }}">{{choice.choice}}</option>
+    {% endfor %}
+</select>
+{% endblock %}

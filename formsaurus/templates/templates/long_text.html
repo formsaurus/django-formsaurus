@@ -1,0 +1,5 @@
+{% extends "templates/base.html" %}
+
+{% block input %}
+    <textarea name="answer" autofocus placeholder="Type your answer here..." {% if question.required %}required{% endif %} rows="1" class="survey-input"></textarea>
+{% endblock %}
