@@ -1,6 +1,8 @@
 from django import forms
 from formsaurus.models import (Question, Survey, WelcomeParameters, ThankYouParameters,
-                               MultipleChoiceParameters, PhoneNumberParameters, ShortTextParameters, LongTextParameters, StatementParameters)
+                               MultipleChoiceParameters, PhoneNumberParameters, ShortTextParameters, LongTextParameters, StatementParameters,
+                               PictureChoiceParameters, YesNoParameters, EmailParameters, OpinionScaleParameters, RatingParameters, DateParameters,
+                               NumberParameters, DropdownParameters, LegalParameters, FileUploadParameters, PaymentParameters, WebsiteParameters)
 
 
 class SurveyForm(forms.ModelForm):
@@ -52,7 +54,85 @@ class LongTextParametersForm(forms.ModelForm):
         model = LongTextParameters
         fields = ['limit_character', 'limit', 'image_url', 'video_url']
 
+
 class StatementParametersForm(forms.ModelForm):
     class Meta:
         model = StatementParameters
-        fields = ['button_label', 'show_quotation_mark', 'image_url', 'video_url']
+        fields = ['button_label', 'show_quotation_mark',
+                  'image_url', 'video_url']
+
+
+class PictureChoiceParametersForm(forms.ModelForm):
+    class Meta:
+        model = PictureChoiceParameters
+        fields = ['multiple_selection', 'randomize', 'other_option', 'show_labels', 'supersize',
+                  'image_url', 'video_url']
+
+
+class YesNoParametersForm(forms.ModelForm):
+    class Meta:
+        model = YesNoParameters
+        fields = ['image_url', 'video_url']
+
+
+class EmailParametersForm(forms.ModelForm):
+    class Meta:
+        model = EmailParameters
+        fields = ['image_url', 'video_url']
+
+
+class OpinionScaleParametersForm(forms.ModelForm):
+    class Meta:
+        model = OpinionScaleParameters
+        fields = ['start_at_one', 'number_of_steps', 'show_labels',
+                  'left_label', 'center_label', 'right_label', 'image_url', 'video_url']
+
+
+class RatingParametersForm(forms.ModelForm):
+    class Meta:
+        model = RatingParameters
+        fields = ['number_of_steps', 'shape', 'image_url', 'video_url']
+
+
+class DateParametersForm(forms.ModelForm):
+    class Meta:
+        model = DateParameters
+        fields = ['date_format', 'date_separator', 'image_url', 'video_url']
+
+
+class NumberParametersForm(forms.ModelForm):
+    class Meta:
+        model = NumberParameters
+        fields = ['enable_min', 'min_value', 'enable_max',
+                  'max_value', 'image_url', 'video_url']
+
+
+class DropdownParametersForm(forms.ModelForm):
+    class Meta:
+        model = DropdownParameters
+        fields = ['randomize', 'alphabetical', 'image_url', 'video_url']
+
+
+class LegalParametersForm(forms.ModelForm):
+    class Meta:
+        model = LegalParameters
+        fields = ['image_url', 'video_url']
+
+
+class FileUploadParametersForm(forms.ModelForm):
+    class Meta:
+        model = FileUploadParameters
+        fields = ['image_url', 'video_url']
+
+
+class PaymentParametersForm(forms.ModelForm):
+    class Meta:
+        model = PaymentParameters
+        fields = ['currency', 'price', 'stripe_token',
+                  'button_label', 'image_url', 'video_url']
+
+
+class WebsiteParametersForm(forms.ModelForm):
+    class Meta:
+        model = WebsiteParameters
+        fields = ['image_url', 'video_url']

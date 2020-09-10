@@ -250,6 +250,121 @@ class AddQuestionView(LoginRequiredMixin, View):
                     return redirect(self.add_question_url, survey.id)
                 else:
                     logger.warning('Failed to validate statement parameters %s', parameters_form.errors)
+            elif question_type == Question.STATEMENT:
+                parameters_form = StatementParametersForm(request.POST)
+                if parameters_form.is_valid():
+                    question = survey.add_statement(
+                        question_form.cleaned_data['question'],
+                        description=question_form.cleaned_data['description'],
+                        button_label=parameters_form.cleaned_data['button_label'],
+                        show_quotation_mark=parameters_form.cleaned_data['show_quotation_mark'],
+                        image_url=parameters_form.cleaned_data['image_url'],
+                        video_url=parameters_form.cleaned_data['video_url'],
+                    )
+                    logger.info('Created Statement %s', question.id)
+                    return redirect(self.add_question_url, survey.id)
+                else:
+                    logger.warning('Failed to validate statement parameters %s', parameters_form.errors)
+            elif question_type == Question.PICTURE_CHOICE:
+                parameters_form = PictureChoiceParametersForm(request.POST)
+                if parameters_form.is_valid():
+                    images = request.POST.getlist('choice')
+                    labels = request.POST.getlist('label')
+                    choices = []
+                    for index in range(len(images)):
+                        choices.append({
+                            'label': labels[index],
+                            'image_url': images[index],
+                        })
+                    
+
+                    question = survey.add_picture_choice(
+                        question_form.cleaned_data['question'],
+                        description=question_form.cleaned_data['description'],
+                        required=question_form.cleaned_data['required'],
+                        multiple_selection=parameters_form.cleaned_data['multiple_selection'],
+                        other_option=parameters_form.cleaned_data['other_option'],
+                        show_labels=parameters_form.cleaned_data['show_labels'],
+                        supersize=parameters_form.cleaned_data['supersize'],
+                        choices=choices,
+                        image_url=parameters_form.cleaned_data['image_url'],
+                        video_url=parameters_form.cleaned_data['video_url'],                        
+                    )
+                    logger.info('Created Picture Choice %s', question.id)
+                    return redirect(self.add_question_url, survey.id)
+                else:
+                    logger.warning('Failed to validate picture_choice parameters %s', parameters_form.errors)
+
+            elif question_type == Question.YES_NO:
+                parameters_form = YesNoParametersForm(request.POST)
+                if parameters_form.is_valid():
+                    question = survey.add_yes_no(
+                        question_form.cleaned_data['question'],
+                        description=question_form.cleaned_data['description'],
+                        required=question_form.cleaned_data['required'],
+                        image_url=parameters_form.cleaned_data['image_url'],
+                        video_url=parameters_form.cleaned_data['video_url'],
+                    )
+                    logger.info('Created Yes/No %s', question.id)
+                    return redirect(self.add_question_url, survey.id)
+                else:
+                    logger.warning('Failed to validate yes_no parameters %s', parameters_form.errors)
+            elif question_type == Question.EMAIL:
+                parameters_form = EmailParametersForm(request.POST)
+                if parameters_form.is_valid():
+                    question = survey.add_email(
+                        question_form.cleaned_data['question'],
+                        description=question_form.cleaned_data['description'],
+                        required=question_form.cleaned_data['required'],
+                        image_url=parameters_form.cleaned_data['image_url'],
+                        video_url=parameters_form.cleaned_data['video_url'],
+                    )
+                    logger.info('Created Email %s', question.id)
+                    return redirect(self.add_question_url, survey.id)
+                else:
+                    logger.warning('Failed to validate email parameters %s', parameters_form.errors)
+            elif question_type == Question.OPINION_SCALE:
+                raise Http404
+            elif question_type == Question.RATING:
+                raise Http404
+            elif question_type == Question.DATE:
+                raise Http404
+            elif question_type == Question.NUMBER:
+                raise Http404
+            elif question_type == Question.DROPDOWN:
+                raise Http404
+            elif question_type == Question.LEGAL:
+                parameters_form = LegalParametersForm(request.POST)
+                if parameters_form.is_valid():
+                    question = survey.add_legal(
+                        question_form.cleaned_data['question'],
+                        description=question_form.cleaned_data['description'],
+                        required=question_form.cleaned_data['required'],
+                        image_url=parameters_form.cleaned_data['image_url'],
+                        video_url=parameters_form.cleaned_data['video_url'],
+                    )
+                    logger.info('Created Email %s', question.id)
+                    return redirect(self.add_question_url, survey.id)
+                else:
+                    logger.warning('Failed to validate email parameters %s', parameters_form.errors)
+            elif question_type == Question.FILE_UPLOAD:
+                raise Http404
+            elif question_type == Question.PAYMENT:
+                raise Http404
+            elif question_type == Question.WEBSITE:
+                parameters_form = WebsiteParametersForm(request.POST)
+                if parameters_form.is_valid():
+                    question = survey.add_website(
+                        question_form.cleaned_data['question'],
+                        description=question_form.cleaned_data['description'],
+                        required=question_form.cleaned_data['required'],
+                        image_url=parameters_form.cleaned_data['image_url'],
+                        video_url=parameters_form.cleaned_data['video_url'],
+                    )
+                    logger.info('Created Email %s', question.id)
+                    return redirect(self.add_question_url, survey.id)
+                else:
+                    logger.warning('Failed to validate email parameters %s', parameters_form.errors)
 
             else:
                 logger.warning('Unsupported type %s', question_type)
