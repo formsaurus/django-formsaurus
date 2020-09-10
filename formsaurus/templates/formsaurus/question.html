@@ -1,4 +1,4 @@
-{% extends "skeleton.html" %}
+{% extends "formsaurus/skeleton.html" %}
 {% load static %}
 
 {% block content %}
@@ -7,39 +7,39 @@
         <div class="col">
             <div class="vertical-center">
                 {% if question.type == 'WS' %}
-                    {% include 'templates/welcome_screen.html' %}
+                    {% include 'formsaurus/templates/welcome_screen.html' %}
                 {% elif question.type == 'MC' %}
-                    {% include 'templates/multiple_choice.html' %}
+                    {% include 'formsaurus/templates/multiple_choice.html' %}
                 {% elif question.type == 'TS' %}
-                    {% include 'templates/thank_you_screen.html' %}
+                    {% include 'formsaurus/templates/thank_you_screen.html' %}
                 {% elif question.type == 'PN' %}
-                    {% include 'templates/phone_number.html' %}
+                    {% include 'formsaurus/templates/phone_number.html' %}
                 {% elif question.type == 'ST' %}
-                    {% include 'templates/short_text.html' %}
+                    {% include 'formsaurus/templates/short_text.html' %}
                 {% elif question.type == 'LT' %}
-                    {% include 'templates/long_text.html' %}
+                    {% include 'formsaurus/templates/long_text.html' %}
                 {% elif question.type == 'S_' %}
-                    {% include 'templates/statement.html' %}
+                    {% include 'formsaurus/templates/statement.html' %}
                 {% elif question.type == 'PC' %}
-                    {% include 'templates/picture_choice.html' %}
+                    {% include 'formsaurus/templates/picture_choice.html' %}
                 {% elif question.type == 'YN' %}
-                    {% include 'templates/yes_no.html' %}
+                    {% include 'formsaurus/templates/yes_no.html' %}
                 {% elif question.type == 'E_' %}
-                    {% include 'templates/email.html' %}
+                    {% include 'formsaurus/templates/email.html' %}
                 {% elif question.type == 'OS' %}
-                    {% include 'templates/opinion_scale.html' %}
+                    {% include 'formsaurus/templates/opinion_scale.html' %}
                 {% elif question.type == 'R_' %}
-                    {% include 'templates/rating.html' %}
+                    {% include 'formsaurus/templates/rating.html' %}
                 {% elif question.type == 'D_' %}
-                    {% include 'templates/date.html' %}
+                    {% include 'formsaurus/templates/date.html' %}
                 {% elif question.type == 'N_' %}
-                    {% include 'templates/number.html' %}
+                    {% include 'formsaurus/templates/number.html' %}
                 {% elif question.type == 'DD' %}
-                    {% include 'templates/dropdown.html' %}
+                    {% include 'formsaurus/templates/dropdown.html' %}
                 {% elif question.type == 'L_' %}
-                    {% include 'templates/legal.html' %}
+                    {% include 'formsaurus/templates/legal.html' %}
                 {% elif question.type == 'W_' %}
-                    {% include 'templates/website.html' %}
+                    {% include 'formsaurus/templates/website.html' %}
                 {% endif %}
             </div>
         </div>

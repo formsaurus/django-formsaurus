@@ -1,10 +1,11 @@
-import datetime
 import uuid
 
 from dateutil import parser
 from decimal import Decimal
 from django.db import models
 from django.contrib.auth import get_user_model
+from django.utils.timezone import make_aware
+from django.utils import timezone
 from phonenumber_field.modelfields import PhoneNumberField
 
 User = get_user_model()
@@ -34,7 +35,7 @@ PRECISION = 3
 class Survey(BaseModel):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     name = models.CharField(max_length=1024)
-    published = models.BooleanField()
+    published = models.BooleanField(default=False)
     first_question = models.ForeignKey(
         'Question', on_delete=models.CASCADE, blank=True, null=True, default=None, related_name='first_question')
     last_question = models.ForeignKey('Question', on_delete=models.CASCADE,
@@ -502,12 +503,12 @@ class Question(BaseModel):
     next_question = models.ForeignKey('Question', on_delete=models.CASCADE,
                                       related_name='previous_question', blank=True, null=True, default=None)
 
-    
     def next(self, submission):
         # Any rules
         qs = self.ruleset_set.all()
         if qs.count() == 0:
-            print(f"{self.short_id} has no ruleset, returning default {self.next_question}")
+            print(
+                f"{self.short_id} has no ruleset, returning default {self.next_question}")
             return self.next_question
         print(f"{self.short_id} has {qs.count()} ruleset(s)")
         for ruleset in qs:
@@ -517,9 +518,9 @@ class Question(BaseModel):
             if q is not None:
                 return q
         # If none of the ruleset evaluated successfully, fallback to next_question
-        print(f"{self.short_id} no ruleset matched, returning default {self.next_question}")
+        print(
+            f"{self.short_id} no ruleset matched, returning default {self.next_question}")
         return self.next_question
-
 
     def __str__(self):
         return f"{self.short_id} {self.question_type} {self.question}"
@@ -683,7 +684,8 @@ class DateParameters(QuestionParameter):
             return f"DD{s}MM{s}YYYY"
         elif self.date_format == 'C':
             return f"MM{s}DD{s}YYYY"
-        return  f"YYYY{s}MM{s}DD"
+        return f"YYYY{s}MM{s}DD"
+
 
 class NumberParameters(QuestionParameter):
     enable_min = models.BooleanField()
@@ -745,9 +747,8 @@ class Submission(BaseModel):
 
     def complete(self):
         self.completed = True
-        self.completed_at =  datetime.datetime.utcnow()
+        self.completed_at = timezone.now()
         self.save()
-
 
     def answers(self):
         answers = []
@@ -803,7 +804,7 @@ class Submission(BaseModel):
                 choice = Choice.objects.get(pk=choice_id)
                 print(f"Picked up choice {choice}")
                 answer.choices.add(choice)
-            
+
             return answer
         elif question.question_type == Question.PHONE_NUMBER:
             answer = PhoneNumberAnswer(
@@ -892,7 +893,7 @@ class Submission(BaseModel):
             )
             raw = post_data.get('answer', None)
             if raw is not None:
-                answer.date = parser.parse(raw)
+                answer.date = make_aware(parser.parse(raw))
             answer.save()
             return answer
         elif question.question_type == Question.NUMBER:
@@ -913,7 +914,7 @@ class Submission(BaseModel):
             if choice_id is not None:
                 choice = Choice.objects.get(pk=choice_id)
                 answer.choices.add(choice)
-            
+
             return answer
         elif question.question_type == Question.LEGAL:
             y = post_data.get('answer', None)
@@ -970,6 +971,7 @@ class PhoneNumberAnswer(Answer):
     def __str__(self):
         return f'{self.short_id} {self.phone_number}'
 
+
 class ShortTextAnswer(Answer):
     short_text = models.CharField(
         max_length=1024, blank=True, null=True, default=None)
@@ -1002,7 +1004,7 @@ class PictureChoiceAnswer(Answer):
 
 class YesNoAnswer(Answer):
     yes = models.BooleanField(blank=True, null=True, default=None)
-    
+
     @property
     def boolean(self):
         return self.yes
@@ -1013,7 +1015,7 @@ class YesNoAnswer(Answer):
 
 class EmailAnswer(Answer):
     email = models.EmailField(blank=True, null=True, default=None)
-    
+
     @property
     def text(self):
         return str(self.email)
@@ -1025,11 +1027,11 @@ class EmailAnswer(Answer):
 class OpinionScaleAnswer(Answer):
     opinion = models.PositiveSmallIntegerField(
         blank=True, null=True, default=None)
-    
+
     @property
     def number(self):
         return self.opinion
-    
+
     def __str__(self):
         return f'{self.short_id} {self.opinion}'
 
@@ -1037,17 +1039,18 @@ class OpinionScaleAnswer(Answer):
 class RatingAnswer(Answer):
     rating = models.PositiveSmallIntegerField(
         blank=True, null=True, default=None)
-    
+
     @property
     def number(self):
         return self.rating
-    
+
     def __str__(self):
         return f'{self.short_id} {self.rating}'
 
 
 class DateAnswer(Answer):
     date = models.DateField(blank=True, null=True, default=None)
+
     def __str__(self):
         return f'{self.short_id} {self.date}'
 
@@ -1055,6 +1058,7 @@ class DateAnswer(Answer):
 class NumberAnswer(Answer):
     number = models.DecimalField(
         decimal_places=PRECISION, max_digits=MAX_DIGITS, blank=True, null=True, default=None)
+
     def __str__(self):
         return f'{self.short_id} {self.number}'
 
@@ -1063,13 +1067,14 @@ class DropdownAnswer(Answer):
     choices = models.ManyToManyField(Choice)
     other = models.CharField(
         max_length=1024, blank=True, null=True, default=None)
+
     def __str__(self):
         return f'{self.short_id} {self.choices.all()} {self.other}'
 
 
 class LegalAnswer(Answer):
     accept = models.BooleanField(blank=True, null=True, default=None)
-    
+
     @property
     def boolean(self):
         return self.accept
@@ -1089,7 +1094,7 @@ class PaymentAnswer(Answer):
 
 class WebsiteAnswer(Answer):
     url = models.URLField(blank=True, null=True, default=None)
-    
+
     @property
     def text(self):
         return str(url)
@@ -1128,15 +1133,18 @@ class RuleSet(BaseModel):
         print(f"{self.short_id} evaluating for submission {submission.short_id}")
         value = None
         answers = submission.answers()
-        print(f"{self.short_id} submission {submission.short_id} has {len(answers)} answer(s)")
+        print(
+            f"{self.short_id} submission {submission.short_id} has {len(answers)} answer(s)")
         print(f"{self.short_id} has {len(self.conditions)} condition(s)")
         for condition in self.conditions:
             print(f"{self.short_id} checking condition {condition}")
             for answer in answers:
                 if answer.question.id == condition.tested.id:
-                    print(f"Condition {condition.short_id} testing against {condition.tested.short_id} which we have answer {answer.short_id}")
+                    print(
+                        f"Condition {condition.short_id} testing against {condition.tested.short_id} which we have answer {answer.short_id}")
                     current = condition.evaluate(answer)
-                    print(f"condition {condition.short_id} evaluated to {current}")
+                    print(
+                        f"condition {condition.short_id} evaluated to {current}")
                     if value is None:
                         value = current
                     else:
@@ -1146,7 +1154,6 @@ class RuleSet(BaseModel):
                         else:
                             value = value and current
         return self.jump_to if value else None
-
 
 
 class Condition(BaseModel):
@@ -1194,9 +1201,10 @@ class TextCondition(Condition):
             return answer.text.startswith(self.pattern)
         elif self.match == TextCondition.ENDS_WITH:
             return answer.text.endswith(self.pattern)
-        elif self.match == TextCondition.CONTAINS:    
+        elif self.match == TextCondition.CONTAINS:
             return self.pattern in answer.text
         return False
+
 
 class NumberCondition(Condition):
     EQUAL = 'EQ'
@@ -1217,7 +1225,6 @@ class NumberCondition(Condition):
     pattern = models.DecimalField(
         max_digits=MAX_DIGITS, decimal_places=PRECISION)
 
-
     def evaluate(self, answer):
         if self.match == NumberCondition.EQUAL:
             return self.pattern == answer.number
@@ -1232,6 +1239,7 @@ class NumberCondition(Condition):
         elif self.match == NumberCondition.GREATER_THAN_OR_EQUAL:
             return self.number >= self.pattern
         return False
+
 
 class ChoiceCondition(Condition):
     IS = 'IS'
@@ -1250,6 +1258,7 @@ class ChoiceCondition(Condition):
             return self.choice not in answer.choices.all()
         return False
 
+
 class BooleanCondition(Condition):
     IS = 'IS'
     IS_NOT = 'ISN'
@@ -1262,14 +1271,17 @@ class BooleanCondition(Condition):
 
     def evaluate(self, answer):
         if self.match == BooleanCondition.IS:
-            print(f"[=] self.boolean = {self.boolean} answer.boolean = {answer.boolean}")
+            print(
+                f"[=] self.boolean = {self.boolean} answer.boolean = {answer.boolean}")
             return answer.boolean == self.boolean
         elif self.match == BooleanCondition.IS_NOT:
-            print(f"[!] self.boolean = {self.boolean} answer.boolean = {answer.boolean}")
+            print(
+                f"[!] self.boolean = {self.boolean} answer.boolean = {answer.boolean}")
             return answer.boolean != self.boolean
 
     def __str__(self):
         return f'{self.short_id} {self.match} {self.boolean}'
+
 
 class Builder:
     links = []

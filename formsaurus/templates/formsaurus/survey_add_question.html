@@ -1,0 +1,360 @@
+{% extends 'formsaurus/skeleton.html' %}
+
+{% block head %}
+<style>
+    input.title:focus, input.title  {
+        background: transparent !important;
+        border: 0;
+        outline: 0;
+        box-shadow:none !important;
+        font-size: 30px;
+        width: 100%;
+        border-bottom: 1px solid #cccccc;
+    }    
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col">
+            <h4>{{ survey.name }}</h4>
+            <h1>Add Question</h1>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col">
+            <div class="btn-group">
+                <button type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">{{ type_name }}</button>
+                <div class="dropdown-menu">
+                    {% for type in types.items %}
+                        <a class="dropdown-item" href="{% url 'formsaurus:survey_add_question' survey.id type.0 %}">{{ type.1 }}</a>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row pt-5">
+        <div class="col">
+            <form method="POST" action="{% url 'formsaurus:survey_add_question' survey.id type %}">
+                {% csrf_token %}
+                <input type="hidden" name="question_type" value="{{ type }}">
+
+                <!-- Common Parameters to all Question Types -->
+                <div class="form-group">
+                    <input type="text" name="question" class="w-100 mb-2 title" placeholder="Question" autofocus required/>
+                    <label for="button_label"><small class="text-muted">Question</small></label>
+                </div>
+
+                <div class="form-group">
+                    <input type="text" name="description" class="w-100 mb-2 title" placeholder="..."/>
+                    <label for="button_label"><small class="text-muted">Description</small></label>
+                </div>
+
+                {% if type != 'WS' and type != 'TS' and type != 'S_' %}
+                <div class="custom-control custom-switch">
+                    <input type="checkbox" class="custom-control-input" id="required_switch" name="required">
+                    <label class="custom-control-label" for="required_switch">Required</label>
+                </div>
+                {% endif %}
+
+                
+                <!-- Image -->
+                <div class="custom-control custom-switch">
+                    <input type="checkbox" class="custom-control-input" id="show_image_switch">
+                    <label class="custom-control-label" for="show_image_switch">Show Image</label>
+                </div>
+
+                <div class="form-group d-none" id="show_image_content">
+                    <input type="url" name="image_url" class="w-100 mb-2 title" placeholder="https://unsplash.com/"/>
+                    <label for="button_label"><small class="text-muted">Image URL</small></label>
+                </div>
+
+                <!-- Video -->
+                <div class="custom-control custom-switch">
+                    <input type="checkbox" class="custom-control-input" id="show_video_switch">
+                    <label class="custom-control-label" for="show_video_switch">Show Video</label>
+                </div>
+
+                <div class="form-group d-none" id="show_video_content">
+                    <input type="url" name="video_url" class="w-100 mb-2 title" placeholder="https://youtube.com/"/>
+                    <label for="button_label"><small class="text-muted">Video URL</small></label>
+                </div>
+            
+            {% if type == 'WS' %}
+                <!-- Welcome Screen Parameters -->
+                <p class="mt-3 mb-1"><small class="text-muted mt-5">Welcome Screen</small></p>
+                <div class="form-group">
+                    <input type="text" name="button_label" class="w-100 mb-2 title" value="Next" placeholder="Go" required/>
+                    <label for="button_label"><small class="text-muted">Button Label</small></label>
+                </div>
+            {% elif type == 'TS' %}
+                <!-- Thank You Screen Parameteres -->
+                <p class="mt-3 mb-1"><small class="text-muted mt-5">Thank You Screen</small></p>
+                <div class="custom-control custom-switch">
+                    <input type="checkbox" class="custom-control-input" id="ts_show_button_switch" name="show_button">
+                    <label class="custom-control-label" for="ts_show_button_switch">Show Button</label>
+                </div>
+                <div class="d-none" id="ts_show_button_content">
+                    <div class="form-group">
+                        <input type="text" name="button_label" class="w-100 mb-2 title" value="Done" placeholder="Done" required/>
+                        <label for="button_label"><small class="text-muted">Button Label</small></label>
+                    </div>
+                    <div class="form-group">
+                        <input type="url" name="button_link" class="w-100 mb-2 title" placeholder="https://example.com" required/>
+                        <label for="button_link"><small class="text-muted">Button Link</small></label>
+                    </div>
+                </div>
+                <div class="custom-control custom-switch">
+                    <input type="checkbox" class="custom-control-input" id="show_social_media_switch" name="show_social_media">
+                    <label class="custom-control-label" for="show_social_media_switch">Show Social Media</label>
+                </div>
+            {% elif type == 'MC' %}
+                <!-- Multiple Choice Parameters -->
+                <p class="mt-3 mb-1"><small class="text-muted">Multiple Choice</small></p>
+                <div class="custom-control custom-switch">
+                    <input type="checkbox" class="custom-control-input" id="multiple_selection_switch" name="multiple_selection">
+                    <label class="custom-control-label" for="multiple_selection_switch">Multiple Selection</label>
+                </div>
+                <div class="custom-control custom-switch">
+                    <input type="checkbox" class="custom-control-input" id="randomize_switch" name="randomize">
+                    <label class="custom-control-label" for="randomize_switch">Randomize</label>
+                </div>
+                <div class="custom-control custom-switch">
+                    <input type="checkbox" class="custom-control-input" id="other_option_switch" name="other_option">
+                    <label class="custom-control-label" for="other_option_switch">Other Option</label>
+                </div>
+                <div class="mt-4">
+                    <div class="custom-control custom-switch">
+                        <input type="text" name="choice" class="w-100 mb-2 title mc_choice" placeholder="Choice..."/>
+                        <label for="choice"><small class="text-muted">Choice</small></label>
+                    </div>
+                </div>
+            {% elif type == 'PN' %}
+                <!-- Phone Number Parameters -->
+                <p class="mt-3 mb-1"><small class="text-muted">Phone Number</small></p>
+                <div class="form-group">
+                    <input type="number" min="0" step="1" name="default_country_code" class="w-100 mb-2 title" value="1" placeholder="1" required/>
+                    <label for="default_country_code"><small class="text-muted">Default Country Code</small></label>
+                </div>
+            {% elif type == 'ST' %}
+                <!-- Short Text Parameters -->
+                <p class="mt-3 mb-1"><small class="text-muted">Short Text</small></p>
+                <div class="custom-control custom-switch">
+                    <input type="checkbox" class="custom-control-input" id="st_limit_character_switch">
+                    <label class="custom-control-label" for="st_limit_character_switch">Limit Character</label>
+                </div>
+                <div class="form-group d-none" id="st_limit_character_content">
+                    <input type="number" min="1" step="1" name="limit" class="w-100 mb-2 title" value="25" placeholder="25" id="st_limit"/>
+                    <label for="st_limit"><small class="text-muted">Limit</small></label>
+                </div>
+            {% elif type == 'LT' %}
+                <!-- Long Text Parameters -->
+                <p class="mt-3 mb-1"><small class="text-muted">Long Text</small></p>
+                <div class="custom-control custom-switch">
+                    <input type="checkbox" class="custom-control-input" id="lt_limit_character_switch">
+                    <label class="custom-control-label" for="lt_limit_character_switch">Limit Character</label>
+                </div>
+                <div class="form-group d-none" id="lt_limit_character_content">
+                    <input type="number" min="1" step="1" name="limit" class="w-100 mb-2 title" value="250" placeholder="250" id="lt_limit"/>
+                    <label for="lt_limit"><small class="text-muted">Limit</small></label>
+                </div>
+            {% elif type == 'S_' %}
+                <!-- Statement Parameters -->
+                <p class="mt-3 mb-1"><small class="text-muted">Statement</small></p>
+                <div class="form-group">
+                    <input type="text" name="button_label" class="w-100 mb-2 title" value="Next" placeholder="Next" required/>
+                    <label for="button_label"><small class="text-muted">Button Label</small></label>
+                </div>
+                <div class="custom-control custom-switch">
+                    <input type="checkbox" class="custom-control-input" id="s_show_quotation_mark_switch" name="show_quotation_mark">
+                    <label class="custom-control-label" for="s_show_quotation_mark_switch">Show Quotation Mark</label>
+                </div>
+            {% elif type == 'PC' %}
+                <small class="text-muted">Picture Choice</small>
+                <div class="custom-control custom-switch">
+                    <input type="checkbox" class="custom-control-input" id="customSwitch1">
+                    <label class="custom-control-label" for="customSwitch1">Show Labels</label>
+                </div>
+                <div class="custom-control custom-switch">
+                    <input type="checkbox" class="custom-control-input" id="customSwitch1">
+                    <label class="custom-control-label" for="customSwitch1">Supersize</label>
+                </div>
+            {% elif type == 'YN' %}
+                <small class="text-muted">Yes No</small>
+            {% elif type == 'E_' %}
+                <small class="text-muted">Email</small>
+            {% elif type == 'OS' %}
+                <small class="text-muted">Opinion Scale</small>
+                <div class="custom-control custom-switch">
+                    <input type="checkbox" class="custom-control-input" id="customSwitch1">
+                    <label class="custom-control-label" for="customSwitch1">Start at One</label>
+                </div>
+                <div class="form-group">
+                    <input type="number" min="1" step="1" name="button_label" class="w-100 mb-2 title" placeholder="10"/>
+                    <label for="button_link"><small class="text-muted">Number of Steps</small></label>
+                </div>
+                <div class="custom-control custom-switch">
+                    <input type="checkbox" class="custom-control-input" id="customSwitch1">
+                    <label class="custom-control-label" for="customSwitch1">Show Labels</label>
+                </div>
+                <div class="form-group">
+                    <input type="text" name="button_label" class="w-100 mb-2 title" placeholder="Left"/>
+                    <label for="button_link"><small class="text-muted">Left Label</small></label>
+                </div>
+                <div class="form-group">
+                    <input type="text" name="button_label" class="w-100 mb-2 title" placeholder="Middle"/>
+                    <label for="button_link"><small class="text-muted">Middle Label</small></label>
+                </div>
+                <div class="form-group">
+                    <input type="text" name="button_label" class="w-100 mb-2 title" placeholder="Right"/>
+                    <label for="button_link"><small class="text-muted">Right Label</small></label>
+                </div>
+            {% elif type == 'R_' %}
+                <small class="text-muted">Rating</small>
+                <div class="form-group">
+                    <input type="number" min="1" step="1" name="button_label" class="w-100 mb-2 title" placeholder="10"/>
+                    <label for="button_link"><small class="text-muted">Number of Steps</small></label>
+                </div>             
+                <!-- TODO pic shape -->   
+            {% elif type == 'D_' %}
+                <small class="text-muted">Date</small>
+                <!-- TODO -->
+            {% elif type == 'N_' %}
+                <small class="text-muted">Number</small>
+                <div class="custom-control custom-switch">
+                    <input type="checkbox" class="custom-control-input" id="customSwitch1">
+                    <label class="custom-control-label" for="customSwitch1">Enable Minimum Value</label>
+                </div>
+                <div class="form-group">
+                    <input type="number" name="button_label" class="w-100 mb-2 title" placeholder="0"/>
+                    <label for="button_link"><small class="text-muted">Minimum Value</small></label>
+                </div>             
+                <div class="custom-control custom-switch">
+                    <input type="checkbox" class="custom-control-input" id="customSwitch1">
+                    <label class="custom-control-label" for="customSwitch1">Enable Maximum Value</label>
+                </div>
+                <div class="form-group">
+                    <input type="number" name="button_label" class="w-100 mb-2 title" placeholder="99"/>
+                    <label for="button_link"><small class="text-muted">Maximum Value</small></label>
+                </div>             
+            {% elif type == 'DD' %}
+                <small class="text-muted">Dropdown</small>
+                <div class="custom-control custom-switch">
+                    <input type="checkbox" class="custom-control-input" id="customSwitch1">
+                    <label class="custom-control-label" for="customSwitch1">Randomize</label>
+                </div>
+                <div class="custom-control custom-switch">
+                    <input type="checkbox" class="custom-control-input" id="customSwitch1">
+                    <label class="custom-control-label" for="customSwitch1">Alphabetical</label>
+                </div>
+            {% elif type == 'L_' %}
+                <small class="text-muted">Legal</small>
+            {% elif type == 'FU' %}
+                <small class="text-muted">File Upload</small>
+            {% elif type == 'P_' %}
+                <small class="text-muted">Payment</small>
+                <!-- TODO -->
+            {% elif type == 'W_' %}
+                <small class="text-muted">Website</small>
+            {% else %}
+                <small class="text-muted">{{ type }}</small>
+            {% endif %}
+
+            <div class="form-group mt-5">
+                <input type="submit" class="btn btn-primary">
+            </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascript %}
+<script>
+$.fn.enterKey = function(callback) {
+    $(this).keypress(function (evt) {
+        keycode = evt.keycode ? evt.keycode : evt.which
+        if (keycode == 13) {
+            callback.call(this, evt)
+        }
+    })
+}
+$(function() {
+    // image_url
+    $('#show_image_switch').change(function(evt) {
+        checked = $(this).prop('checked')
+        if ($(this).prop('checked')) {
+            $('#show_image_content').removeClass('d-none');
+            $('#show_video_switch').prop('disabled', true)
+        } else {
+            $('#show_image_content').addClass('d-none');
+            $('#show_video_switch').prop('disabled', false)
+        }
+    })
+    // video_url
+    $('#show_video_switch').change(function(evt) {
+        checked = $(this).prop('checked')
+        if ($(this).prop('checked')) {
+            $('#show_video_content').removeClass('d-none');
+            $('#show_image_switch').prop('disabled', true)
+        } else {
+            $('#show_video_content').addClass('d-none');
+            $('#show_image_switch').prop('disabled', false)
+        }
+    })
+
+    // TS
+    $('#ts_show_button_switch').change(function(evt) {
+        checked = $(this).prop('checked')
+        if ($(this).prop('checked')) {
+            $('#ts_show_button_content').removeClass('d-none');
+        } else {
+            $('#ts_show_button_content').addClass('d-none');
+        }
+    })
+    // MC
+    $('.mc_choice').enterKey(addChoice)
+    // ST
+    $('#st_limit_character_switch').change(function(evt) {
+        checked = $(this).prop('checked')
+        if ($(this).prop('checked')) {
+            $('#st_limit_character_content').removeClass('d-none');
+            $('#st_limit').prop('required', true)
+        } else {
+            $('#st_limit_character_content').addClass('d-none');
+            $('#st_limit').prop('required', false)
+        }
+    })
+    // LT
+    $('#lt_limit_character_switch').change(function(evt) {
+        checked = $(this).prop('checked')
+        if ($(this).prop('checked')) {
+            $('#lt_limit_character_content').removeClass('d-none');
+            $('#lt_limit').prop('required', true)
+        } else {
+            $('#lt_limit_character_content').addClass('d-none');
+            $('#lt_limit').prop('required', false)
+        }
+    })
+
+})
+
+function addChoice(evt) {
+    d = $('<div/>').addClass('custom-control').addClass('custom-switch')
+    i = $('<input/>').attr('type', 'text').attr('name', 'choice').addClass('w-100').addClass('mb-2').addClass('title').addClass('mc_choice').attr('placeholder', 'Choice..')
+    d.append(i)
+    i.enterKey(addChoice)
+    l = $('<label/>').attr('for', 'choice')
+    s = $('<small/>').addClass('text-muted').text('Choice')
+    l.append(s)
+    d.append(l)
+
+    $(this).parent().parent().append(d)
+    i.focus();
+    evt.preventDefault();
+    return false;
+}
+</script>
+
+{% endblock %}

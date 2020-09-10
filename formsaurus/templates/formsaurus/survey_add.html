@@ -1,0 +1,34 @@
+{% extends "formsaurus/skeleton.html" %}
+
+{% block head %}
+<style>
+    input.title:focus, input.title  {
+        background: transparent !important;
+        border: 0;
+        outline: 0;
+        box-shadow:none !important;
+        font-size: 30px;
+        width: 100%;
+        border-bottom: 1px solid #cccccc;
+    }    
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <main class="container">
+        <div class="row">
+            <div class="col">
+                {% if survey %}
+                <form method="POST" action="{% url 'formsaurus:survey_edit' survey.id %}">
+                {% else %}
+                <form method="POST" action="{% url 'formsaurus:survey_add' %}">
+                {% endif %}
+                    {% csrf_token %}
+                    <input type="text" name="name" class="w-100 mb-2 title" placeholder="What do you think?" autofocus required value="{{ survey.name }}"/>
+                    <button type="submit" class="btn btn-success" style="min-width: 150px;">{% if survey %}Save{% else %}Create{% endif %}</button>
+                </form>
+        </div>
+    </main>
+</div>
+{% endblock %}

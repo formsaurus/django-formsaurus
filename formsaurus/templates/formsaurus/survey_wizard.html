@@ -1,0 +1,16 @@
+{% extends 'formsaurus/skeleton.html' %}
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col">
+            <h1>{{ survey.name }}</h1>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col">
+            <a href="{% url 'formsaurus:survey_add_question' survey.id %}" class="btn btn-primary">Add Question</a>
+        </div>
+        <!-- Questions -->
+    </div>
+</div>
+{% endblock %}
