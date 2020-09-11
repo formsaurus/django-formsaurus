@@ -6,6 +6,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic.base import View
 from django.views.generic.edit import FormView
 from django.urls import reverse
+from django.utils import timezone
 
 from formsaurus.models import Survey, Question, Submission
 from formsaurus.serializer import Serializer
@@ -20,6 +21,9 @@ class SurveyView(View):
 
     def get(self, request, survey_id):
         survey = get_object_or_404(Survey, pk=survey_id)
+        if not survey.published:
+            raise Http404
+
         question = survey.first_question
         submission = Submission.objects.create(
             survey=survey,
@@ -38,35 +42,9 @@ class QuestionView(View):
         question = get_object_or_404(Question, pk=question_id)
         if question.survey != survey:
             raise Http404
-
         submission = get_object_or_404(Submission, pk=submission_id)
         if submission.survey != survey:
             raise Http404
-
-        if request.method == 'POST':
-            answer = submission.record_answer(
-                question, request.POST, request.FILES)
-            if answer is None:
-                logger.debug("No answer recorded")
-            else:
-                logger.debug(f"Recorded answer {answer.id}")
-
-            next_question = question.next(submission)
-            logger.debug(f"Evaluated next to be {next_question}")
-
-            # Find Next Question
-            if next_question is None:
-                submission.complete()
-                request.session['submission'] = None
-                return redirect(self.completed_url, survey.id, submission.id)
-            else:
-                if next_question.question_type == Question.THANK_YOU_SCREEN:
-                    submission.complete()
-                    request.session['submission'] = None
-
-                print(f"{question.id} -> {next_question.id}")
-                return redirect(self.question_url, survey.id, next_question.id, submission.id)
-
         context = {}
         context['survey'] = Serializer.survey(survey)
         context['question'] = Serializer.question(question)
@@ -74,10 +52,47 @@ class QuestionView(View):
             submission) if submission is not None else None
         return render(request, self.template_name, context=context)
 
+    def post(self, request, survey_id, question_id, submission_id):
+        survey = get_object_or_404(Survey, pk=survey_id)
+        
+        question = get_object_or_404(Question, pk=question_id)
+        if question.survey != survey:
+            raise Http404
+
+        submission = get_object_or_404(Submission, pk=submission_id)
+        if submission.survey != survey:
+            raise Http404
+
+        answer = submission.record_answer(
+            question, request.POST, request.FILES)
+        if answer is None:
+            logger.debug("No answer recorded")
+        else:
+            logger.debug(f"Recorded answer {answer.id}")
+
+        next_question = question.next(submission)
+        logger.debug(f"Evaluated next to be {next_question}")
+
+        # Find Next Question
+        if next_question is None:
+            submission.complete()
+            request.session['submission'] = None
+            return redirect(self.completed_url, survey.id, submission.id)
+        else:
+            if next_question.question_type == Question.THANK_YOU_SCREEN:
+                submission.complete()
+                request.session['submission'] = None
+
+            print(f"{question.id} -> {next_question.id}")
+            return redirect(self.question_url, survey.id, next_question.id, submission.id)
+
+
 
 class CompletedView(View):
     """Shown when a survey has been completed."""
     template_name = 'formsaurus/completed.html'
+    site_url = None
+    register_url = None
 
     def get(self, request, survey_id, submission_id):
         survey = get_object_or_404(Survey, pk=survey_id)
@@ -85,20 +100,28 @@ class CompletedView(View):
         context = {}
         context['survey'] = Serializer.survey(survey)
         context['submission'] = Serializer.submission(submission)
+        context['site_url'] = reverse(self.site_url)
+        context['register_url'] = reverse(self.register_url)
         return render(request, self.template_name, context=context)
 
 
-class SurveysView(LoginRequiredMixin, FormView):
+class ManageView(LoginRequiredMixin, View):
+    success_url = 'formsaurus:surveys'
+    def get(self, request):
+        return redirect(self.success_url)
+
+class SurveysView(LoginRequiredMixin, View):
     """List all forms own by authorized user."""
-    template_name = 'formsaurus/surveys.html'
+    template_name = 'formsaurus/manage/surveys.html'
 
     def get(self, request):
         context = {}
-        context['surveys'] = Survey.objects.filter(user = request.user)
+        context['surveys'] = Survey.objects.filter(user=request.user)
         return render(request, self.template_name, context)
 
+
 class SurveyWizardView(LoginRequiredMixin, View):
-    template_name = 'formsaurus/survey_wizard.html'
+    template_name = 'formsaurus/manage/survey_wizard.html'
 
     def get(self, request, survey_id):
         survey = get_object_or_404(Survey, pk=survey_id)
@@ -108,8 +131,9 @@ class SurveyWizardView(LoginRequiredMixin, View):
         context['survey'] = survey
         return render(request, self.template_name, context)
 
+
 class AddQuestionView(LoginRequiredMixin, View):
-    template_name = 'formsaurus/survey_add_question.html'
+    template_name = 'formsaurus/manage/survey_add_question.html'
     add_question_url = 'formsaurus:survey_add_question'
 
     def get(self, request, survey_id, question_type=None):
@@ -118,7 +142,8 @@ class AddQuestionView(LoginRequiredMixin, View):
             raise Http404
 
         # Do we already have a welcome screen?
-        has_ws = survey.question_set.filter(question_type=Question.WELCOME_SCREEN).count() > 0
+        has_ws = survey.question_set.filter(
+            question_type=Question.WELCOME_SCREEN).count() > 0
         default_type = Question.WELCOME_SCREEN if not has_ws else Question.YES_NO
         question_type = question_type if question_type is not None else default_type
         context = {}
@@ -133,19 +158,19 @@ class AddQuestionView(LoginRequiredMixin, View):
             if key == question_type:
                 context['type_name'] = value
         context['type'] = question_type
-        
+
         return render(request, self.template_name, context)
 
     def post(self, request, survey_id, question_type):
         survey = get_object_or_404(Survey, pk=survey_id)
         if survey.user != request.user:
             raise Http404
-        
+
         question_form = AddQuestionForm(request.POST)
         parameters_form = None
 
         logger.info('Question Type %s', question_type)
-        if question_form.is_valid():            
+        if question_form.is_valid():
             logger.debug('Valid question form')
             if question_type == Question.WELCOME_SCREEN:
                 parameters_form = WelcomeParametersForm(request.POST)
@@ -160,7 +185,8 @@ class AddQuestionView(LoginRequiredMixin, View):
                     logger.info('Created Welcome Screen %s', question.id)
                     return redirect(self.add_question_url, survey.id)
                 else:
-                    logger.warning('Failed to validate welcome_screen parameters %s', parameters_form.errors)
+                    logger.warning(
+                        'Failed to validate welcome_screen parameters %s', parameters_form.errors)
             elif question_type == Question.THANK_YOU_SCREEN:
                 parameters_form = ThankYouParametersForm(request.POST)
                 if parameters_form.is_valid():
@@ -177,7 +203,8 @@ class AddQuestionView(LoginRequiredMixin, View):
                     logger.info('Created Thank You Screen %s', question.id)
                     return redirect(self.add_question_url, survey.id)
                 else:
-                    logger.warning('Failed to validate thank_you_screen parameters %s', parameters_form.errors)
+                    logger.warning(
+                        'Failed to validate thank_you_screen parameters %s', parameters_form.errors)
             elif question_type == Question.MULTIPLE_CHOICE:
                 parameters_form = MultipleChoiceParametersForm(request.POST)
                 if parameters_form.is_valid():
@@ -195,7 +222,8 @@ class AddQuestionView(LoginRequiredMixin, View):
                     logger.info('Created Multiple Choice %s', question.id)
                     return redirect(self.add_question_url, survey.id)
                 else:
-                    logger.warning('Failed to validate multiple_choice parameters %s', parameters_form.errors)
+                    logger.warning(
+                        'Failed to validate multiple_choice parameters %s', parameters_form.errors)
             elif question_type == Question.PHONE_NUMBER:
                 parameters_form = PhoneNumberParametersForm(request.POST)
                 if parameters_form.is_valid():
@@ -210,7 +238,8 @@ class AddQuestionView(LoginRequiredMixin, View):
                     logger.info('Created Phone Number %s', question.id)
                     return redirect(self.add_question_url, survey.id)
                 else:
-                    logger.warning('Failed to validate phone_number parameters %s', parameters_form.errors)
+                    logger.warning(
+                        'Failed to validate phone_number parameters %s', parameters_form.errors)
             elif question_type == Question.SHORT_TEXT:
                 parameters_form = ShortTextParametersForm(request.POST)
                 if parameters_form.is_valid():
@@ -226,7 +255,8 @@ class AddQuestionView(LoginRequiredMixin, View):
                     logger.info('Created Short Text %s', question.id)
                     return redirect(self.add_question_url, survey.id)
                 else:
-                    logger.warning('Failed to validate short_text parameters %s', parameters_form.errors)
+                    logger.warning(
+                        'Failed to validate short_text parameters %s', parameters_form.errors)
             elif question_type == Question.LONG_TEXT:
                 parameters_form = LongTextParametersForm(request.POST)
                 if parameters_form.is_valid():
@@ -242,7 +272,8 @@ class AddQuestionView(LoginRequiredMixin, View):
                     logger.info('Created Long Text %s', question.id)
                     return redirect(self.add_question_url, survey.id)
                 else:
-                    logger.warning('Failed to validate long_text parameters %s', parameters_form.errors)
+                    logger.warning(
+                        'Failed to validate long_text parameters %s', parameters_form.errors)
 
             elif question_type == Question.STATEMENT:
                 parameters_form = StatementParametersForm(request.POST)
@@ -258,7 +289,8 @@ class AddQuestionView(LoginRequiredMixin, View):
                     logger.info('Created Statement %s', question.id)
                     return redirect(self.add_question_url, survey.id)
                 else:
-                    logger.warning('Failed to validate statement parameters %s', parameters_form.errors)
+                    logger.warning(
+                        'Failed to validate statement parameters %s', parameters_form.errors)
             elif question_type == Question.STATEMENT:
                 parameters_form = StatementParametersForm(request.POST)
                 if parameters_form.is_valid():
@@ -273,7 +305,8 @@ class AddQuestionView(LoginRequiredMixin, View):
                     logger.info('Created Statement %s', question.id)
                     return redirect(self.add_question_url, survey.id)
                 else:
-                    logger.warning('Failed to validate statement parameters %s', parameters_form.errors)
+                    logger.warning(
+                        'Failed to validate statement parameters %s', parameters_form.errors)
             elif question_type == Question.PICTURE_CHOICE:
                 parameters_form = PictureChoiceParametersForm(request.POST)
                 if parameters_form.is_valid():
@@ -285,7 +318,6 @@ class AddQuestionView(LoginRequiredMixin, View):
                             'label': labels[index],
                             'image_url': images[index],
                         })
-                    
 
                     question = survey.add_picture_choice(
                         question_form.cleaned_data['question'],
@@ -297,12 +329,13 @@ class AddQuestionView(LoginRequiredMixin, View):
                         supersize=parameters_form.cleaned_data['supersize'],
                         choices=choices,
                         image_url=parameters_form.cleaned_data['image_url'],
-                        video_url=parameters_form.cleaned_data['video_url'],                        
+                        video_url=parameters_form.cleaned_data['video_url'],
                     )
                     logger.info('Created Picture Choice %s', question.id)
                     return redirect(self.add_question_url, survey.id)
                 else:
-                    logger.warning('Failed to validate picture_choice parameters %s', parameters_form.errors)
+                    logger.warning(
+                        'Failed to validate picture_choice parameters %s', parameters_form.errors)
 
             elif question_type == Question.YES_NO:
                 parameters_form = YesNoParametersForm(request.POST)
@@ -317,7 +350,8 @@ class AddQuestionView(LoginRequiredMixin, View):
                     logger.info('Created Yes/No %s', question.id)
                     return redirect(self.add_question_url, survey.id)
                 else:
-                    logger.warning('Failed to validate yes_no parameters %s', parameters_form.errors)
+                    logger.warning(
+                        'Failed to validate yes_no parameters %s', parameters_form.errors)
             elif question_type == Question.EMAIL:
                 parameters_form = EmailParametersForm(request.POST)
                 if parameters_form.is_valid():
@@ -331,7 +365,8 @@ class AddQuestionView(LoginRequiredMixin, View):
                     logger.info('Created Email %s', question.id)
                     return redirect(self.add_question_url, survey.id)
                 else:
-                    logger.warning('Failed to validate email parameters %s', parameters_form.errors)
+                    logger.warning(
+                        'Failed to validate email parameters %s', parameters_form.errors)
             elif question_type == Question.OPINION_SCALE:
                 parameters_form = OpinionScaleParametersForm(request.POST)
                 if parameters_form.is_valid():
@@ -350,7 +385,8 @@ class AddQuestionView(LoginRequiredMixin, View):
                     logger.info('Created Opinion Scale %s', question.id)
                     return redirect(self.add_question_url, survey.id)
                 else:
-                    logger.warning('Failed to validate opinion_scale parameters %s', parameters_form.errors)
+                    logger.warning(
+                        'Failed to validate opinion_scale parameters %s', parameters_form.errors)
             elif question_type == Question.RATING:
                 parameters_form = RatingParametersForm(request.POST)
                 if parameters_form.is_valid():
@@ -366,7 +402,8 @@ class AddQuestionView(LoginRequiredMixin, View):
                     logger.info('Created Rating %s', question.id)
                     return redirect(self.add_question_url, survey.id)
                 else:
-                    logger.warning('Failed to validate rating parameters %s', parameters_form.errors)
+                    logger.warning(
+                        'Failed to validate rating parameters %s', parameters_form.errors)
             elif question_type == Question.DATE:
                 parameters_form = DateParametersForm(request.POST)
                 if parameters_form.is_valid():
@@ -382,7 +419,8 @@ class AddQuestionView(LoginRequiredMixin, View):
                     logger.info('Created Date %s', question.id)
                     return redirect(self.add_question_url, survey.id)
                 else:
-                    logger.warning('Failed to validate date parameters %s', parameters_form.errors)
+                    logger.warning(
+                        'Failed to validate date parameters %s', parameters_form.errors)
             elif question_type == Question.NUMBER:
                 parameters_form = NumberParametersForm(request.POST)
                 if parameters_form.is_valid():
@@ -400,7 +438,8 @@ class AddQuestionView(LoginRequiredMixin, View):
                     logger.info('Created Number %s', question.id)
                     return redirect(self.add_question_url, survey.id)
                 else:
-                    logger.warning('Failed to validate number parameters %s', parameters_form.errors)
+                    logger.warning(
+                        'Failed to validate number parameters %s', parameters_form.errors)
             elif question_type == Question.DROPDOWN:
                 parameters_form = DropdownParametersForm(request.POST)
                 if parameters_form.is_valid():
@@ -417,7 +456,8 @@ class AddQuestionView(LoginRequiredMixin, View):
                     logger.info('Created Dropdown %s', question.id)
                     return redirect(self.add_question_url, survey.id)
                 else:
-                    logger.warning('Failed to validate dropdown parameters %s', parameters_form.errors)
+                    logger.warning(
+                        'Failed to validate dropdown parameters %s', parameters_form.errors)
             elif question_type == Question.LEGAL:
                 parameters_form = LegalParametersForm(request.POST)
                 if parameters_form.is_valid():
@@ -431,7 +471,8 @@ class AddQuestionView(LoginRequiredMixin, View):
                     logger.info('Created Email %s', question.id)
                     return redirect(self.add_question_url, survey.id)
                 else:
-                    logger.warning('Failed to validate email parameters %s', parameters_form.errors)
+                    logger.warning(
+                        'Failed to validate email parameters %s', parameters_form.errors)
             elif question_type == Question.FILE_UPLOAD:
                 raise Http404
             elif question_type == Question.PAYMENT:
@@ -449,25 +490,25 @@ class AddQuestionView(LoginRequiredMixin, View):
                     logger.info('Created Email %s', question.id)
                     return redirect(self.add_question_url, survey.id)
                 else:
-                    logger.warning('Failed to validate email parameters %s', parameters_form.errors)
+                    logger.warning(
+                        'Failed to validate email parameters %s', parameters_form.errors)
 
             else:
                 logger.warning('Unsupported type %s', question_type)
 
-
-
         else:
-            logger.warning('Failed to create question %s', question_form.errors)
+            logger.warning('Failed to create question %s',
+                           question_form.errors)
+        # TODO need to handle any potential issues while adding a question to a form.
         context = {}
         context['form'] = question_form
         context['parameters'] = parameters_form
         raise Http404
         # return render(request, self.template_name, context)
 
-        
 
 class SurveyAddView(LoginRequiredMixin, FormView):
-    template_name = 'formsaurus/survey_add.html'
+    template_name = 'formsaurus/manage/survey_add.html'
     success_url = 'formsaurus:survey_wizard'
 
     def get(self, request):
@@ -487,8 +528,22 @@ class SurveyAddView(LoginRequiredMixin, FormView):
             context['form'] = form
             return render(request, self.template_name, context)
 
+
+class PublishSurveyView(LoginRequiredMixin, View):
+    success_url = 'formsaurus:survey_wizard'
+
+    def get(self, request, survey_id):
+        survey = get_object_or_404(Survey, pk=survey_id)
+        if survey.user != request.user:
+            raise Http404
+        survey.published = True
+        survey.published_at = timezone.now()
+        survey.save()
+        return redirect(self.success_url, survey.id)
+
 class DeleteSurveyView(LoginRequiredMixin, View):
     success_url = 'formsaurus:surveys'
+
     def get(self, request, survey_id):
         survey = get_object_or_404(Survey, pk=survey_id)
         if survey.user != request.user:
@@ -499,7 +554,7 @@ class DeleteSurveyView(LoginRequiredMixin, View):
 
 
 class HiddenFieldView(LoginRequiredMixin, View):
-    template_name = 'formsaurus/survey_add_hidden_field.html'
+    template_name = 'formsaurus/manage/survey_add_hidden_field.html'
     success_url = 'formsaurus:survey_wizard'
 
     def get(self, request, survey_id):
@@ -510,7 +565,7 @@ class HiddenFieldView(LoginRequiredMixin, View):
         context['survey'] = survey
         context['form'] = HiddenFieldForm()
         return render(request, self.template_name, context)
-    
+
     def post(self, request, survey_id):
         survey = get_object_or_404(Survey, pk=survey_id)
         if survey.user != request.user:

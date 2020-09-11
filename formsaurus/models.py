@@ -36,6 +36,7 @@ class Survey(BaseModel):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     name = models.CharField(max_length=1024)
     published = models.BooleanField(default=False)
+    published_at = models.DateTimeField(default=None, null=True, blank=True)
     first_question = models.ForeignKey(
         'Question', on_delete=models.CASCADE, blank=True, null=True, default=None, related_name='first_question')
     last_question = models.ForeignKey('Question', on_delete=models.CASCADE,

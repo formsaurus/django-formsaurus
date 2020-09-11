@@ -9,8 +9,10 @@ urlpatterns = [
      path('form/completed/<uuid:survey_id>/<uuid:submission_id>', views.CompletedView.as_view(), name='completed'),
      
      # MANAGEMENT
+     path('manage', views.ManageView.as_view(), name='manage'),
      path('manage/form/add', views.SurveyAddView.as_view(), name='survey_add'),
      path('manage/form/create/<uuid:survey_id>', views.SurveyWizardView.as_view(), name='survey_wizard'),
+     path('manage/form/publish/<uuid:survey_id>', views.PublishSurveyView.as_view(), name='survey_publish'),
      # ADD QUESTION TO FORM
      path('manage/form/create/<uuid:survey_id>/add', views.AddQuestionView.as_view(), name='survey_add_question'),
      path('manage/form/create/<uuid:survey_id>/add/<slug:question_type>', views.AddQuestionView.as_view(), name='survey_add_question'),

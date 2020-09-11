@@ -1,0 +1,51 @@
+{% extends 'formsaurus/skeleton.html' %}
+
+{% block content %}
+{% include 'formsaurus/manage/navbar.html' %}
+<div class="container">
+    <div class="row">
+        <div class="col">
+            <h1>Forms</h1>
+        </div>
+    </div>
+    <div class="row mt-5">
+        <div class="col-2">
+            <a href="{% url 'formsaurus:survey_add' %}" class="btn btn-primary">Create Form</a>
+        </div>
+        <div class="col">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Published</th>
+                        <th>Link</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for form in surveys %}
+                    <tr>
+                        <td>
+                            <a href="{% url 'formsaurus:survey_wizard' form.id %}">{{ form.name }}</a>
+                        </td>
+                        <td>
+                            <div class="custom-control custom-switch">
+                                <input type="checkbox" class="custom-control-input" disabled id="show_image_switch" {% if form.published %}checked{% endif %}>
+                                <label class="custom-control-label" for="show_image_switch"></label>
+                            </div>
+                        </td>
+                        <td>
+                            {% if form.published %}
+                            <a href="{% url 'formsaurus:survey' form.id %}"><i class="fas fa-external-link"></i></a>
+                            {% else %}
+                                <i class="fas fa-external-link text-muted"></i>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

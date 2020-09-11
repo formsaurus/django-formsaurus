@@ -1,4 +1,4 @@
-{% extends "templates/base.html" %}
+{% extends "formsaurus/templates/base.html" %}
 
 {% block input %}
     <input type="text" name="answer" autofocus placeholder="Type your answer here..." class="survey-input" {% if question.parameters.limit_character %}maxlength="{{ question.parameters.limit }}"{% endif %} {% if question.required %}required{% endif %}/>

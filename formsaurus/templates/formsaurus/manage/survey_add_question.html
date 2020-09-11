@@ -1,21 +1,8 @@
 {% extends 'formsaurus/skeleton.html' %}
 
-{% block head %}
-<style>
-    input.title:focus, input.title  {
-        background: transparent !important;
-        border: 0;
-        outline: 0;
-        box-shadow:none !important;
-        font-size: 30px;
-        width: 100%;
-        border-bottom: 1px solid #cccccc;
-    }    
-</style>
-{% endblock %}
-
 {% block content %}
-<div class="container mt-5">
+{% include 'formsaurus/manage/navbar.html' %}
+<div class="container">
     <div class="row">
         <div class="col">
             <h4><a href="{% url 'formsaurus:survey_wizard' survey.id %}">{{ survey.name }}</a></h4>

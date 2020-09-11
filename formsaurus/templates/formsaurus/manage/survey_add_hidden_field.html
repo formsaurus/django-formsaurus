@@ -1,8 +1,8 @@
 {% extends 'formsaurus/skeleton.html' %}
 
-
 {% block content %}
-<div class="container mt-5">
+{% include 'formsaurus/manage/navbar.html' %}
+<div class="container">
     <div class="row">
         <div class="col">
             <h4><a href="{% url 'formsaurus:survey_wizard' survey.id %}">{{ survey.name }}</a></h4>

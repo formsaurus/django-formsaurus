@@ -1,15 +1,16 @@
 {% extends 'formsaurus/skeleton.html' %}
 {% load formsaurus %}
 {% block content %}
-<div class="container mt-5">
+{% include 'formsaurus/manage/navbar.html' %}
+<div class="container">
     <div class="row">
         <div class="col">
             <h1>{{ survey.name }}</h1>
         </div>
         <div class="col-1 pt-4">
             <div class="custom-control custom-switch">
-                <input type="checkbox" class="custom-control-input" id="show_image_switch" {% if question.published %}checked{% endif %}>
-                <label class="custom-control-label" for="show_image_switch">Published</label>
+                <input type="checkbox" class="custom-control-input" id="publish_switch" {% if survey.published %}checked disabled{% endif %}>
+                <label class="custom-control-label" for="publish_switch">Published</label>
             </div>                
 
         </div>
@@ -17,9 +18,9 @@
     <div class="row mt-5">
         <div class="col-2">
             {% if not question.published %}
-                <p><a href="{% url 'formsaurus:survey_add_hidden_field' survey.id %}" class="btn btn-primary">Add Hidden Field</a></p>
-                <p><a href="{% url 'formsaurus:survey_add_question' survey.id %}" class="btn btn-primary">Add Question</a></p>
-                <p><a href="{% url 'formsaurus:survey_delete' survey.id %} " class="btn btn-danger {% if survey.published %}disabled{% endif %}">Delete</a></p>
+                <p><a href="{% url 'formsaurus:survey_add_hidden_field' survey.id %}" class="btn btn-primary btn-wide {% if survey.published %}disabled{% endif %}">Add Hidden Field</a></p>
+                <p><a href="{% url 'formsaurus:survey_add_question' survey.id %}" class="btn btn-primary btn-wide {% if survey.published %}disabled{% endif %}">Add Question</a></p>
+                <p><a href="{% url 'formsaurus:survey_delete' survey.id %} " class="btn btn-danger btn-wide {% if survey.published %}disabled{% endif %}">Delete</a></p>
             {% endif %}
         </div>
         <div class="col">
@@ -39,6 +40,14 @@
             {% if survey.question_set.all %}
             <h2>Questions</h2>
             <table class="table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Type</th>
+                        <th>Question</th>
+                        <th>Required</th>
+                    </tr>
+                </thead>
                 <tbody>
                     {% for question in survey.question_set.all %}
                         <tr>
@@ -61,4 +70,17 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block javascript %}
+<script>
+$(function() {
+    $('#publish_switch').change(function(evt) {
+        if ($(this).prop('checked')) {
+            console.log("{% url 'formsaurus:survey_publish' survey.id %}")
+            window.location.href = "{% url 'formsaurus:survey_publish' survey.id %}"
+        }
+    })
+})
+</script>
 {% endblock %}
