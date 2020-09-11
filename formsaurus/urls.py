@@ -11,9 +11,15 @@ urlpatterns = [
      # MANAGEMENT
      path('manage/form/add', views.SurveyAddView.as_view(), name='survey_add'),
      path('manage/form/create/<uuid:survey_id>', views.SurveyWizardView.as_view(), name='survey_wizard'),
-     
+     # ADD QUESTION TO FORM
      path('manage/form/create/<uuid:survey_id>/add', views.AddQuestionView.as_view(), name='survey_add_question'),
      path('manage/form/create/<uuid:survey_id>/add/<slug:question_type>', views.AddQuestionView.as_view(), name='survey_add_question'),
 
+     # ADD HIDDEN FIELD TO FORM
+     path('manage/form/create/<uuid:survey_id>/field', views.HiddenFieldView.as_view(), name='survey_add_hidden_field'),
+     # DELETE FROM
+     path('manage/form/delete/<uuid:survey_id>', views.DeleteSurveyView.as_view(), name='survey_delete'),
+
+     # LIST OF FORMS
      path('manage/form/list', views.SurveysView.as_view(), name='surveys'),
 ]

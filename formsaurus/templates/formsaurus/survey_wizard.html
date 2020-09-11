@@ -1,16 +1,64 @@
 {% extends 'formsaurus/skeleton.html' %}
+{% load formsaurus %}
 {% block content %}
-<div class="container">
+<div class="container mt-5">
     <div class="row">
         <div class="col">
             <h1>{{ survey.name }}</h1>
         </div>
-    </div>
-    <div class="row">
-        <div class="col">
-            <a href="{% url 'formsaurus:survey_add_question' survey.id %}" class="btn btn-primary">Add Question</a>
+        <div class="col-1 pt-4">
+            <div class="custom-control custom-switch">
+                <input type="checkbox" class="custom-control-input" id="show_image_switch" {% if question.published %}checked{% endif %}>
+                <label class="custom-control-label" for="show_image_switch">Published</label>
+            </div>                
+
         </div>
-        <!-- Questions -->
+    </div>
+    <div class="row mt-5">
+        <div class="col-2">
+            {% if not question.published %}
+                <p><a href="{% url 'formsaurus:survey_add_hidden_field' survey.id %}" class="btn btn-primary">Add Hidden Field</a></p>
+                <p><a href="{% url 'formsaurus:survey_add_question' survey.id %}" class="btn btn-primary">Add Question</a></p>
+                <p><a href="{% url 'formsaurus:survey_delete' survey.id %} " class="btn btn-danger {% if survey.published %}disabled{% endif %}">Delete</a></p>
+            {% endif %}
+        </div>
+        <div class="col">
+            {% if survey.hiddenfield_set.all %}
+            <h2>Fields</h2>
+            <table class="table">
+                <tbody>
+                    {% for field in survey.hiddenfield_set.all %}
+                    <tr><td>{{ field.name }}</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+                <p class="text-muted">No hidden fields in this form.</p>
+            {% endif %}
+
+            {% if survey.question_set.all %}
+            <h2>Questions</h2>
+            <table class="table">
+                <tbody>
+                    {% for question in survey.question_set.all %}
+                        <tr>
+                            <td class="text-muted">{{ forloop.counter }}</td>
+                            <td class="text-muted">{{ question.question_type|question_type_name }}</td>
+                            <td>{{ question.question }}</td>
+                            <td>
+                                <div class="custom-control custom-switch">
+                                    <input type="checkbox" class="custom-control-input" disabled id="show_image_switch" {% if question.required %}checked{% endif %}>
+                                    <label class="custom-control-label" for="show_image_switch"></label>
+                                </div>                
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+                <p class="text-muted">No questions in this form.</p>
+            {% endif %}
+        </div>
     </div>
 </div>
 {% endblock %}

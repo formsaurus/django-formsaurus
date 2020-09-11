@@ -1,0 +1,27 @@
+{% extends 'formsaurus/skeleton.html' %}
+
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col">
+            <h4><a href="{% url 'formsaurus:survey_wizard' survey.id %}">{{ survey.name }}</a></h4>
+            <h1>Add Field</h1>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col">
+            <form method="POST">
+                {% csrf_token %}
+                <div class="form-group">
+                    <input type="text" name="name" class="w-100 mb-2 title" placeholder="email" autofocus required/>
+                    <label for="button_label"><small class="text-muted">Name</small></label>
+                </div>
+                <div class="form-group">
+                    <input type="submit" class="btn btn-primary" value="Add">
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

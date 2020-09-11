@@ -2,12 +2,18 @@ from django import forms
 from formsaurus.models import (Question, Survey, WelcomeParameters, ThankYouParameters,
                                MultipleChoiceParameters, PhoneNumberParameters, ShortTextParameters, LongTextParameters, StatementParameters,
                                PictureChoiceParameters, YesNoParameters, EmailParameters, OpinionScaleParameters, RatingParameters, DateParameters,
-                               NumberParameters, DropdownParameters, LegalParameters, FileUploadParameters, PaymentParameters, WebsiteParameters)
+                               NumberParameters, DropdownParameters, LegalParameters, FileUploadParameters, PaymentParameters, WebsiteParameters, HiddenField)
 
 
 class SurveyForm(forms.ModelForm):
     class Meta:
         model = Survey
+        fields = ['name']
+
+
+class HiddenFieldForm(forms.ModelForm):
+    class Meta:
+        model = HiddenField
         fields = ['name']
 
 

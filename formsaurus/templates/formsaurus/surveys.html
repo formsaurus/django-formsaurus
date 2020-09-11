@@ -1,0 +1,33 @@
+{% extends 'formsaurus/skeleton.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col">
+            <h1>Forms</h1>
+        </div>
+    </div>
+    <div class="row mt-5">
+        <div class="col">
+            <table class="table">
+                <tbody>
+                    {% for form in surveys %}
+                    <tr>
+                        <td>
+                            <a href="{% url 'formsaurus:survey_wizard' form.id %}">{{ form.name }}</a>
+                        </td>
+                        <td>
+                            <div class="custom-control custom-switch">
+                                <input type="checkbox" class="custom-control-input" disabled id="show_image_switch" {% if survey.published %}checked{% endif %}>
+                                <label class="custom-control-label" for="show_image_switch"></label>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

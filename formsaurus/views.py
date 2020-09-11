@@ -116,14 +116,23 @@ class AddQuestionView(LoginRequiredMixin, View):
         survey = get_object_or_404(Survey, pk=survey_id)
         if survey.user != request.user:
             raise Http404
+
+        # Do we already have a welcome screen?
+        has_ws = survey.question_set.filter(question_type=Question.WELCOME_SCREEN).count() > 0
+        default_type = Question.WELCOME_SCREEN if not has_ws else Question.YES_NO
+        question_type = question_type if question_type is not None else default_type
         context = {}
         context['survey'] = survey
         context['types'] = {}
         for key, value in Question.TYPES:
+            if key == Question.PAYMENT or key == Question.FILE_UPLOAD:
+                continue
+            if has_ws and key == Question.WELCOME_SCREEN:
+                continue
             context['types'][key] = value
             if key == question_type:
                 context['type_name'] = value
-        context['type'] = question_type if question_type is not None else Question.WELCOME_SCREEN
+        context['type'] = question_type
         
         return render(request, self.template_name, context)
 
@@ -324,15 +333,91 @@ class AddQuestionView(LoginRequiredMixin, View):
                 else:
                     logger.warning('Failed to validate email parameters %s', parameters_form.errors)
             elif question_type == Question.OPINION_SCALE:
-                raise Http404
+                parameters_form = OpinionScaleParametersForm(request.POST)
+                if parameters_form.is_valid():
+                    question = survey.add_opinion_scale(
+                        question_form.cleaned_data['question'],
+                        description=question_form.cleaned_data['description'],
+                        required=question_form.cleaned_data['required'],
+                        start_at_one=parameters_form.cleaned_data['start_at_one'],
+                        number_of_steps=parameters_form.cleaned_data['number_of_steps'],
+                        left_label=parameters_form.cleaned_data['left_label'],
+                        center_label=parameters_form.cleaned_data['center_label'],
+                        right_label=parameters_form.cleaned_data['right_label'],
+                        image_url=parameters_form.cleaned_data['image_url'],
+                        video_url=parameters_form.cleaned_data['video_url'],
+                    )
+                    logger.info('Created Opinion Scale %s', question.id)
+                    return redirect(self.add_question_url, survey.id)
+                else:
+                    logger.warning('Failed to validate opinion_scale parameters %s', parameters_form.errors)
             elif question_type == Question.RATING:
-                raise Http404
+                parameters_form = RatingParametersForm(request.POST)
+                if parameters_form.is_valid():
+                    question = survey.add_rating(
+                        question_form.cleaned_data['question'],
+                        description=question_form.cleaned_data['description'],
+                        required=question_form.cleaned_data['required'],
+                        number_of_steps=parameters_form.cleaned_data['number_of_steps'],
+                        shape=parameters_form.cleaned_data['shape'],
+                        image_url=parameters_form.cleaned_data['image_url'],
+                        video_url=parameters_form.cleaned_data['video_url'],
+                    )
+                    logger.info('Created Rating %s', question.id)
+                    return redirect(self.add_question_url, survey.id)
+                else:
+                    logger.warning('Failed to validate rating parameters %s', parameters_form.errors)
             elif question_type == Question.DATE:
-                raise Http404
+                parameters_form = DateParametersForm(request.POST)
+                if parameters_form.is_valid():
+                    question = survey.add_date(
+                        question_form.cleaned_data['question'],
+                        description=question_form.cleaned_data['description'],
+                        required=question_form.cleaned_data['required'],
+                        date_format=parameters_form.cleaned_data['date_format'],
+                        date_separator=parameters_form.cleaned_data['date_separator'],
+                        image_url=parameters_form.cleaned_data['image_url'],
+                        video_url=parameters_form.cleaned_data['video_url'],
+                    )
+                    logger.info('Created Date %s', question.id)
+                    return redirect(self.add_question_url, survey.id)
+                else:
+                    logger.warning('Failed to validate date parameters %s', parameters_form.errors)
             elif question_type == Question.NUMBER:
-                raise Http404
+                parameters_form = NumberParametersForm(request.POST)
+                if parameters_form.is_valid():
+                    question = survey.add_number(
+                        question_form.cleaned_data['question'],
+                        description=question_form.cleaned_data['description'],
+                        required=question_form.cleaned_data['required'],
+                        enable_min=parameters_form.cleaned_data['enable_min'],
+                        min_value=parameters_form.cleaned_data['min_value'],
+                        enable_max=parameters_form.cleaned_data['enable_max'],
+                        max_value=parameters_form.cleaned_data['max_value'],
+                        image_url=parameters_form.cleaned_data['image_url'],
+                        video_url=parameters_form.cleaned_data['video_url'],
+                    )
+                    logger.info('Created Number %s', question.id)
+                    return redirect(self.add_question_url, survey.id)
+                else:
+                    logger.warning('Failed to validate number parameters %s', parameters_form.errors)
             elif question_type == Question.DROPDOWN:
-                raise Http404
+                parameters_form = DropdownParametersForm(request.POST)
+                if parameters_form.is_valid():
+                    question = survey.add_dropdown(
+                        question_form.cleaned_data['question'],
+                        description=question_form.cleaned_data['description'],
+                        required=question_form.cleaned_data['required'],
+                        alphabetical=parameters_form.cleaned_data['alphabetical'],
+                        randomize=parameters_form.cleaned_data['randomize'],
+                        choices=request.POST.getlist('choice'),
+                        image_url=parameters_form.cleaned_data['image_url'],
+                        video_url=parameters_form.cleaned_data['video_url'],
+                    )
+                    logger.info('Created Dropdown %s', question.id)
+                    return redirect(self.add_question_url, survey.id)
+                else:
+                    logger.warning('Failed to validate dropdown parameters %s', parameters_form.errors)
             elif question_type == Question.LEGAL:
                 parameters_form = LegalParametersForm(request.POST)
                 if parameters_form.is_valid():
@@ -401,3 +486,42 @@ class SurveyAddView(LoginRequiredMixin, FormView):
             context = {}
             context['form'] = form
             return render(request, self.template_name, context)
+
+class DeleteSurveyView(LoginRequiredMixin, View):
+    success_url = 'formsaurus:surveys'
+    def get(self, request, survey_id):
+        survey = get_object_or_404(Survey, pk=survey_id)
+        if survey.user != request.user:
+            raise Http404
+        if not survey.published:
+            survey.delete()
+        return redirect(self.success_url)
+
+
+class HiddenFieldView(LoginRequiredMixin, View):
+    template_name = 'formsaurus/survey_add_hidden_field.html'
+    success_url = 'formsaurus:survey_wizard'
+
+    def get(self, request, survey_id):
+        survey = get_object_or_404(Survey, pk=survey_id)
+        if survey.user != request.user:
+            raise Http404
+        context = {}
+        context['survey'] = survey
+        context['form'] = HiddenFieldForm()
+        return render(request, self.template_name, context)
+    
+    def post(self, request, survey_id):
+        survey = get_object_or_404(Survey, pk=survey_id)
+        if survey.user != request.user:
+            raise Http404
+        form = HiddenFieldForm(request.POST)
+        if form.is_valid():
+            field = form.save(commit=False)
+            field.survey = survey
+            field.save()
+            return redirect(self.success_url, survey.id)
+        context = {}
+        context['survey'] = survey
+        context['form'] = form
+        return render(request, self.template_name, context)

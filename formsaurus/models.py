@@ -503,6 +503,13 @@ class Question(BaseModel):
     next_question = models.ForeignKey('Question', on_delete=models.CASCADE,
                                       related_name='previous_question', blank=True, null=True, default=None)
 
+    @classmethod
+    def type_name(cls, question_type):
+        for value in Question.TYPES:
+            if value[0] == question_type:
+                return value[1]
+        return "Unknown"
+
     def next(self, submission):
         # Any rules
         qs = self.ruleset_set.all()
