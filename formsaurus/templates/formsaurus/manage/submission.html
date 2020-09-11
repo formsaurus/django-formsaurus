@@ -1,0 +1,46 @@
+{% extends 'formsaurus/skeleton.html' %}
+{% load formsaurus %}
+{% block content %}
+{% include 'formsaurus/manage/navbar.html' %}
+<div class="container">
+    <div class="row">
+        <div class="col">
+            <h1><a href="{% url 'formsaurus:submissions' survey.id %}">&laquo;</a> {{ survey.name }}</h1>
+        </div>
+        <div class="col-1 pt-4">
+            <div class="custom-control custom-switch">
+                <input type="checkbox" class="custom-control-input" id="publish_switch" {% if survey.published %}checked disabled{% endif %}>
+                <label class="custom-control-label" for="publish_switch">Published</label>
+            </div>                
+
+        </div>
+    </div>
+
+    <div class="row mt-5">
+        <div class="col">
+            <h2>Answer</h2>
+            <p>{% if submission.completed %}Completed{% else %}Incomplete{% endif %} &mdash; {{ submission.completed_at }}</p>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col">
+            
+            
+            <table class="table">
+                <tbody>
+                    {% for answer in submission.answers %} 
+                    <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td>{{ answer.question.question }}</td>
+                        <td>
+                            {{ answer.answer }}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+        </div>
+    </div>
+</div>
+{% endblock %}

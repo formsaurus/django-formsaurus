@@ -7,6 +7,7 @@ from django.views.generic.base import View
 from django.views.generic.edit import FormView
 from django.urls import reverse
 from django.utils import timezone
+from django.db.models import Count, Sum
 
 from formsaurus.models import Survey, Question, Submission
 from formsaurus.serializer import Serializer
@@ -54,7 +55,7 @@ class QuestionView(View):
 
     def post(self, request, survey_id, question_id, submission_id):
         survey = get_object_or_404(Survey, pk=survey_id)
-        
+
         question = get_object_or_404(Question, pk=question_id)
         if question.survey != survey:
             raise Http404
@@ -87,7 +88,6 @@ class QuestionView(View):
             return redirect(self.question_url, survey.id, next_question.id, submission.id)
 
 
-
 class CompletedView(View):
     """Shown when a survey has been completed."""
     template_name = 'formsaurus/completed.html'
@@ -100,15 +100,17 @@ class CompletedView(View):
         context = {}
         context['survey'] = Serializer.survey(survey)
         context['submission'] = Serializer.submission(submission)
-        context['site_url'] = reverse(self.site_url)
-        context['register_url'] = reverse(self.register_url)
+        context['site_url'] = reverse(self.site_url) if self.site_url is not None else None
+        context['register_url'] = reverse(self.register_url) if self.register_url is not None else None
         return render(request, self.template_name, context=context)
 
 
 class ManageView(LoginRequiredMixin, View):
     success_url = 'formsaurus:surveys'
+
     def get(self, request):
         return redirect(self.success_url)
+
 
 class SurveysView(LoginRequiredMixin, View):
     """List all forms own by authorized user."""
@@ -129,6 +131,17 @@ class SurveyWizardView(LoginRequiredMixin, View):
             raise Http404
         context = {}
         context['survey'] = survey
+        if survey.published:
+            # Stats about submissions
+            context['submissions'] = {}
+            row = Submission.objects.filter(survey=survey).aggregate(
+                count=Count('id'), sum=Sum('completed'))
+            completed = 1 if row['sum'] is True else 0 if row['sum'] is None else row['sum']
+            context['submissions']['count'] = row['count']
+            context['submissions']['completed'] = completed
+            context['submissions']['ratio'] = completed / row['count'] * 100 if row['count'] > 0 else 0
+
+            pass
         return render(request, self.template_name, context)
 
 
@@ -541,6 +554,7 @@ class PublishSurveyView(LoginRequiredMixin, View):
         survey.save()
         return redirect(self.success_url, survey.id)
 
+
 class DeleteSurveyView(LoginRequiredMixin, View):
     success_url = 'formsaurus:surveys'
 
@@ -579,4 +593,33 @@ class HiddenFieldView(LoginRequiredMixin, View):
         context = {}
         context['survey'] = survey
         context['form'] = form
+        return render(request, self.template_name, context)
+
+
+class SubmissionsView(LoginRequiredMixin, View):
+    template_name = 'formsaurus/manage/submissions.html'
+
+    def get(self, request, survey_id):
+        survey = get_object_or_404(Survey, pk=survey_id)
+        if survey.user != request.user:
+            raise Http404
+        context = {}
+        context['survey'] = survey
+        return render(request, self.template_name, context)
+
+
+class SubmissionView(LoginRequiredMixin, View):
+    template_name = 'formsaurus/manage/submission.html'
+
+    def get(self, request, survey_id, submission_id):
+        survey = get_object_or_404(Survey, pk=survey_id)
+        if survey.user != request.user:
+            raise Http404
+        submission = get_object_or_404(Submission, pk=submission_id)
+        if submission.survey != survey:
+            raise Http404
+
+        context = {}
+        context['survey'] = survey
+        context['submission'] = submission
         return render(request, self.template_name, context)

@@ -5,7 +5,7 @@
 <div class="container">
     <div class="row">
         <div class="col">
-            <h1>{{ survey.name }}</h1>
+            <h1><a href="{% url 'formsaurus:surveys' %}">&laquo;</a> {{ survey.name }}</h1>
         </div>
         <div class="col-1 pt-4">
             <div class="custom-control custom-switch">
@@ -15,6 +15,13 @@
 
         </div>
     </div>
+    {% if survey.submission_set.all %}
+        <div class="row mb-3 no-gutters">
+            <div class="col-4 border-r"><p class="text-lg text-center m-0"><a href="{% url 'formsaurus:submissions' survey.id %}">{{ submissions.count }}</a></p><p class="mt-0 mb-0 text-sm text-upper text-center">Answers</p></div>
+            <div class="col-4 border-r pl-3"><p class="text-lg text-center m-0">{{ submissions.completed }}</p><p class="mt-0 mb-0 text-sm text-upper text-center">Completed</p></div>
+            <div class="col-4 pl-3"><p class="text-lg m-0 text-center">{{ submissions.ratio }}%</p><p class="mt-0 mb-0 text-sm text-upper text-center">Completion Rate</p></div>
+        </div>
+    {% endif %}
     <div class="row mt-5">
         <div class="col-2">
             {% if not question.published %}

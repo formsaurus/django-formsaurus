@@ -965,6 +965,10 @@ class MultipleChoiceAnswer(Answer):
     other = models.CharField(
         max_length=1024, blank=True, null=True, default=None)
 
+    @property
+    def answer(self):
+        return self.choices.all()
+
     def __str__(self):
         return f'{self.short_id} {self.choices.all()} {self.other}'
 
@@ -975,6 +979,10 @@ class PhoneNumberAnswer(Answer):
     @property
     def text(self):
         return str(self.phone_number)
+
+    @property
+    def answer(self):
+        return self.phone_number
 
     def __str__(self):
         return f'{self.short_id} {self.phone_number}'
@@ -988,6 +996,10 @@ class ShortTextAnswer(Answer):
     def text(self):
         return self.short_text
 
+    @property
+    def answer(self):
+        return self.short_text
+
     def __str__(self):
         return f'{self.short_id} {self.short_text}'
 
@@ -999,12 +1011,20 @@ class LongTextAnswer(Answer):
     def text(self):
         return self.long_text
 
+    @property
+    def answer(self):
+        return self.long_text
+
     def __str__(self):
         return f'{self.short_id} {self.long_text}'
 
 
 class PictureChoiceAnswer(Answer):
     choices = models.ManyToManyField(Choice)
+
+    @property
+    def answer(self):
+        return self.choices.all()
 
     def __str__(self):
         return f'{self.short_id} {self.choices.all()}'
@@ -1015,6 +1035,10 @@ class YesNoAnswer(Answer):
 
     @property
     def boolean(self):
+        return self.yes
+
+    @property
+    def answer(self):
         return self.yes
 
     def __str__(self):
@@ -1028,6 +1052,10 @@ class EmailAnswer(Answer):
     def text(self):
         return str(self.email)
 
+    @property
+    def answer(self):
+        return self.email
+
     def __str__(self):
         return f'{self.short_id} {self.email}'
 
@@ -1038,6 +1066,10 @@ class OpinionScaleAnswer(Answer):
 
     @property
     def number(self):
+        return self.opinion
+
+    @property
+    def answer(self):
         return self.opinion
 
     def __str__(self):
@@ -1052,12 +1084,20 @@ class RatingAnswer(Answer):
     def number(self):
         return self.rating
 
+    @property
+    def answer(self):
+        return self.rating
+
     def __str__(self):
         return f'{self.short_id} {self.rating}'
 
 
 class DateAnswer(Answer):
     date = models.DateField(blank=True, null=True, default=None)
+
+    @property
+    def answer(self):
+        return self.date
 
     def __str__(self):
         return f'{self.short_id} {self.date}'
@@ -1066,6 +1106,10 @@ class DateAnswer(Answer):
 class NumberAnswer(Answer):
     number = models.DecimalField(
         decimal_places=PRECISION, max_digits=MAX_DIGITS, blank=True, null=True, default=None)
+
+    @property
+    def answer(self):
+        return self.number
 
     def __str__(self):
         return f'{self.short_id} {self.number}'
@@ -1076,6 +1120,10 @@ class DropdownAnswer(Answer):
     other = models.CharField(
         max_length=1024, blank=True, null=True, default=None)
 
+    @property
+    def answer(self):
+        return self.choices.all()
+
     def __str__(self):
         return f'{self.short_id} {self.choices.all()} {self.other}'
 
@@ -1085,6 +1133,10 @@ class LegalAnswer(Answer):
 
     @property
     def boolean(self):
+        return self.accept
+
+    @property
+    def answer(self):
         return self.accept
 
     def __str__(self):
@@ -1106,6 +1158,10 @@ class WebsiteAnswer(Answer):
     @property
     def text(self):
         return str(url)
+
+    @property
+    def answer(self):
+        return self.url
 
     def __str__(self):
         return f'{self.short_id} {self.url}'
