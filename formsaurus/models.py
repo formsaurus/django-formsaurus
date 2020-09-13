@@ -38,8 +38,8 @@ class Survey(BaseModel):
     published = models.BooleanField(default=False)
     published_at = models.DateTimeField(default=None, null=True, blank=True)
     first_question = models.ForeignKey(
-        'Question', on_delete=models.CASCADE, blank=True, null=True, default=None, related_name='first_question')
-    last_question = models.ForeignKey('Question', on_delete=models.CASCADE,
+        'Question', on_delete=models.SET_NULL, blank=True, null=True, default=None, related_name='first_question')
+    last_question = models.ForeignKey('Question', on_delete=models.SET_NULL,
                                       blank=True, null=True, default=None, related_name='last_question')
 
     def add_hidden_field(self, name):
@@ -51,6 +51,9 @@ class Survey(BaseModel):
             self.last_question = question
             self.save()
         else:
+            # (TODO) 'Thank you screen' should be at the end
+            # 1) When adding a TS make it last_question
+            # 2) When adding other, make sure to put it before TS
             self.last_question.next_question = question
             self.last_question.save()
 
@@ -943,6 +946,11 @@ class Submission(BaseModel):
             return answer
         return None
 
+
+class FilledField(BaseModel):
+    submission = models.ForeignKey(Submission, on_delete=models.CASCADE)
+    field = models.ForeignKey(HiddenField, on_delete=models.CASCADE)
+    value = models.TextField(blank=True, null=True)
 
 class Answer(BaseModel):
     question = models.ForeignKey(Question, on_delete=models.CASCADE)

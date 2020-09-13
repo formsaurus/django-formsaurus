@@ -9,7 +9,7 @@ from django.utils import timezone
 from django.db.models import Count, Sum
 from django.conf import settings
 
-from formsaurus.models import Survey, Question, Submission
+from formsaurus.models import Survey, Question, Submission, Choice
 from formsaurus.serializer import Serializer
 from formsaurus.forms import *
 from formsaurus.manage.unsplash import Unsplash
@@ -218,22 +218,6 @@ class AddQuestionView(LoginRequiredMixin, View):
                 else:
                     logger.warning(
                         'Failed to validate statement parameters %s', parameters_form.errors)
-            elif question_type == Question.STATEMENT:
-                parameters_form = StatementParametersForm(request.POST)
-                if parameters_form.is_valid():
-                    question = survey.add_statement(
-                        question_form.cleaned_data['question'],
-                        description=question_form.cleaned_data['description'],
-                        button_label=parameters_form.cleaned_data['button_label'],
-                        show_quotation_mark=parameters_form.cleaned_data['show_quotation_mark'],
-                        image_url=parameters_form.cleaned_data['image_url'],
-                        video_url=parameters_form.cleaned_data['video_url'],
-                    )
-                    logger.info('Created Statement %s', question.id)
-                    return redirect(self.add_question_url, survey.id)
-                else:
-                    logger.warning(
-                        'Failed to validate statement parameters %s', parameters_form.errors)
             elif question_type == Question.PICTURE_CHOICE:
                 parameters_form = PictureChoiceParametersForm(request.POST)
                 if parameters_form.is_valid():
@@ -251,6 +235,7 @@ class AddQuestionView(LoginRequiredMixin, View):
                         description=question_form.cleaned_data['description'],
                         required=question_form.cleaned_data['required'],
                         multiple_selection=parameters_form.cleaned_data['multiple_selection'],
+                        randomize=parameters_form.cleaned_data['randomize'],
                         other_option=parameters_form.cleaned_data['other_option'],
                         show_labels=parameters_form.cleaned_data['show_labels'],
                         supersize=parameters_form.cleaned_data['supersize'],
@@ -303,6 +288,7 @@ class AddQuestionView(LoginRequiredMixin, View):
                         required=question_form.cleaned_data['required'],
                         start_at_one=parameters_form.cleaned_data['start_at_one'],
                         number_of_steps=parameters_form.cleaned_data['number_of_steps'],
+                        show_labels=parameters_form.cleaned_data['show_labels'],
                         left_label=parameters_form.cleaned_data['left_label'],
                         center_label=parameters_form.cleaned_data['center_label'],
                         right_label=parameters_form.cleaned_data['right_label'],
@@ -433,6 +419,244 @@ class AddQuestionView(LoginRequiredMixin, View):
         raise Http404
         # return render(request, self.template_name, context)
 
+class EditQuestionView(LoginRequiredMixin, View):
+    template_name = 'formsaurus/manage/survey_add_question.html'
+    edit_question_url = 'formsaurus_manage:survey_wizard'
+
+    def get(self, request, survey_id, question_id):
+        survey = get_object_or_404(Survey, pk=survey_id)
+        if survey.user != request.user:
+            raise Http404
+        question = get_object_or_404(Question, pk=question_id)
+        if question.survey != survey:
+            raise Http404
+        if survey.published:
+            raise Http404
+        
+        # Do we already have a welcome screen?
+        has_ws = survey.question_set.filter(
+            question_type=Question.WELCOME_SCREEN).count() > 0
+        question_type = question.question_type
+        context = {}
+        context['has_unsplash'] = hasattr(settings, 'UNSPLASH_ACCESS_KEY')
+        context['survey'] = survey
+        context['types'] = {}
+        for key, value in Question.TYPES:
+            if key == Question.PAYMENT or key == Question.FILE_UPLOAD:
+                continue
+            context['types'][key] = value
+            if key == question_type:
+                context['type_name'] = value
+        context['type'] = question_type
+        context['question'] = question
+
+        return render(request, self.template_name, context)
+
+    def post(self, request, survey_id, question_id):
+        survey = get_object_or_404(Survey, pk=survey_id)
+        if survey.user != request.user:
+            raise Http404
+        question = get_object_or_404(Question, pk=question_id)
+        if question.survey != survey:
+            raise Http404
+        if survey.published:
+            raise Http404
+
+        question_form = AddQuestionForm(request.POST, instance=question)
+        parameters_form = None
+        question_type = question.question_type
+
+        if question_form.is_valid():
+            # Update the question
+            question = question_form.save()
+            # Update parameters
+            if question_type == Question.WELCOME_SCREEN:
+                parameters_form = WelcomeParametersForm(request.POST, instance=question.parameters)
+                if parameters_form.is_valid():
+                    parameters_form.save()
+                    return redirect(self.edit_question_url, survey.id)
+                else:
+                    logger.warning(
+                        'Failed to validate welcome_screen parameters %s', parameters_form.errors)
+            elif question_type == Question.THANK_YOU_SCREEN:
+                parameters_form = ThankYouParametersForm(request.POST, instance=question.parameters)
+                if parameters_form.is_valid():
+                    parameters_form.save()
+                    return redirect(self.edit_question_url, survey.id)
+                else:
+                    logger.warning(
+                        'Failed to validate thank_you_screen parameters %s', parameters_form.errors)
+            elif question_type == Question.MULTIPLE_CHOICE:
+                parameters_form = MultipleChoiceParametersForm(request.POST, instance=question.parameters)
+                if parameters_form.is_valid():
+                    parameters_form.save()
+                    question.choice_set.all().delete()
+                    for choice in request.POST.getlist('choice'):
+                        Choice.objects.create(
+                            question=question,
+                            choice=choice,
+                        )
+                        
+                    return redirect(self.edit_question_url, survey.id)
+                else:
+                    logger.warning(
+                        'Failed to validate multiple_choice parameters %s', parameters_form.errors)
+            elif question_type == Question.PHONE_NUMBER:
+                parameters_form = PhoneNumberParametersForm(request.POST, instance=question.parameters)
+                if parameters_form.is_valid():
+                    parameters_form.save()
+                    return redirect(self.edit_question_url, survey.id)
+                else:
+                    logger.warning(
+                        'Failed to validate phone_number parameters %s', parameters_form.errors)
+            elif question_type == Question.SHORT_TEXT:
+                parameters_form = ShortTextParametersForm(request.POST, instance=question.parameters)
+                if parameters_form.is_valid():
+                    parameters_form.save()
+                    return redirect(self.edit_question_url, survey.id)
+                else:
+                    logger.warning(
+                        'Failed to validate short_text parameters %s', parameters_form.errors)
+            elif question_type == Question.LONG_TEXT:
+                parameters_form = LongTextParametersForm(request.POST, instance=question.parameters)
+                if parameters_form.is_valid():
+                    parameters_form.save()
+                    return redirect(self.edit_question_url, survey.id)
+                else:
+                    logger.warning(
+                        'Failed to validate long_text parameters %s', parameters_form.errors)
+            elif question_type == Question.STATEMENT:
+                parameters_form = StatementParametersForm(request.POST, instance=question.parameters)
+                if parameters_form.is_valid():
+                    parameters_form.save()
+                    return redirect(self.edit_question_url, survey.id)
+                else:
+                    logger.warning(
+                        'Failed to validate statement parameters %s', parameters_form.errors)
+            elif question_type == Question.PICTURE_CHOICE:
+                parameters_form = PictureChoiceParametersForm(request.POST, instance=question.parameters)
+                if parameters_form.is_valid():
+                    parameters_form.save()
+                    question.choice_set.all().delete()
+                    images = request.POST.getlist('choice')
+                    labels = request.POST.getlist('label')
+                    for index in range(len(images)):
+                        Choice.objects.create(
+                            question=question,
+                            image_url=images[index],
+                            choice=labels[index],
+                        )
+
+                    return redirect(self.edit_question_url, survey.id)
+                else:
+                    logger.warning(
+                        'Failed to validate picture_choice parameters %s', parameters_form.errors)
+
+            elif question_type == Question.YES_NO:
+                parameters_form = YesNoParametersForm(request.POST, instance=question.parameters)
+                if parameters_form.is_valid():
+                    parameters_form.save()
+                    return redirect(self.edit_question_url, survey.id)
+                else:
+                    logger.warning(
+                        'Failed to validate yes_no parameters %s', parameters_form.errors)
+            elif question_type == Question.EMAIL:
+                parameters_form = EmailParametersForm(request.POST, instance=question.parameters)
+                if parameters_form.is_valid():
+                    parameters_form.save()
+                    return redirect(self.edit_question_url, survey.id)
+                else:
+                    logger.warning(
+                        'Failed to validate email parameters %s', parameters_form.errors)
+            elif question_type == Question.OPINION_SCALE:
+                parameters_form = OpinionScaleParametersForm(request.POST, instance=question.parameters)
+                if parameters_form.is_valid():
+                    parameters_form.save()
+                    return redirect(self.edit_question_url, survey.id)
+                else:
+                    logger.warning(
+                        'Failed to validate opinion_scale parameters %s', parameters_form.errors)
+            elif question_type == Question.RATING:
+                parameters_form = RatingParametersForm(request.POST, instance=question.parameters)
+                if parameters_form.is_valid():
+                    parameters_form.save()
+                    return redirect(self.edit_question_url, survey.id)
+                else:
+                    logger.warning(
+                        'Failed to validate rating parameters %s', parameters_form.errors)
+            elif question_type == Question.DATE:
+                parameters_form = DateParametersForm(request.POST, instance=question.parameters)
+                if parameters_form.is_valid():
+                    parameters_form.save()
+                    return redirect(self.edit_question_url, survey.id)
+                else:
+                    logger.warning(
+                        'Failed to validate date parameters %s', parameters_form.errors)
+            elif question_type == Question.NUMBER:
+                parameters_form = NumberParametersForm(request.POST, instance=question.parameters)
+                if parameters_form.is_valid():
+                    parameters_form.save()
+                    return redirect(self.edit_question_url, survey.id)
+                else:
+                    logger.warning(
+                        'Failed to validate number parameters %s', parameters_form.errors)
+            elif question_type == Question.DROPDOWN:
+                parameters_form = DropdownParametersForm(request.POST, instance=question.parameters)
+                if parameters_form.is_valid():
+                    parameters_form.save()
+                    question.choice_set.all().delete()
+                    for choice in request.POST.getlist('choice'):
+                        if choice != "":
+                            Choice.objects.create(
+                                question=question,
+                                choice=choice,
+                            )
+                    return redirect(self.edit_question_url, survey.id)
+                else:
+                    logger.warning(
+                        'Failed to validate dropdown parameters %s', parameters_form.errors)
+            elif question_type == Question.LEGAL:
+                parameters_form = LegalParametersForm(request.POST, instance=question.parameters)
+                if parameters_form.is_valid():
+                    parameters_form.save()
+                    return redirect(self.edit_question_url, survey.id)
+                else:
+                    logger.warning(
+                        'Failed to validate email parameters %s', parameters_form.errors)
+            elif question_type == Question.FILE_UPLOAD:
+                raise Http404
+            elif question_type == Question.PAYMENT:
+                raise Http404
+            elif question_type == Question.WEBSITE:
+                parameters_form = WebsiteParametersForm(request.POST, instance=question.parameters)
+                if parameters_form.is_valid():
+                    parameters_form.save()
+                    return redirect(self.edit_question_url, survey.id)
+                else:
+                    logger.warning(
+                        'Failed to validate email parameters %s', parameters_form.errors)
+
+            else:
+                logger.warning('Unsupported type %s', question_type)
+
+        else:
+            logger.warning('Failed to create question %s',
+                           question_form.errors)
+
+
+class DeleteQuestionView(LoginRequiredMixin, View):
+    success_url = 'formsaurus_manage:survey_wizard'
+    def get(self, request, survey_id, question_id):
+        survey = get_object_or_404(Survey, pk=survey_id)
+        if survey.user != request.user:
+            raise Http404
+        question = get_object_or_404(Question, pk=question_id)
+        if question.survey != survey:
+            raise Http404
+        if survey.published:
+            raise Http404
+        question.delete()
+        return redirect(self.success_url, survey.id)
 
 class SurveyAddView(LoginRequiredMixin, View):
     template_name = 'formsaurus/manage/survey_add.html'
@@ -543,6 +767,6 @@ class UnsplashSearchView(LoginRequiredMixin, View):
         term = request.GET.get('q')
         per_page = int(request.GET.get('per_page', 9))
         page = request.GET.get('page', None)
-        client = Unsplash(settings.UNSPLASH_ACCESS_KEY, None)
+        client = Unsplash(settings.UNSPLASH_ACCESS_KEY)
         result = client.search(term, per_page=per_page, page=page)
         return JsonResponse(result)

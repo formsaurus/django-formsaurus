@@ -5,55 +5,73 @@
 <div class="container">
     <div class="row">
         <div class="col">
-            <h4><a href="{% url 'formsaurus_manage:survey_wizard' survey.id %}">{{ survey.name }}</a></h4>
-            <h1>Add Question</h1>
+            <h1><a href="{% url 'formsaurus_manage:survey_wizard' survey.id %}">&laquo;</a> {% if question %}Edit
+                Question for{% else %}Add Question to{% endif %} {{ survey.name }}</h1>
         </div>
     </div>
     <div class="row">
         <div class="col">
+            {% if question %}
+            <button type="button" class="btn btn-secondary btn-wide" disabled>{{ type_name }}</button>
+            {% else %}
             <div class="btn-group">
-                <button type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">{{ type_name }}</button>
+                <button type="button" class="btn btn-secondary btn-wide dropdown-toggle" data-toggle="dropdown"
+                    aria-haspopup="true" aria-expanded="false">{{ type_name }}</button>
                 <div class="dropdown-menu">
                     {% for type in types.items %}
-                        <a class="dropdown-item" href="{% url 'formsaurus_manage:survey_add_question' survey.id type.0 %}">{{ type.1 }}</a>
+                    <a class="dropdown-item"
+                        href="{% url 'formsaurus_manage:survey_add_question' survey.id type.0 %}">{{ type.1 }}</a>
                     {% endfor %}
                 </div>
             </div>
+            {% endif %}
+            <div><label for="button_label"><small class="text-muted">Type</small></label></div>
         </div>
     </div>
     <div class="row pt-5">
         <div class="col">
-            <form method="POST" action="{% url 'formsaurus_manage:survey_add_question' survey.id type %}">
-                {% csrf_token %}
+            {% if question %}
+                <form method="POST" action="{% url 'formsaurus_manage:survey_edit_question' survey.id question.id %}">
+                    <input type="hidden" name="question_type" value="{{ question.question_type }}">
+            {% else %}
+                <form method="POST" action="{% url 'formsaurus_manage:survey_add_question' survey.id type %}">
                 <input type="hidden" name="question_type" value="{{ type }}">
+            {% endif %}
+                {% csrf_token %}
 
                 <!-- Common Parameters to all Question Types -->
                 <div class="form-group">
-                    <input type="text" name="question" class="w-100 mb-2 title" placeholder="Question" autofocus required/>
+                    <input type="text" name="question" class="w-100 mb-2 title" placeholder="Question" autofocus
+                        required value="{{ question.question }}" />
                     <label for="button_label"><small class="text-muted">Question</small></label>
                 </div>
 
                 <div class="form-group">
-                    <input type="text" name="description" class="w-100 mb-2 title" placeholder="..."/>
+                    <input type="text" name="description" class="w-100 mb-2 title" placeholder="..."
+                        value="{{ question.description }}" />
                     <label for="button_label"><small class="text-muted">Description</small></label>
                 </div>
 
                 {% if type != 'WS' and type != 'TS' and type != 'S_' %}
                 <div class="custom-control custom-switch">
-                    <input type="checkbox" class="custom-control-input" id="required_switch" name="required">
+                    <input type="checkbox" class="custom-control-input" id="required_switch" name="required"
+                        {% if question.required %}checked{% endif %}>
                     <label class="custom-control-label" for="required_switch">Required</label>
                 </div>
                 {% endif %}
 
-                
+
                 <!-- Image -->
                 <div class="custom-control custom-switch">
-                    <input type="checkbox" class="custom-control-input" id="show_image_switch">
+                    <input type="checkbox" class="custom-control-input" id="show_image_switch"
+                        {% if question.parameters.image_url %}checked{% endif %}>
                     <label class="custom-control-label" for="show_image_switch">Show Image</label>
                 </div>
 
-                <div class="form-group d-none" id="show_image_content">
-                    <input type="url" id="image_url" name="image_url" class="mb-2 title" placeholder="https://unsplash.com/"/>
+                <div class="form-group {% if not question.parameters.image_url %}d-none{% endif %}"
+                    id="show_image_content">
+                    <input type="url" id="image_url" name="image_url" class="mb-2 title"
+                        placeholder="https://unsplash.com/" {% if question.parameters.image_url %}value="{{ question.parameters.image_url }}"{% endif %} />
                     <label for="button_label"><small class="text-muted">Image URL</small></label>
                     {% if has_unsplash %}
                     <small><a href="#" data-toggle="modal" data-target="#imageModal">Search Images</a></small>
@@ -62,247 +80,339 @@
 
                 <!-- Video -->
                 <div class="custom-control custom-switch">
-                    <input type="checkbox" class="custom-control-input" id="show_video_switch">
+                    <input type="checkbox" class="custom-control-input" id="show_video_switch"
+                        {% if question.parameters.video_url %}checked{% endif %}>
                     <label class="custom-control-label" for="show_video_switch">Show Video</label>
                 </div>
 
-                <div class="form-group d-none" id="show_video_content">
-                    <input type="url" name="video_url" class="w-100 mb-2 title" placeholder="https://youtube.com/"/>
+                <div class="form-group {% if not question.parameters.video_url %}d-none{% endif %}"
+                    id="show_video_content">
+                    <input type="url" name="video_url" class="w-100 mb-2 title" placeholder="https://youtube.com/"
+                        {% if question.parameters.video_url %}value="{{ question.parameters.video_url }}"{% endif %} />
                     <label for="button_label"><small class="text-muted">Video URL</small></label>
                 </div>
-            
-            {% if type == 'WS' %}
+
+                {% if type == 'WS' %}
                 <!-- Welcome Screen Parameters -->
                 <p class="mt-3 mb-1"><small class="text-muted mt-5">Welcome Screen</small></p>
                 <div class="form-group">
-                    <input type="text" name="button_label" class="w-100 mb-2 title" value="Next" placeholder="Go" required/>
+                    <input type="text" name="button_label" class="w-100 mb-2 title" placeholder="Go" required
+                        value="{%if question %}{{ question.parameters.button_label }}{% else %}Go{% endif %}" />
                     <label for="button_label"><small class="text-muted">Button Label</small></label>
                 </div>
-            {% elif type == 'TS' %}
+                {% elif type == 'TS' %}
                 <!-- Thank You Screen Parameteres -->
                 <p class="mt-3 mb-1"><small class="text-muted mt-5">Thank You Screen</small></p>
                 <div class="custom-control custom-switch">
-                    <input type="checkbox" class="custom-control-input" id="ts_show_button_switch" name="show_button">
+                    <input type="checkbox" class="custom-control-input" id="ts_show_button_switch" name="show_button"
+                        {% if question.parameters.show_button %}checked{% endif %}>
                     <label class="custom-control-label" for="ts_show_button_switch">Show Button</label>
                 </div>
-                <div class="d-none" id="ts_show_button_content">
+                <div {% if not question.parameters.show_button %}class="d-none" {% endif %} id="ts_show_button_content">
                     <div class="form-group">
-                        <input type="text" id="ts_button_label" name="button_label" class="w-100 mb-2 title" value="Done" placeholder="Done"/>
+                        <input type="text" id="ts_button_label" name="button_label" class="w-100 mb-2 title"
+                            value="{% if question %}{{ question.parameters.button_label }}{% else %}Done{% endif %}"
+                            placeholder="Done" />
                         <label for="button_label"><small class="text-muted">Button Label</small></label>
                     </div>
                     <div class="form-group">
-                        <input type="url" id="ts_button_link" name="button_link" class="w-100 mb-2 title" placeholder="https://example.com"/>
+                        <input type="url" id="ts_button_link" name="button_link" class="w-100 mb-2 title"
+                            placeholder="https://example.com" {% if question.parameters.show_button %}value="{{ question.parameters.button_link }}"{% endif %} />
                         <label for="button_link"><small class="text-muted">Button Link</small></label>
                     </div>
                 </div>
                 <div class="custom-control custom-switch">
-                    <input type="checkbox" class="custom-control-input" id="show_social_media_switch" name="show_social_media">
+                    <input type="checkbox" class="custom-control-input" id="show_social_media_switch"
+                        name="show_social_media" {% if question.parameters.show_social_media %}checked{% endif %}>
                     <label class="custom-control-label" for="show_social_media_switch">Show Social Media</label>
                 </div>
-            {% elif type == 'MC' %}
+                {% elif type == 'MC' %}
                 <!-- Multiple Choice Parameters -->
                 <p class="mt-3 mb-1"><small class="text-muted">Multiple Choice</small></p>
                 <div class="custom-control custom-switch">
-                    <input type="checkbox" class="custom-control-input" id="multiple_selection_switch" name="multiple_selection">
+                    <input type="checkbox" class="custom-control-input" id="multiple_selection_switch"
+                        name="multiple_selection" {% if question.parameters.multiple_selection %}checked{% endif %}>
                     <label class="custom-control-label" for="multiple_selection_switch">Multiple Selection</label>
                 </div>
                 <div class="custom-control custom-switch">
-                    <input type="checkbox" class="custom-control-input" id="randomize_switch" name="randomize">
+                    <input type="checkbox" class="custom-control-input" id="randomize_switch" name="randomize"
+                        {% if question.parameters.randomize %}checked{% endif %}>
                     <label class="custom-control-label" for="randomize_switch">Randomize</label>
                 </div>
                 <div class="custom-control custom-switch">
-                    <input type="checkbox" class="custom-control-input" id="other_option_switch" name="other_option">
+                    <input type="checkbox" class="custom-control-input" id="other_option_switch" name="other_option"
+                        {% if question.parameters.other_option %}checked{% endif %}>
                     <label class="custom-control-label" for="other_option_switch">Other Option</label>
                 </div>
                 <div class="mt-4">
                     <div class="form-group">
-                        <input type="text" name="choice" class="w-100 mb-2 title mc_choice" placeholder="Choice..."/>
+                        {% if question %}
+                        {% for choice in question.choice_set.all %}
+                        <input type="text" name="choice" class="w-100 mb-2 title mc_choice" placeholder="Choice..."
+                            value="{{ choice.choice }}" />
                         <label for="choice"><small class="text-muted">Choice</small></label>
+                        {% endfor %}
+                        {% else %}
+                        <input type="text" name="choice" class="w-100 mb-2 title mc_choice" placeholder="Choice..." />
+                        <label for="choice"><small class="text-muted">Choice</small></label>
+                        {% endif %}
                     </div>
                 </div>
-            {% elif type == 'PN' %}
+                {% elif type == 'PN' %}
                 <!-- Phone Number Parameters -->
                 <p class="mt-3 mb-1"><small class="text-muted">Phone Number</small></p>
                 <div class="form-group">
-                    <input type="number" min="0" step="1" name="default_country_code" class="w-100 mb-2 title" value="1" placeholder="1" required/>
+                    <input type="number" min="0" step="1" name="default_country_code" class="w-100 mb-2 title"
+                        value="{% if question %}{{ question.parameters.default_country_code }}{% else %}1{% endif %}"
+                        placeholder="1" required />
                     <label for="default_country_code"><small class="text-muted">Default Country Code</small></label>
                 </div>
-            {% elif type == 'ST' %}
+                {% elif type == 'ST' %}
                 <!-- Short Text Parameters -->
                 <p class="mt-3 mb-1"><small class="text-muted">Short Text</small></p>
                 <div class="custom-control custom-switch">
-                    <input type="checkbox" class="custom-control-input" id="st_limit_character_switch">
+                    <input type="checkbox" name="limit_character" class="custom-control-input"
+                        id="st_limit_character_switch" {% if question.parameters.limit_character %}checked{% endif %}>
                     <label class="custom-control-label" for="st_limit_character_switch">Limit Character</label>
                 </div>
-                <div class="form-group d-none" id="st_limit_character_content">
-                    <input type="number" min="1" step="1" name="limit" class="w-100 mb-2 title" value="25" placeholder="25" id="st_limit"/>
+                <div class="form-group {% if not question.parameters.limit_character %}d-none{% endif %}"
+                    id="st_limit_character_content">
+                    <input type="number" min="1" step="1" name="limit" class="w-100 mb-2 title"
+                        value="{% if question %}{{ question.parameters.limit }}{% else %}25{% endif %}" placeholder="25"
+                        id="st_limit" />
                     <label for="st_limit"><small class="text-muted">Limit</small></label>
                 </div>
-            {% elif type == 'LT' %}
+                {% elif type == 'LT' %}
                 <!-- Long Text Parameters -->
                 <p class="mt-3 mb-1"><small class="text-muted">Long Text</small></p>
                 <div class="custom-control custom-switch">
-                    <input type="checkbox" class="custom-control-input" id="lt_limit_character_switch">
+                    <input type="checkbox" name="limit_character" class="custom-control-input"
+                        id="lt_limit_character_switch" {% if question.parameters.limit_character %}checked{% endif %}>
                     <label class="custom-control-label" for="lt_limit_character_switch">Limit Character</label>
                 </div>
-                <div class="form-group d-none" id="lt_limit_character_content">
-                    <input type="number" min="1" step="1" name="limit" class="w-100 mb-2 title" value="250" placeholder="250" id="lt_limit"/>
+                <div class="form-group {% if not question.parameters.limit_character %}d-none{% endif %}"
+                    id="lt_limit_character_content">
+                    <input type="number" min="1" step="1" name="limit" class="w-100 mb-2 title"
+                        value="{% if question %}{{ question.parameters.limit }}{% else %}250{% endif %}"
+                        placeholder="250" id="lt_limit" />
                     <label for="lt_limit"><small class="text-muted">Limit</small></label>
                 </div>
-            {% elif type == 'S_' %}
+                {% elif type == 'S_' %}
                 <!-- Statement Parameters -->
                 <p class="mt-3 mb-1"><small class="text-muted">Statement</small></p>
                 <div class="form-group">
-                    <input type="text" name="button_label" class="w-100 mb-2 title" value="Next" placeholder="Next" required/>
+                    <input type="text" name="button_label" class="w-100 mb-2 title"
+                        value="{% if question %}{{ question.parameters.button_label }}{% else %}Next{% endif %}"
+                        placeholder="Next" required />
                     <label for="button_label"><small class="text-muted">Button Label</small></label>
                 </div>
                 <div class="custom-control custom-switch">
-                    <input type="checkbox" class="custom-control-input" id="s_show_quotation_mark_switch" name="show_quotation_mark">
+                    <input type="checkbox" class="custom-control-input" id="s_show_quotation_mark_switch"
+                        name="show_quotation_mark" {% if question.parameters.show_quotation_mark %}checked{% endif %}>
                     <label class="custom-control-label" for="s_show_quotation_mark_switch">Show Quotation Mark</label>
                 </div>
-            {% elif type == 'PC' %}
+                {% elif type == 'PC' %}
                 <!-- Picture Choice Parameters -->
                 <p class="mt-3 mb-1"><small class="text-muted">Picture Choice</small></p>
                 <div class="custom-control custom-switch">
-                    <input type="checkbox" class="custom-control-input" id="multiple_selection_switch" name="multiple_selection">
+                    <input type="checkbox" class="custom-control-input" id="multiple_selection_switch"
+                        name="multiple_selection" {% if question.parameters.multiple_selection %}checked{% endif %}>
                     <label class="custom-control-label" for="multiple_selection_switch">Multiple Selection</label>
                 </div>
                 <div class="custom-control custom-switch">
-                    <input type="checkbox" class="custom-control-input" id="randomize_switch" name="randomize">
+                    <input type="checkbox" class="custom-control-input" id="randomize_switch" name="randomize"
+                        {% if question.parameters.randomize %}checked{% endif %}>
                     <label class="custom-control-label" for="randomize_switch">Randomize</label>
                 </div>
                 <div class="custom-control custom-switch">
-                    <input type="checkbox" class="custom-control-input" id="other_option_switch" name="other_option">
+                    <input type="checkbox" class="custom-control-input" id="other_option_switch" name="other_option"
+                        {% if question.parameters.other_option %}checked{% endif %}>
                     <label class="custom-control-label" for="other_option_switch">Other Option</label>
                 </div>
                 <div class="custom-control custom-switch">
-                    <input type="checkbox" class="custom-control-input" id="pc_show_labels_switch" name="show_labels">
+                    <input type="checkbox" class="custom-control-input" id="pc_show_labels_switch" name="show_labels"
+                        {% if question.parameters.show_labels %}checked{% endif %}>
                     <label class="custom-control-label" for="pc_show_labels_switch">Show Labels</label>
                 </div>
                 <div class="custom-control custom-switch">
-                    <input type="checkbox" class="custom-control-input" id="pc_supersize_switch" name="supersize">
+                    <input type="checkbox" class="custom-control-input" id="pc_supersize_switch" name="supersize"
+                        {% if question.parameters.supersize %}checked{% endif %}>
                     <label class="custom-control-label" for="pc_supersize_switch">Supersize</label>
                 </div>
                 <div class="mt-4">
+                    {% if question %}
+                    {% for choice in question.choice_set.all %}
                     <div class="form-group">
-                        <input type="url" name="choice" class="w-100 mb-2 title pc_choice" placeholder="https://unsplash.com/..."/>
+                        <input type="url" name="choice" class="w-100 mb-2 title pc_choice"
+                            placeholder="https://unsplash.com/..." value="{{ choice.image_url }}" />
                         <label for="choice"><small class="text-muted">Choice</small></label>
-                        <input type="text" name="label" class="w-100 mb-2 title pc_label" placeholder="Kitten"/>
+                        <input type="text" name="label" class="w-100 mb-2 title pc_label" placeholder="Kitten"
+                            value="{{ choice.choice }}" />
                         <label for="label"><small class="text-muted">Label</small></label>
                     </div>
+                    {% endfor %}
+                    {% else %}
+                    <div class="form-group">
+                        <input type="url" name="choice" class="w-100 mb-2 title pc_choice"
+                            placeholder="https://unsplash.com/..." />
+                        <label for="choice"><small class="text-muted">Choice</small></label>
+                        <input type="text" name="label" class="w-100 mb-2 title pc_label" placeholder="Kitten" />
+                        <label for="label"><small class="text-muted">Label</small></label>
+                    </div>
+                    {% endif %}
+
                 </div>
 
-            {% elif type == 'YN' %}
-            {% elif type == 'E_' %}
-            {% elif type == 'OS' %}
+                {% elif type == 'YN' %}
+                {% elif type == 'E_' %}
+                {% elif type == 'OS' %}
                 <!-- Opinion Scale Parameters -->
                 <p class="mt-3 mb-1"><small class="text-muted">Opinion Scale</small></p>
                 <div class="custom-control custom-switch">
-                    <input type="checkbox" class="custom-control-input" id="os_start_at_one_switch" name="start_at_one">
+                    <input type="checkbox" class="custom-control-input" id="os_start_at_one_switch" name="start_at_one"
+                        {% if question.parameters.start_at_one %}checked{% endif %}>
                     <label class="custom-control-label" for="os_start_at_one_switch">Start at One</label>
                 </div>
                 <div class="form-group">
-                    <input type="number" min="1" step="1" name="number_of_steps" class="w-100 mb-2 title" value="10" placeholder="10" required/>
+                    <input type="number" min="1" step="1" name="number_of_steps" class="w-100 mb-2 title"
+                        value="{% if question %}{{ question.parameters.number_of_steps }}{% else %}10{% endif %}"
+                        placeholder="10" required />
                     <label for="number_of_steps"><small class="text-muted">Number of Steps</small></label>
                 </div>
                 <div class="custom-control custom-switch">
-                    <input type="checkbox" class="custom-control-input" id="os_show_labels_switch" name="show_labels">
+                    <input type="checkbox" class="custom-control-input" id="os_show_labels_switch" name="show_labels"
+                        {%if question.parameters.show_labels %}checked{% endif %}>
                     <label class="custom-control-label" for="os_show_labels_switch">Show Labels</label>
                 </div>
-                <div id="os_show_labels_content" class="d-none">
+                <div id="os_show_labels_content" {% if not question.parameters.show_labels %}class="d-none" {% endif %}>
                     <div class="form-group">
-                        <input type="text" id="os_left_label" name="left_label" class="w-100 mb-2 title" placeholder="Left"/>
+                        <input type="text" id="os_left_label" name="left_label" class="w-100 mb-2 title"
+                            placeholder="Left" {% if question.parameters.left_label %}value="{{ question.parameters.left_label }}"{% endif %} />
                         <label for="left_label"><small class="text-muted">Left Label</small></label>
                     </div>
                     <div class="form-group">
-                        <input type="text" id="os_center_label" name="center_label" class="w-100 mb-2 title" placeholder="Center"/>
+                        <input type="text" id="os_center_label" name="center_label" class="w-100 mb-2 title"
+                            placeholder="Center" {% if question.parameters.center_label %}value="{{ question.parameters.center_label }}"{% endif %} />
                         <label for="center_label"><small class="text-muted">Center Label</small></label>
                     </div>
                     <div class="form-group">
-                        <input type="text" id="os_right_label" name="right_label" class="w-100 mb-2 title" placeholder="Right"/>
+                        <input type="text" id="os_right_label" name="right_label" class="w-100 mb-2 title"
+                            placeholder="Right" {% if question.parameters.right_label %}value="{{ question.parameters.right_label }}"{% endif %} />
                         <label for="right_label"><small class="text-muted">Right Label</small></label>
                     </div>
                 </div>
-            {% elif type == 'R_' %}
+                {% elif type == 'R_' %}
                 <!-- Rating Parameters -->
                 <p class="mt-3 mb-1"><small class="text-muted">Rating</small></p>
                 <div class="form-group">
-                    <input type="number" min="1" step="1" name="number_of_steps" class="w-100 mb-2 title" placeholder="10" value="10" required/>
+                    <input type="number" min="1" step="1" name="number_of_steps" class="w-100 mb-2 title"
+                        placeholder="5"
+                        value="{% if question %}{{ question.parameters.number_of_steps }}{% else %}5{% endif %}"
+                        required />
                     <label for="number_of_steps"><small class="text-muted">Number of Steps</small></label>
                 </div>
                 <div class="form-group">
                     <select class="custom-select" name="shape">
-                        <option selected value="S_"><i class="fas fa-star"></i> Star</option>
-                        <option value="T_"><i class="fas fa-thumbs-up"></i> Thumbs Up</option>
+                        <option {% if not question or question.parameters.shape == 'S_' %}selected{% endif %}
+                            value="S_"><i class="fas fa-star"></i> Star</option>
+                        <option {% if question.parameters.shape == 'T_' %}selected{% endif %} value="T_"><i
+                                class="fas fa-thumbs-up"></i> Thumbs Up</option>
                     </select>
                     <label for="shape"><small class="text-muted">Shape</small></label>
                 </div>
-            {% elif type == 'D_' %}
+                {% elif type == 'D_' %}
                 <!-- Date Parameters -->
                 <p class="mt-3 mb-1"><small class="text-muted">Date</small></p>
                 <div class="form-group">
                     <select class="custom-select" name="date_format">
-                        <option selected value="A">YYYYMMDD</option>
-                        <option value="B">DDMMYYYYMM</option>
-                        <option value="C">MMDDYYYYY</option>
+                        <option {% if not question or question.parameters.date_format == 'A' %}selected{% endif %}
+                            value="A">YYYYMMDD</option>
+                        <option {% if question.parameters.date_format == 'B' %}selected{% endif %} value="B">DDMMYYYYMM
+                        </option>
+                        <option {% if question.parameters.date_format == 'C' %}selected{% endif %} value="C">MMDDYYYYY
+                        </option>
                     </select>
                     <label for="date_format"><small class="text-muted">Date Format</small></label>
                 </div>
                 <div class="form-group">
                     <select class="custom-select" name="date_separator">
-                        <option selected value="-">-</option>
-                        <option value=".">.</option>
-                        <option value="/">/</option>
+                        <option {% if not question or question.parameters.date_separator == '-' %}selected{% endif %}
+                            value="-">-</option>
+                        <option {% if question.parameters.date_separator == '.' %}selected{% endif %} value=".">.
+                        </option>
+                        <option {% if question.parameters.date_separator == '/' %}selected{% endif %} value="/">/
+                        </option>
                     </select>
                     <label for="date_separator"><small class="text-muted">Date Separator</small></label>
                 </div>
-            {% elif type == 'N_' %}
+                {% elif type == 'N_' %}
                 <!-- Number Parameters -->
                 <p class="mt-3 mb-1"><small class="text-muted">Number</small></p>
                 <div class="custom-control custom-switch">
-                    <input type="checkbox" class="custom-control-input" id="n_enable_min_switch" name="enable_min">
+                    <input type="checkbox" class="custom-control-input" id="n_enable_min_switch" name="enable_min"
+                        {% if question.parameters.enable_min %}checked{% endif %}>
                     <label class="custom-control-label" for="n_enable_min_switch">Enable Minimum Value</label>
                 </div>
-                <div class="form-group d-none" id="n_enable_min_content">
-                    <input type="number" id="n_min_value" name="min_value" class="w-100 mb-2 title" placeholder="0"/>
+                <div class="form-group {% if not question.parameters.enable_min %}d-none{% endif %}"
+                    id="n_enable_min_content">
+                    <input type="number" id="n_min_value" name="min_value" class="w-100 mb-2 title" placeholder="0"
+                        value="{{ question.parameters.min_value }}" />
                     <label for="min_value"><small class="text-muted">Minimum Value</small></label>
-                </div>             
+                </div>
                 <div class="custom-control custom-switch">
-                    <input type="checkbox" class="custom-control-input" id="n_enable_max_switch" name="enable_max">
+                    <input type="checkbox" class="custom-control-input" id="n_enable_max_switch" name="enable_max"
+                        {% if question.parameters.enable_max %}checked{% endif %}>
                     <label class="custom-control-label" for="n_enable_max_switch">Enable Maximum Value</label>
                 </div>
-                <div class="form-group d-none" id="n_enable_max_content">
-                    <input type="number" id="n_max_value" name="max_value" class="w-100 mb-2 title" placeholder="99"/>
+                <div class="form-group {% if not question.parameters.enable_max %}d-none{% endif %}"
+                    id="n_enable_max_content">
+                    <input type="number" id="n_max_value" name="max_value" class="w-100 mb-2 title" placeholder="99"
+                        value="{{ question.parameters.max_value }}" />
                     <label for="max_value"><small class="text-muted">Maximum Value</small></label>
-                </div>             
-            {% elif type == 'DD' %}
+                </div>
+                {% elif type == 'DD' %}
                 <!-- Dropdown Parameters -->
                 <p class="mt-3 mb-1"><small class="text-muted">Dropdown</small></p>
                 <div class="custom-control custom-switch">
-                    <input type="checkbox" class="custom-control-input" id="dd_randomize" name="randomize">
+                    <input type="checkbox" class="custom-control-input" id="dd_randomize" name="randomize"
+                        {% if question.parameters.alphabetical %}disabled{% endif %}
+                        {% if question.parameters.randomize %}checked{% endif %}>
                     <label class="custom-control-label" for="dd_randomize">Randomize</label>
                 </div>
                 <div class="custom-control custom-switch">
-                    <input type="checkbox" class="custom-control-input" id="dd_alphabetical" name="alphabetical">
+                    <input type="checkbox" class="custom-control-input" id="dd_alphabetical" name="alphabetical"
+                        {% if question.parameters.randomize %}disabled{% endif %}
+                        {% if question.parameters.alphabetical %}checked{% endif %}>
                     <label class="custom-control-label" for="dd_alphabetical">Alphabetical</label>
                 </div>
                 <div class="mt-4">
+                    {% if question %}
+                    {% for choice in question.choice_set.all %}
                     <div class="form-group">
-                        <input type="text" name="choice" class="w-100 mb-2 title dd_choice" placeholder="Choice..."/>
+                        <input type="text" name="choice" class="w-100 mb-2 title dd_choice" placeholder="Choice..."
+                            value="{{ choice.choice }}" />
                         <label for="choice"><small class="text-muted">Choice</small></label>
                     </div>
+                    {% endfor %}
+                    {% else %}
+                    <div class="form-group">
+                        <input type="text" name="choice" class="w-100 mb-2 title dd_choice" placeholder="Choice..." />
+                        <label for="choice"><small class="text-muted">Choice</small></label>
+                    </div>
+                    {% endif %}
                 </div>
-            {% elif type == 'L_' %}
-            {% elif type == 'FU' %}
-            {% elif type == 'P_' %}
+                {% elif type == 'L_' %}
+                {% elif type == 'FU' %}
+                {% elif type == 'P_' %}
                 <small class="text-muted">Payment</small>
                 <!-- TODO -->
-            {% elif type == 'W_' %}
-            {% endif %}
+                {% elif type == 'W_' %}
+                {% endif %}
 
-            <div class="form-group mt-5">
-                <input type="submit" class="btn btn-primary">
-            </div>
+                <div class="form-group mt-5">
+                    <input type="submit" class="btn btn-primary" value="{% if question %}Save{% else %}Add{% endif %}">
+                    <a href="{% url 'formsaurus_manage:survey_wizard' survey.id %}" class="btn btn-secondary">Cancel</a>
+                </div>
             </form>
         </div>
     </div>
@@ -312,202 +422,202 @@
 
 {% block javascript %}
 <script>
-$.fn.enterKey = function(callback) {
-    $(this).keypress(function (evt) {
-        keycode = evt.keycode ? evt.keycode : evt.which
-        if (keycode == 13) {
-            callback.call(this, evt)
-        }
-    })
-}
-$(function() {
-    // image_url
-    $('#show_image_switch').change(function(evt) {
-        if ($(this).prop('checked')) {
-            $('#show_image_content').removeClass('d-none');
-            $('#show_video_switch').prop('disabled', true)
-        } else {
-            $('#show_image_content').addClass('d-none');
-            $('#show_video_switch').prop('disabled', false)
-        }
-    })
-    // video_url
-    $('#show_video_switch').change(function(evt) {
-        if ($(this).prop('checked')) {
-            $('#show_video_content').removeClass('d-none');
-            $('#show_image_switch').prop('disabled', true)
-        } else {
-            $('#show_video_content').addClass('d-none');
-            $('#show_image_switch').prop('disabled', false)
-        }
+    $.fn.enterKey = function (callback) {
+        $(this).keypress(function (evt) {
+            keycode = evt.keycode ? evt.keycode : evt.which
+            if (keycode == 13) {
+                callback.call(this, evt)
+            }
+        })
+    }
+    $(function () {
+        // image_url
+        $('#show_image_switch').change(function (evt) {
+            if ($(this).prop('checked')) {
+                $('#show_image_content').removeClass('d-none');
+                $('#show_video_switch').prop('disabled', true)
+            } else {
+                $('#show_image_content').addClass('d-none');
+                $('#show_video_switch').prop('disabled', false)
+            }
+        })
+        // video_url
+        $('#show_video_switch').change(function (evt) {
+            if ($(this).prop('checked')) {
+                $('#show_video_content').removeClass('d-none');
+                $('#show_image_switch').prop('disabled', true)
+            } else {
+                $('#show_video_content').addClass('d-none');
+                $('#show_image_switch').prop('disabled', false)
+            }
+        })
+
+        // TS
+        $('#ts_show_button_switch').change(function (evt) {
+            if ($(this).prop('checked')) {
+                $('#ts_show_button_content').removeClass('d-none');
+                $('#ts_button_label').prop('required', true)
+                $('#ts_button_link').prop('required', true)
+            } else {
+                $('#ts_show_button_content').addClass('d-none');
+                $('#ts_button_label').prop('required', false)
+                $('#ts_button_link').prop('required', false)
+            }
+        })
+        // MC
+        $('.mc_choice').enterKey(addChoice)
+        // ST
+        $('#st_limit_character_switch').change(function (evt) {
+            if ($(this).prop('checked')) {
+                $('#st_limit_character_content').removeClass('d-none');
+                $('#st_limit').prop('required', true)
+            } else {
+                $('#st_limit_character_content').addClass('d-none');
+                $('#st_limit').prop('required', false)
+            }
+        })
+        // LT
+        $('#lt_limit_character_switch').change(function (evt) {
+            if ($(this).prop('checked')) {
+                $('#lt_limit_character_content').removeClass('d-none');
+                $('#lt_limit').prop('required', true)
+            } else {
+                $('#lt_limit_character_content').addClass('d-none');
+                $('#lt_limit').prop('required', false)
+            }
+        })
+        // PC
+        $('.pc_label').enterKey(addPictureChoice)
+        // OS
+        $('#os_show_labels_switch').change(function (evt) {
+            if ($(this).prop('checked')) {
+                $('#os_show_labels_content').removeClass('d-none');
+                $('#os_left_label').prop('required', true)
+                $('#os_center_label').prop('required', true)
+                $('#os_right_label').prop('required', true)
+            } else {
+                $('#os_show_labels_content').addClass('d-none');
+                $('#os_left_label').prop('required', false)
+                $('#os_center_label').prop('required', false)
+                $('#os_right_label').prop('required', false)
+            }
+        })
+        // N_
+        $('#n_enable_min_switch').change(function (evt) {
+            if ($(this).prop('checked')) {
+                $('#n_enable_min_content').removeClass('d-none');
+                $('#n_min_value').prop('required', true)
+            } else {
+                $('#n_enable_min_content').addClass('d-none');
+                $('#n_min_value').prop('required', false)
+            }
+        })
+        $('#n_enable_max_switch').change(function (evt) {
+            if ($(this).prop('checked')) {
+                $('#n_enable_max_content').removeClass('d-none');
+                $('#n_max_value').prop('required', true)
+            } else {
+                $('#n_enable_max_content').addClass('d-none');
+                $('#n_max_value').prop('required', false)
+            }
+        })
+        // DD
+        $('.dd_choice').enterKey(addChoice)
+        $('#dd_randomize').change(function (evt) {
+            if ($(this).prop('checked')) {
+                $('#dd_alphabetical').prop('disabled', true)
+            } else {
+                $('#dd_alphabetical').prop('disabled', false)
+            }
+        })
+        $('#dd_alphabetical').change(function (evt) {
+            if ($(this).prop('checked')) {
+                $('#dd_randomize').prop('disabled', true)
+            } else {
+                $('#dd_randomize').prop('disabled', false)
+            }
+
+        })
     })
 
-    // TS
-    $('#ts_show_button_switch').change(function(evt) {
-        if ($(this).prop('checked')) {
-            $('#ts_show_button_content').removeClass('d-none');
-            $('#ts_button_label').prop('required', true)
-            $('#ts_button_link').prop('required', true)
-        } else {
-            $('#ts_show_button_content').addClass('d-none');
-            $('#ts_button_label').prop('required', false)
-            $('#ts_button_link').prop('required', false)
-        }
+    $(function () {
+        // image_search
+        $('#image_search_query').enterKey(function (evt) {
+            search_image($(this).val(), 1, 9)
+        })
     })
-    // MC
-    $('.mc_choice').enterKey(addChoice)
-    // ST
-    $('#st_limit_character_switch').change(function(evt) {
-        if ($(this).prop('checked')) {
-            $('#st_limit_character_content').removeClass('d-none');
-            $('#st_limit').prop('required', true)
-        } else {
-            $('#st_limit_character_content').addClass('d-none');
-            $('#st_limit').prop('required', false)
-        }
-    })
-    // LT
-    $('#lt_limit_character_switch').change(function(evt) {
-        if ($(this).prop('checked')) {
-            $('#lt_limit_character_content').removeClass('d-none');
-            $('#lt_limit').prop('required', true)
-        } else {
-            $('#lt_limit_character_content').addClass('d-none');
-            $('#lt_limit').prop('required', false)
-        }
-    })
-    // PC
-    $('.pc_label').enterKey(addPictureChoice)
-    // OS
-    $('#os_show_labels_switch').change(function(evt) {
-        if ($(this).prop('checked')) {
-            $('#os_show_labels_content').removeClass('d-none');
-            $('#os_left_label').prop('required', true)
-            $('#os_center_label').prop('required', true)
-            $('#os_right_label').prop('required', true)
-        } else {
-            $('#os_show_labels_content').addClass('d-none');
-            $('#os_left_label').prop('required', false)
-            $('#os_center_label').prop('required', false)
-            $('#os_right_label').prop('required', false)
-        }
-    })
-    // N_
-    $('#n_enable_min_switch').change(function(evt) {
-        if ($(this).prop('checked')) {
-            $('#n_enable_min_content').removeClass('d-none');
-            $('#n_min_value').prop('required', true)
-        } else {
-            $('#n_enable_min_content').addClass('d-none');
-            $('#n_min_value').prop('required', false)
-        }
-    })
-    $('#n_enable_max_switch').change(function(evt) {
-        if ($(this).prop('checked')) {
-            $('#n_enable_max_content').removeClass('d-none');
-            $('#n_max_value').prop('required', true)
-        } else {
-            $('#n_enable_max_content').addClass('d-none');
-            $('#n_max_value').prop('required', false)
-        }
-    })
-    // DD
-    $('.dd_choice').enterKey(addChoice)
-    $('#dd_randomize').change(function(evt) {
-        if ($(this).prop('checked')) {
-            $('#dd_alphabetical').prop('disabled', true)
-        } else {
-            $('#dd_alphabetical').prop('disabled', false)
-        }
-    })
-    $('#dd_alphabetical').change(function(evt) {
-        if ($(this).prop('checked')) {
-            $('#dd_randomize').prop('disabled', true)
-        } else {
-            $('#dd_randomize').prop('disabled', false)
-        }
 
-    })
-})
-
-$(function() {
-    // image_search
-    $('#image_search_query').enterKey(function(evt) {
-        search_image($(this).val(), 1, 9)
-    })
-})
-
-function search_image(term, page, per_page) {
-    $('#image_search_results').empty()
-    $('#image_search_paging').addClass('d-none')
-    $('#image_search_prev').off()
-    $('#image_search_next').off()
-    $.get("{% url 'formsaurus_manage:unsplash_search' %}?per_page="+per_page+"&page="+page+"&q="+term, function(data) {
-        if(data.total_pages > 0) {
-            $('#image_search_paging').removeClass('d-none')
-            $('#image_search_prev').click(function(evt) {
-                if (page > 1) {
-                    search_image(term, page-1, per_page)
-                }
+    function search_image(term, page, per_page) {
+        $('#image_search_results').empty()
+        $('#image_search_paging').addClass('d-none')
+        $('#image_search_prev').off()
+        $('#image_search_next').off()
+        $.get("{% url 'formsaurus_manage:unsplash_search' %}?per_page=" + per_page + "&page=" + page + "&q=" + term, function (data) {
+            if (data.total_pages > 0) {
+                $('#image_search_paging').removeClass('d-none')
+                $('#image_search_prev').click(function (evt) {
+                    if (page > 1) {
+                        search_image(term, page - 1, per_page)
+                    }
+                })
+                $('#image_search_next').click(function (evt) {
+                    if (page < data.total_pages - 1) {
+                        search_image(term, page + 1, per_page)
+                    }
+                })
+            }
+            data.results.forEach(function (result) {
+                img = $('<div/>').addClass('img-thumbnail m-1').attr('style', 'width: 240px; height: 150px; background-image: url("' + result.urls.small + '"); background-position: center; background-repeat: no-repeat; background-size: cover;')
+                a = $('<a/>').attr('href', '#').attr('data-url', result.urls.raw)
+                a.click(function (evt) {
+                    $('#image_url').val(result.urls.raw)
+                    $('#imageModal').modal('hide')
+                })
+                a.append(img)
+                $('#image_search_results').append(a)
             })
-            $('#image_search_next').click(function(evt) {
-                if (page < data.total_pages - 1) {
-                    search_image(term, page+1, per_page)
-                }
-            })
-        }
-        data.results.forEach(function(result) {
-            img = $('<div/>').addClass('img-thumbnail m-1').attr('style', 'width: 240px; height: 150px; background-image: url("' + result.urls.small + '"); background-position: center; background-repeat: no-repeat; background-size: cover;')
-            a = $('<a/>').attr('href', '#').attr('data-url', result.urls.raw)
-            a.click(function(evt) {
-                $('#image_url').val(result.urls.raw)
-                $('#imageModal').modal('hide')
-            })
-            a.append(img)
-            $('#image_search_results').append(a)
-        })            
-    })
-}
+        })
+    }
 
-function addChoice(evt) {
-    d = $('<div/>').addClass('form-group')
-    i = $('<input/>').attr('type', 'text').attr('name', 'choice').addClass('w-100').addClass('mb-2').addClass('title').attr('placeholder', 'Choice..')
-    d.append(i)
-    i.enterKey(addChoice)
-    l = $('<label/>').attr('for', 'choice')
-    s = $('<small/>').addClass('text-muted').text('Choice')
-    l.append(s)
-    d.append(l)
+    function addChoice(evt) {
+        d = $('<div/>').addClass('form-group')
+        i = $('<input/>').attr('type', 'text').attr('name', 'choice').addClass('w-100').addClass('mb-2').addClass('title').attr('placeholder', 'Choice..')
+        d.append(i)
+        i.enterKey(addChoice)
+        l = $('<label/>').attr('for', 'choice')
+        s = $('<small/>').addClass('text-muted').text('Choice')
+        l.append(s)
+        d.append(l)
 
-    $(this).parent().parent().append(d)
-    i.focus();
-    evt.preventDefault();
-    return false;
-}
+        $(this).parent().parent().append(d)
+        i.focus();
+        evt.preventDefault();
+        return false;
+    }
 
-function addPictureChoice(evt) {
-    d = $('<div/>').addClass('form-group')
-    // Choice
-    i1 = $('<input/>').attr('type', 'url').attr('name', 'choice').addClass('w-100').addClass('mb-2').addClass('title').addClass('pc_choice').attr('placeholder', 'https://unsplash.com/..')
-    d.append(i1)
-    l = $('<label/>').attr('for', 'choice')
-    s = $('<small/>').addClass('text-muted').text('Choice')
-    l.append(s)
-    d.append(l)
-    // Label
-    i2 = $('<input/>').attr('type', 'text').attr('name', 'label').addClass('w-100').addClass('mb-2').addClass('title').addClass('pc_label').attr('placeholder', 'Puppy')
-    d.append(i2)
-    i2.enterKey(addPictureChoice)
-    l = $('<label/>').attr('for', 'choice')
-    s = $('<small/>').addClass('text-muted').text('Choice')
-    l.append(s)
-    d.append(l)
+    function addPictureChoice(evt) {
+        d = $('<div/>').addClass('form-group')
+        // Choice
+        i1 = $('<input/>').attr('type', 'url').attr('name', 'choice').addClass('w-100').addClass('mb-2').addClass('title').addClass('pc_choice').attr('placeholder', 'https://unsplash.com/..')
+        d.append(i1)
+        l = $('<label/>').attr('for', 'choice')
+        s = $('<small/>').addClass('text-muted').text('Choice')
+        l.append(s)
+        d.append(l)
+        // Label
+        i2 = $('<input/>').attr('type', 'text').attr('name', 'label').addClass('w-100').addClass('mb-2').addClass('title').addClass('pc_label').attr('placeholder', 'Puppy')
+        d.append(i2)
+        i2.enterKey(addPictureChoice)
+        l = $('<label/>').attr('for', 'choice')
+        s = $('<small/>').addClass('text-muted').text('Choice')
+        l.append(s)
+        d.append(l)
 
-    $(this).parent().parent().append(d)
-    i1.focus();
-    evt.preventDefault();
-    return false;
-}
+        $(this).parent().parent().append(d)
+        i1.focus();
+        evt.preventDefault();
+        return false;
+    }
 </script>
 
 {% endblock %}

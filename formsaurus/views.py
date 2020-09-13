@@ -8,7 +8,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.db.models import Count, Sum
 
-from formsaurus.models import Survey, Question, Submission
+from formsaurus.models import Survey, Question, Submission, FilledField
 from formsaurus.serializer import Serializer
 from formsaurus.forms import *
 
@@ -28,6 +28,14 @@ class SurveyView(View):
         submission = Submission.objects.create(
             survey=survey,
         )
+        # Store fields
+        for field in survey.hiddenfield_set.all():
+            value = request.GET.get(field.name)
+            FilledField.objects.create(
+                submission = submission,
+                field = field,
+                value = value,
+            )
         return redirect(self.question_url, survey.id, question.id, submission.id)
 
 
