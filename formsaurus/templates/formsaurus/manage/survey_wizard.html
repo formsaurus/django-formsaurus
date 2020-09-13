@@ -7,15 +7,22 @@
         <div class="col">
             <h1><a href="{% url 'formsaurus_manage:surveys' %}">&laquo;</a> {{ survey.name }}</h1>
         </div>
-        <div class="col-1 pt-4">
+        <div class="col-1 pt-4 mr-3">
             <div class="custom-control custom-switch">
                 <input type="checkbox" class="custom-control-input" id="publish_switch" {% if survey.published %}checked disabled{% endif %}>
                 <label class="custom-control-label" for="publish_switch">Published</label>
-            </div>                
+            </div>
 
         </div>
     </div>
     {% if survey.published %}
+        <div class="row">
+            <div class="col">
+                <p class="text-muted"> 
+                    <a href="{% url 'formsaurus:survey' survey.id %}" target="_blank">{{ request.scheme }}://{{ request.META.HTTP_HOST }}{% url 'formsaurus:survey' survey.id %}</a>
+                </p>
+            </div>
+        </div>
         <div class="row mb-3 no-gutters">
             <div class="col-4 border-r"><p class="text-lg text-center m-0"><a href="{% url 'formsaurus_manage:submissions' survey.id %}">{{ submissions.count }}</a></p><p class="mt-0 mb-0 text-sm text-upper text-center">Answers</p></div>
             <div class="col-4 border-r pl-3"><p class="text-lg text-center m-0">{{ submissions.completed }}</p><p class="mt-0 mb-0 text-sm text-upper text-center">Completed</p></div>

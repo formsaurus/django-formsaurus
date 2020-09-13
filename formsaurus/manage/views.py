@@ -7,10 +7,12 @@ from django.views.generic.base import View
 from django.urls import reverse
 from django.utils import timezone
 from django.db.models import Count, Sum
+from django.conf import settings
 
 from formsaurus.models import Survey, Question, Submission
 from formsaurus.serializer import Serializer
 from formsaurus.forms import *
+from formsaurus.manage.unsplash import Unsplash
 
 logger = logging.getLogger('formsaurus')
 
@@ -71,6 +73,7 @@ class AddQuestionView(LoginRequiredMixin, View):
         default_type = Question.WELCOME_SCREEN if not has_ws else Question.YES_NO
         question_type = question_type if question_type is not None else default_type
         context = {}
+        context['has_unsplash'] = hasattr(settings, 'UNSPLASH_ACCESS_KEY')
         context['survey'] = survey
         context['types'] = {}
         for key, value in Question.TYPES:
@@ -534,3 +537,12 @@ class SubmissionView(LoginRequiredMixin, View):
         context['survey'] = survey
         context['submission'] = submission
         return render(request, self.template_name, context)
+
+class UnsplashSearchView(LoginRequiredMixin, View):
+    def get(self, request):
+        term = request.GET.get('q')
+        per_page = int(request.GET.get('per_page', 9))
+        page = request.GET.get('page', None)
+        client = Unsplash(settings.UNSPLASH_ACCESS_KEY, None)
+        result = client.search(term, per_page=per_page, page=page)
+        return JsonResponse(result)

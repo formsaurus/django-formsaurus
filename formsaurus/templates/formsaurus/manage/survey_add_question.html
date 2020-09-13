@@ -53,8 +53,11 @@
                 </div>
 
                 <div class="form-group d-none" id="show_image_content">
-                    <input type="url" name="image_url" class="w-100 mb-2 title" placeholder="https://unsplash.com/"/>
+                    <input type="url" id="image_url" name="image_url" class="mb-2 title" placeholder="https://unsplash.com/"/>
                     <label for="button_label"><small class="text-muted">Image URL</small></label>
+                    {% if has_unsplash %}
+                    <small><a href="#" data-toggle="modal" data-target="#imageModal">Search Images</a></small>
+                    {% endif %}
                 </div>
 
                 <!-- Video -->
@@ -304,6 +307,7 @@
         </div>
     </div>
 </div>
+{% include 'formsaurus/manage/image_modal.html' %}
 {% endblock %}
 
 {% block javascript %}
@@ -425,6 +429,45 @@ $(function() {
 
     })
 })
+
+$(function() {
+    // image_search
+    $('#image_search_query').enterKey(function(evt) {
+        search_image($(this).val(), 1, 9)
+    })
+})
+
+function search_image(term, page, per_page) {
+    $('#image_search_results').empty()
+    $('#image_search_paging').addClass('d-none')
+    $('#image_search_prev').off()
+    $('#image_search_next').off()
+    $.get("{% url 'formsaurus_manage:unsplash_search' %}?per_page="+per_page+"&page="+page+"&q="+term, function(data) {
+        if(data.total_pages > 0) {
+            $('#image_search_paging').removeClass('d-none')
+            $('#image_search_prev').click(function(evt) {
+                if (page > 1) {
+                    search_image(term, page-1, per_page)
+                }
+            })
+            $('#image_search_next').click(function(evt) {
+                if (page < data.total_pages - 1) {
+                    search_image(term, page+1, per_page)
+                }
+            })
+        }
+        data.results.forEach(function(result) {
+            img = $('<div/>').addClass('img-thumbnail m-1').attr('style', 'width: 240px; height: 150px; background-image: url("' + result.urls.small + '"); background-position: center; background-repeat: no-repeat; background-size: cover;')
+            a = $('<a/>').attr('href', '#').attr('data-url', result.urls.raw)
+            a.click(function(evt) {
+                $('#image_url').val(result.urls.raw)
+                $('#imageModal').modal('hide')
+            })
+            a.append(img)
+            $('#image_search_results').append(a)
+        })            
+    })
+}
 
 function addChoice(evt) {
     d = $('<div/>').addClass('form-group')

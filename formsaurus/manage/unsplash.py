@@ -7,5 +7,9 @@ class Unsplash:
     
     def search(self, query, page=None, per_page=None):
         url = f'https://api.unsplash.com/search/photos?query={query}&client_id={self.access_key}'
+        if per_page is not None:
+            url = f'{url}&per_page={per_page}'
+        if page is not None:
+            url = f'{url}&page={page}'
         result = requests.get(url)
         return result.json()
