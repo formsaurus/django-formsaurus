@@ -967,7 +967,12 @@ class MultipleChoiceAnswer(Answer):
 
     @property
     def answer(self):
-        return self.choices.all()
+        answers = []
+        for choice in self.choices.all():
+            answers.append(choice.choice)
+        if self.other is not None and self.other != "":
+            answers.append(self.other)
+        return answers
 
     def __str__(self):
         return f'{self.short_id} {self.choices.all()} {self.other}'

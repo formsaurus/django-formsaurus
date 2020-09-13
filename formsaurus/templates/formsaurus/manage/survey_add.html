@@ -12,9 +12,9 @@
         <div class="row mt-5">
             <div class="col">
                 {% if survey %}
-                <form method="POST" action="{% url 'formsaurus:survey_edit' survey.id %}">
+                <form method="POST" action="{% url 'formsaurus_manage:survey_edit' survey.id %}">
                 {% else %}
-                <form method="POST" action="{% url 'formsaurus:survey_add' %}">
+                <form method="POST" action="{% url 'formsaurus_manage:survey_add' %}">
                 {% endif %}
                     {% csrf_token %}
                     <input type="text" name="name" class="w-100 mb-2 title" placeholder="Customer Survey" autofocus required value="{{ survey.name }}"/>

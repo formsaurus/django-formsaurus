@@ -5,7 +5,7 @@
 <div class="container">
     <div class="row">
         <div class="col">
-            <h1><a href="{% url 'formsaurus:surveys' %}">&laquo;</a> {{ survey.name }}</h1>
+            <h1><a href="{% url 'formsaurus_manage:surveys' %}">&laquo;</a> {{ survey.name }}</h1>
         </div>
         <div class="col-1 pt-4">
             <div class="custom-control custom-switch">
@@ -15,21 +15,23 @@
 
         </div>
     </div>
-    {% if survey.submission_set.all %}
+    {% if survey.published %}
         <div class="row mb-3 no-gutters">
-            <div class="col-4 border-r"><p class="text-lg text-center m-0"><a href="{% url 'formsaurus:submissions' survey.id %}">{{ submissions.count }}</a></p><p class="mt-0 mb-0 text-sm text-upper text-center">Answers</p></div>
+            <div class="col-4 border-r"><p class="text-lg text-center m-0"><a href="{% url 'formsaurus_manage:submissions' survey.id %}">{{ submissions.count }}</a></p><p class="mt-0 mb-0 text-sm text-upper text-center">Answers</p></div>
             <div class="col-4 border-r pl-3"><p class="text-lg text-center m-0">{{ submissions.completed }}</p><p class="mt-0 mb-0 text-sm text-upper text-center">Completed</p></div>
             <div class="col-4 pl-3"><p class="text-lg m-0 text-center">{{ submissions.ratio }}%</p><p class="mt-0 mb-0 text-sm text-upper text-center">Completion Rate</p></div>
         </div>
     {% endif %}
     <div class="row mt-5">
+        {% if not survey.published %}
         <div class="col-2">
-            {% if not question.published %}
-                <p><a href="{% url 'formsaurus:survey_add_hidden_field' survey.id %}" class="btn btn-primary btn-wide {% if survey.published %}disabled{% endif %}">Add Hidden Field</a></p>
-                <p><a href="{% url 'formsaurus:survey_add_question' survey.id %}" class="btn btn-primary btn-wide {% if survey.published %}disabled{% endif %}">Add Question</a></p>
-                <p><a href="{% url 'formsaurus:survey_delete' survey.id %} " class="btn btn-danger btn-wide {% if survey.published %}disabled{% endif %}">Delete</a></p>
-            {% endif %}
+            
+                <p><a href="{% url 'formsaurus_manage:survey_add_hidden_field' survey.id %}" class="btn btn-primary btn-wide {% if survey.published %}disabled{% endif %}">Add Hidden Field</a></p>
+                <p><a href="{% url 'formsaurus_manage:survey_add_question' survey.id %}" class="btn btn-primary btn-wide {% if survey.published %}disabled{% endif %}">Add Question</a></p>
+                <p><a href="{% url 'formsaurus_manage:survey_delete' survey.id %} " class="btn btn-danger btn-wide {% if survey.published %}disabled{% endif %}">Delete</a></p>
+            
         </div>
+        {% endif %}
         <div class="col">
             {% if survey.hiddenfield_set.all %}
             <h2>Fields</h2>
@@ -84,8 +86,7 @@
 $(function() {
     $('#publish_switch').change(function(evt) {
         if ($(this).prop('checked')) {
-            console.log("{% url 'formsaurus:survey_publish' survey.id %}")
-            window.location.href = "{% url 'formsaurus:survey_publish' survey.id %}"
+            window.location.href = "{% url 'formsaurus_manage:survey_publish' survey.id %}"
         }
     })
 })

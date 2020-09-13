@@ -5,7 +5,7 @@
 <div class="container">
     <div class="row">
         <div class="col">
-            <h4><a href="{% url 'formsaurus:survey_wizard' survey.id %}">{{ survey.name }}</a></h4>
+            <h4><a href="{% url 'formsaurus_manage:survey_wizard' survey.id %}">{{ survey.name }}</a></h4>
             <h1>Add Question</h1>
         </div>
     </div>
@@ -15,7 +15,7 @@
                 <button type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">{{ type_name }}</button>
                 <div class="dropdown-menu">
                     {% for type in types.items %}
-                        <a class="dropdown-item" href="{% url 'formsaurus:survey_add_question' survey.id type.0 %}">{{ type.1 }}</a>
+                        <a class="dropdown-item" href="{% url 'formsaurus_manage:survey_add_question' survey.id type.0 %}">{{ type.1 }}</a>
                     {% endfor %}
                 </div>
             </div>
@@ -23,7 +23,7 @@
     </div>
     <div class="row pt-5">
         <div class="col">
-            <form method="POST" action="{% url 'formsaurus:survey_add_question' survey.id type %}">
+            <form method="POST" action="{% url 'formsaurus_manage:survey_add_question' survey.id type %}">
                 {% csrf_token %}
                 <input type="hidden" name="question_type" value="{{ type }}">
 
@@ -84,11 +84,11 @@
                 </div>
                 <div class="d-none" id="ts_show_button_content">
                     <div class="form-group">
-                        <input type="text" name="button_label" class="w-100 mb-2 title" value="Done" placeholder="Done" required/>
+                        <input type="text" id="ts_button_label" name="button_label" class="w-100 mb-2 title" value="Done" placeholder="Done"/>
                         <label for="button_label"><small class="text-muted">Button Label</small></label>
                     </div>
                     <div class="form-group">
-                        <input type="url" name="button_link" class="w-100 mb-2 title" placeholder="https://example.com" required/>
+                        <input type="url" id="ts_button_link" name="button_link" class="w-100 mb-2 title" placeholder="https://example.com"/>
                         <label for="button_link"><small class="text-muted">Button Link</small></label>
                     </div>
                 </div>
@@ -342,8 +342,12 @@ $(function() {
     $('#ts_show_button_switch').change(function(evt) {
         if ($(this).prop('checked')) {
             $('#ts_show_button_content').removeClass('d-none');
+            $('#ts_button_label').prop('required', true)
+            $('#ts_button_link').prop('required', true)
         } else {
             $('#ts_show_button_content').addClass('d-none');
+            $('#ts_button_label').prop('required', false)
+            $('#ts_button_link').prop('required', false)
         }
     })
     // MC
