@@ -43,15 +43,7 @@ class Survey(BaseModel):
                                       blank=True, null=True, default=None, related_name='last_question')
 
     def add_hidden_field(self, name):
-        # Do we already have it?
-        qs = HiddenField.objects.filter(survey=self, name=name)
-        if qs.count() == 0:
-            return HiddenField.objects.create(
-                survey=self,
-                name=name,
-            )
-        else:
-            return qs.first()
+        return HiddenField.get_or_create(survey=self, name=name)
 
     def append_question(self, question):
         if self.first_question is None:

@@ -24,12 +24,10 @@
     {% endif %}
     <div class="row mt-5">
         {% if not survey.published %}
-        <div class="col-2">
-            
+        <div class="col-sm-2">   
                 <p><a href="{% url 'formsaurus_manage:survey_add_hidden_field' survey.id %}" class="btn btn-primary btn-wide {% if survey.published %}disabled{% endif %}">Add Hidden Field</a></p>
                 <p><a href="{% url 'formsaurus_manage:survey_add_question' survey.id %}" class="btn btn-primary btn-wide {% if survey.published %}disabled{% endif %}">Add Question</a></p>
                 <p><a href="{% url 'formsaurus_manage:survey_delete' survey.id %} " class="btn btn-danger btn-wide {% if survey.published %}disabled{% endif %}">Delete</a></p>
-            
         </div>
         {% endif %}
         <div class="col">
