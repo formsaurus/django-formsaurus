@@ -9,15 +9,27 @@
             </div>
             <div class="modal-body">
                 <div class="container-fluid">
+                    <div class="row mb-2">
+                        <div class="col">
+                            <ul class="nav nav-tabs" id="image_search_tabs">
+                                <li class="nav-item">
+                                  <a class="nav-link active" href="#" data-backend="unsplash">Unsplash</a>
+                                </li>
+                                <li class="nav-item">
+                                  <a class="nav-link" href="#" data-backend="tenor">GIF</a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
                     <div class="row">
                         <div class="col">
                             <div class="input-group mb-3">
                                 <input type="text" class="form-control" placeholder="Search" aria-label="Search"
                                     aria-describedby="basic-addon1" id="image_search_query">
                                 <div class="input-group-append">
-                                    <span class="input-group-text" id="basic-addon1"><i class="fab fa-unsplash"></i></span>
+                                    <button class="btn btn-outline-secondary" type="button" id="image_search_query_button"><i class="fas fa-search"></i></button>
                                 </div>
-
                             </div>
                         </div>
                     </div>

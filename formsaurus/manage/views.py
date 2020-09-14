@@ -13,6 +13,8 @@ from formsaurus.models import Survey, Question, Submission, Choice
 from formsaurus.serializer import Serializer
 from formsaurus.forms import *
 from formsaurus.manage.unsplash import Unsplash
+from formsaurus.manage.pexels import Pexels
+from formsaurus.manage.tenor import Tenor
 
 logger = logging.getLogger('formsaurus')
 
@@ -48,7 +50,7 @@ class SurveyWizardView(LoginRequiredMixin, View):
             context['submissions'] = {}
             row = Submission.objects.filter(survey=survey).aggregate(
                 count=Count('id'), sum=Sum('completed'))
-            completed = 1 if row['sum'] is True else 0 if row['sum'] is None else row['sum']
+            completed = 1 if row['sum'] is True else 0 if row['sum'] is None or row['sum'] is False else row['sum']
             context['submissions']['count'] = row['count']
             context['submissions']['completed'] = completed
             context['submissions']['ratio'] = completed / \
@@ -74,6 +76,7 @@ class AddQuestionView(LoginRequiredMixin, View):
         question_type = question_type if question_type is not None else default_type
         context = {}
         context['has_unsplash'] = hasattr(settings, 'UNSPLASH_ACCESS_KEY')
+        context['has_pexels'] = hasattr(settings, 'PEXELS_API_KEY')
         context['survey'] = survey
         context['types'] = {}
         for key, value in Question.TYPES:
@@ -769,4 +772,22 @@ class UnsplashSearchView(LoginRequiredMixin, View):
         page = request.GET.get('page', None)
         client = Unsplash(settings.UNSPLASH_ACCESS_KEY)
         result = client.search(term, per_page=per_page, page=page)
+        return JsonResponse(result)
+
+
+class PexelsSearchView(LoginRequiredMixin, View):
+    def get(self, request):
+        term = request.GET.get('q')
+        per_page = int(request.GET.get('per_page', 9))
+        page = request.GET.get('page', None)
+        client = Pexels(settings.PEXELS_API_KEY)
+        result = client.search_videos(term, per_page=per_page, page=page)
+        return JsonResponse(result)
+
+class TenorSearchView(LoginRequiredMixin, View):
+    def get(self, request):
+        term = request.GET.get('q')
+        per_page = int(request.GET.get('per_page', 9))
+        client = Tenor(settings.TENOR_API_KEY)
+        result = client.search(term, per_page=per_page)
         return JsonResponse(result)

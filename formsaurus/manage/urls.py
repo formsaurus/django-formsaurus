@@ -26,6 +26,11 @@ urlpatterns = [
          manage.SubmissionsView.as_view(), name='submissions'),
     path('manage/form/submissions/<uuid:survey_id>/<uuid:submission_id>',
          manage.SubmissionView.as_view(), name='submission'),
-    path('manage/unsplash', manage.UnsplashSearchView.as_view(),
+    
+    path('manage/search/unsplash', manage.UnsplashSearchView.as_view(),
          name='unsplash_search'),
+    path('manage/search/pexels', manage.PexelsSearchView.as_view(),
+         name='pexels_search'),
+    path('manage/search/tenor', manage.TenorSearchView.as_view(),
+         name='tenor_search'),
 ]

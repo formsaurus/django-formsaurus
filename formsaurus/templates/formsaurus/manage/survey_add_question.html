@@ -87,9 +87,12 @@
 
                 <div class="form-group {% if not question.parameters.video_url %}d-none{% endif %}"
                     id="show_video_content">
-                    <input type="url" name="video_url" class="w-100 mb-2 title" placeholder="https://youtube.com/"
+                    <input type="url" name="video_url" id="video_url" class="w-100 mb-2 title" placeholder="https://youtube.com/"
                         {% if question.parameters.video_url %}value="{{ question.parameters.video_url }}"{% endif %} />
                     <label for="button_label"><small class="text-muted">Video URL</small></label>
+                    {% if has_pexels %}
+                    <small><a href="#" data-toggle="modal" data-target="#videoModal">Search Videos</a></small>
+                    {% endif %}
                 </div>
 
                 {% if type == 'WS' %}
@@ -418,6 +421,7 @@
     </div>
 </div>
 {% include 'formsaurus/manage/image_modal.html' %}
+{% include 'formsaurus/manage/video_modal.html' %}
 {% endblock %}
 
 {% block javascript %}
@@ -542,35 +546,65 @@
 
     $(function () {
         // image_search
-        $('#image_search_query').enterKey(function (evt) {
-            search_image($(this).val(), 1, 9)
+        $('#image_search_query').enterKey(function(evt) {
+            backend = $('#image_search_tabs').find('a.active').attr('data-backend')
+            console.log(backend)
+            search_images($(this).val(), 1, 9, backend, $('#image_url'))
+        })
+        $('#image_search_query_button').click(function(evt) {
+            search_images($('#image_search_query').val(), 1, 9, 'tenor', $('#image_url'))
+        })
+        $('#image_search_tabs').find('a').click(function(evt) {
+            $('#image_search_tabs').find('a').removeClass('active')
+            $(this).addClass('active')
+            clear_image_search()
+        })
+        // video_search
+        $('#video_search_query').enterKey(function(evt) {
+            search_videos($(this).val(), 1, 9)
         })
     })
 
-    function search_image(term, page, per_page) {
+    function clear_image_search() {
         $('#image_search_results').empty()
         $('#image_search_paging').addClass('d-none')
         $('#image_search_prev').off()
         $('#image_search_next').off()
-        $.get("{% url 'formsaurus_manage:unsplash_search' %}?per_page=" + per_page + "&page=" + page + "&q=" + term, function (data) {
+    }
+
+    function search_images(term, page, per_page, backend, target) {
+        clear_image_search()
+        url = "{% url 'formsaurus_manage:unsplash_search' %}?per_page=" + per_page + "&page=" + page + "&q=" + term
+        if (backend == 'tenor') {
+            url = "{% url 'formsaurus_manage:tenor_search' %}?per_page=" + per_page + "&q=" + term
+        }
+        $.get(url, function (data) {
+            console.log(data)
             if (data.total_pages > 0) {
                 $('#image_search_paging').removeClass('d-none')
                 $('#image_search_prev').click(function (evt) {
                     if (page > 1) {
-                        search_image(term, page - 1, per_page)
+                        search_images(term, page - 1, per_page, backend, target)
                     }
                 })
                 $('#image_search_next').click(function (evt) {
                     if (page < data.total_pages - 1) {
-                        search_image(term, page + 1, per_page)
+                        search_images(term, page + 1, per_page, backend, target)
                     }
                 })
             }
             data.results.forEach(function (result) {
-                img = $('<div/>').addClass('img-thumbnail m-1').attr('style', 'width: 240px; height: 150px; background-image: url("' + result.urls.small + '"); background-position: center; background-repeat: no-repeat; background-size: cover;')
-                a = $('<a/>').attr('href', '#').attr('data-url', result.urls.raw)
+                if (backend == 'tenor') {
+                    bg_url = result.media[0].gif.url
+                    target_url = result.media[0].gif.url
+                } else {
+                    bg_url = result.urls.small
+                    target_url = result.urls.raw
+                }
+                img = $('<div/>').addClass('img-thumbnail m-1').attr('style', 'width: 240px; height: 150px; background-image: url("' + bg_url + '"); background-position: center; background-repeat: no-repeat; background-size: cover;')
+                a = $('<a/>').attr('href', '#').attr('data-url', target_url)
                 a.click(function (evt) {
-                    $('#image_url').val(result.urls.raw)
+                    target.val($(this).attr('data-url'))
                     $('#imageModal').modal('hide')
                 })
                 a.append(img)
@@ -579,6 +613,38 @@
         })
     }
 
+    function search_videos(term, page, per_page) {
+        $('#video_search_results').empty()
+        $('#video_search_paging').addClass('d-none')
+        $('#video_search_prev').off()
+        $('#video_search_next').off()
+        $.get("{% url 'formsaurus_manage:pexels_search' %}?per_page=" + per_page + "&page=" + page + "&q=" + term, function (data) {
+            console.log(data)
+            $('#video_search_paging').removeClass('d-none')
+            $('#video_search_prev').click(function (evt) {
+                if (page > 1) {
+                    search_videos(term, page - 1, per_page)
+                }
+            })
+            $('#video_search_next').click(function (evt) {
+                if (page < data.total_pages - 1) {
+                    search_videos(term, page + 1, per_page)
+                }
+            })
+
+            data.videos.forEach(function (result) {
+                img = $('<div/>').addClass('img-thumbnail m-1').attr('style', 'width: 240px; height: 150px; background-image: url("' + result.image + '"); background-position: center; background-repeat: no-repeat; background-size: cover;')
+                a = $('<a/>').attr('href', '#')
+
+                a.click(function (evt) {
+                    $('#video_url').val(result.video_files[0].link)
+                    $('#videoModal').modal('hide')
+                })
+                a.append(img)
+                $('#video_search_results').append(a)
+            })
+        })
+    }
     function addChoice(evt) {
         d = $('<div/>').addClass('form-group')
         i = $('<input/>').attr('type', 'text').attr('name', 'choice').addClass('w-100').addClass('mb-2').addClass('title').attr('placeholder', 'Choice..')

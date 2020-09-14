@@ -78,8 +78,11 @@
                                 {% endif %}
                             </td>
                             <td>
+                                {% if survey.published %}
+                                {% else %}
                                 <a href="{% url 'formsaurus_manage:survey_edit_question' survey.id question.id %}"><i class="fas fa-edit"></i></a>
                                 <a href="{% url 'formsaurus_manage:delete_question' survey.id question.id %}" onclick="return confirm('Are you sure you want to delete {{ question.question }}?');"><i class="fas fa-trash"></i></a>
+                                {% endif %}
                             </td>
                         </tr>
                     {% endfor %}
