@@ -62,20 +62,27 @@
 
 
                 <!-- Image -->
-                <div class="custom-control custom-switch">
-                    <input type="checkbox" class="custom-control-input" id="show_image_switch"
-                        {% if question.parameters.image_url %}checked{% endif %}>
-                    <label class="custom-control-label" for="show_image_switch">Show Image</label>
-                </div>
-
-                <div class="form-group {% if not question.parameters.image_url %}d-none{% endif %}"
-                    id="show_image_content">
-                    <input type="url" id="image_url" name="image_url" class="mb-2 title"
-                        placeholder="https://unsplash.com/" {% if question.parameters.image_url %}value="{{ question.parameters.image_url }}"{% endif %} />
-                    <label for="button_label"><small class="text-muted">Image URL</small></label>
-                    {% if has_unsplash %}
-                    <small><a href="#" data-toggle="modal" data-target="#imageModal">Search Images</a></small>
-                    {% endif %}
+                <div class="row">
+                    <div class="col">
+                        <div class="custom-control custom-switch">
+                            <input type="checkbox" class="custom-control-input" id="show_image_switch"
+                                {% if question.parameters.image_url %}checked{% endif %}>
+                            <label class="custom-control-label" for="show_image_switch">Show Image</label>
+                        </div>
+        
+                        <div class="form-group {% if not question.parameters.image_url %}d-none{% endif %}"
+                            id="show_image_content">
+                            <input type="url" id="image_url" name="image_url" class="mb-2 title"
+                                placeholder="https://unsplash.com/" {% if question.parameters.image_url %}value="{{ question.parameters.image_url }}"{% endif %} />
+                            <label for="button_label"><small class="text-muted">Image URL</small></label>
+                            {% if has_unsplash %}
+                            <small><a href="#" data-toggle="modal" data-target="#imageModal">Search Images</a></small>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="col-2 {% if not question.parameters.image_url %}d-none{% endif %}" id="image_preview">
+                        <img class="img-fluid img-thumbnail" {% if question.parameters.image_url %}src="{{ question.parameters.image_url }}"{% endif %}/>
+                    </div>
                 </div>
 
                 <!-- Video -->
@@ -440,10 +447,16 @@
             if ($(this).prop('checked')) {
                 $('#show_image_content').removeClass('d-none');
                 $('#show_video_switch').prop('disabled', true)
+                $('#image_preview').removeClass('d-none')
             } else {
                 $('#show_image_content').addClass('d-none');
                 $('#show_video_switch').prop('disabled', false)
+                $('#image_preview').addClass('d-none')
             }
+        })
+        $('#image_url').change(function(evt) {
+            img = $('#image_preview').find('img')
+            img.attr('src', $(this).val())
         })
         // video_url
         $('#show_video_switch').change(function (evt) {
@@ -549,10 +562,10 @@
         $('#image_search_query').enterKey(function(evt) {
             backend = $('#image_search_tabs').find('a.active').attr('data-backend')
             console.log(backend)
-            search_images($(this).val(), 1, 9, backend, $('#image_url'))
+            search_images($(this).val(), 1, 9, backend, $('#image_url'), $('#image_preview').find('img'))
         })
         $('#image_search_query_button').click(function(evt) {
-            search_images($('#image_search_query').val(), 1, 9, 'tenor', $('#image_url'))
+            search_images($('#image_search_query').val(), 1, 9, 'tenor', $('#image_url'), $('#image_preview').find('img'))
         })
         $('#image_search_tabs').find('a').click(function(evt) {
             $('#image_search_tabs').find('a').removeClass('active')
@@ -572,7 +585,7 @@
         $('#image_search_next').off()
     }
 
-    function search_images(term, page, per_page, backend, target) {
+    function search_images(term, page, per_page, backend, target, preview_target) {
         clear_image_search()
         url = "{% url 'formsaurus_manage:unsplash_search' %}?per_page=" + per_page + "&page=" + page + "&q=" + term
         if (backend == 'tenor') {
@@ -584,12 +597,12 @@
                 $('#image_search_paging').removeClass('d-none')
                 $('#image_search_prev').click(function (evt) {
                     if (page > 1) {
-                        search_images(term, page - 1, per_page, backend, target)
+                        search_images(term, page - 1, per_page, backend, target, preview_target)
                     }
                 })
                 $('#image_search_next').click(function (evt) {
                     if (page < data.total_pages - 1) {
-                        search_images(term, page + 1, per_page, backend, target)
+                        search_images(term, page + 1, per_page, backend, target, preview_target)
                     }
                 })
             }
@@ -606,6 +619,9 @@
                 a.click(function (evt) {
                     target.val($(this).attr('data-url'))
                     $('#imageModal').modal('hide')
+                    if (preview_target) {
+                        preview_target.attr('src', $(this).attr('data-url'))
+                    }
                 })
                 a.append(img)
                 $('#image_search_results').append(a)
