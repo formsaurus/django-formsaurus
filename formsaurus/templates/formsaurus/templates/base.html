@@ -1,3 +1,4 @@
+{% load formsaurus %}
 {% if submission %}
 <form method="POST" class="w-100" action="{% url 'formsaurus:question' survey.id question.id submission.id %}" id="ze_form">
 {% else %}
@@ -9,7 +10,7 @@
             {% if question.parameters.image_url %}
                 <img src="{{ question.parameters.image_url }}" class="img-fluid mb-4">
             {% elif question.parameters.video_url %}
-                <iframe width="1000" height="562" src="{{ question.parameters.video_url }}&autoplay=1" frameborder="0"></iframe>
+                {{ question.parameters.video_url|embed }}
             {% endif %}
             <h2 class="mb-0">
                 {% if question.parameters.show_quotation_mark %}

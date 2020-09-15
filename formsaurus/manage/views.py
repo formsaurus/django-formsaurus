@@ -48,7 +48,7 @@ class SurveyWizardView(LoginRequiredMixin, View):
         if survey.published:
             # Stats about submissions
             context['submissions'] = {}
-            row = Submission.objects.filter(survey=survey).aggregate(
+            row = Submission.objects.filter(survey=survey, is_preview=False).aggregate(
                 count=Count('id'), sum=Sum('completed'))
             completed = 1 if row['sum'] is True else 0 if row['sum'] is None or row['sum'] is False else row['sum']
             context['submissions']['count'] = row['count']
@@ -659,6 +659,36 @@ class DeleteQuestionView(LoginRequiredMixin, View):
         if survey.published:
             raise Http404
         question.delete()
+        return redirect(self.success_url, survey.id)
+
+class QuestionUpView(LoginRequiredMixin, View):
+    success_url = 'formsaurus_manage:survey_wizard'
+    
+    def get(self, request, survey_id, question_id):
+        survey = get_object_or_404(Survey, pk=survey_id)
+        if survey.user != request.user:
+            raise Http404
+        question = get_object_or_404(Question, pk=question_id)
+        if question.survey != survey:
+            raise Http404
+        if survey.published:
+            raise Http404
+        survey.move_question_up(question)
+        return redirect(self.success_url, survey.id)
+
+class QuestionDownView(LoginRequiredMixin, View):
+    success_url = 'formsaurus_manage:survey_wizard'
+    
+    def get(self, request, survey_id, question_id):
+        survey = get_object_or_404(Survey, pk=survey_id)
+        if survey.user != request.user:
+            raise Http404
+        question = get_object_or_404(Question, pk=question_id)
+        if question.survey != survey:
+            raise Http404
+        if survey.published:
+            raise Http404
+        survey.move_question_down(question)
         return redirect(self.success_url, survey.id)
 
 class SurveyAddView(LoginRequiredMixin, View):

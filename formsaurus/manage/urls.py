@@ -1,5 +1,6 @@
 from django.urls import path
 from formsaurus.manage import views as manage
+from formsaurus import views
 
 app_name = 'formsaurus_manage'
 urlpatterns = [
@@ -7,6 +8,8 @@ urlpatterns = [
     path('manage/form/add', manage.SurveyAddView.as_view(), name='survey_add'),
     path('manage/form/create/<uuid:survey_id>',
          manage.SurveyWizardView.as_view(), name='survey_wizard'),
+    path('manage/form/preview/<uuid:survey_id>',
+        views.SurveyView.as_view(), name='survey_preview'),
     path('manage/form/publish/<uuid:survey_id>',
          manage.PublishSurveyView.as_view(), name='survey_publish'),
     path('manage/form/create/<uuid:survey_id>/add',
@@ -14,9 +17,13 @@ urlpatterns = [
     path('manage/form/create/<uuid:survey_id>/add/<slug:question_type>',
          manage.AddQuestionView.as_view(), name='survey_add_question'),
     path('manage/form/create/<uuid:survey_id>/edit/<uuid:question_id>',
-        manage.EditQuestionView.as_view(), name='survey_edit_question'),
+         manage.EditQuestionView.as_view(), name='survey_edit_question'),
     path('manage/form/create/<uuid:survey_id>/delete/<uuid:question_id>',
-        manage.DeleteQuestionView.as_view(), name='delete_question'),
+         manage.DeleteQuestionView.as_view(), name='delete_question'),
+    path('manage/form/create/<uuid:survey_id>/up/<uuid:question_id>',
+        manage.QuestionUpView.as_view(), name='question_up'),
+    path('manage/form/create/<uuid:survey_id>/down/<uuid:question_id>',
+        manage.QuestionDownView.as_view(), name='question_down'),
     path('manage/form/create/<uuid:survey_id>/field',
          manage.HiddenFieldView.as_view(), name='survey_add_hidden_field'),
     path('manage/form/delete/<uuid:survey_id>',
@@ -26,7 +33,7 @@ urlpatterns = [
          manage.SubmissionsView.as_view(), name='submissions'),
     path('manage/form/submissions/<uuid:survey_id>/<uuid:submission_id>',
          manage.SubmissionView.as_view(), name='submission'),
-    
+
     path('manage/search/unsplash', manage.UnsplashSearchView.as_view(),
          name='unsplash_search'),
     path('manage/search/pexels', manage.PexelsSearchView.as_view(),

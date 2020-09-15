@@ -18,7 +18,7 @@
 
     <div class="row mt-5">
         <div class="col">
-            {% if survey.submission_set.all %}
+            {% if survey.submissions %}
             <h2>Answers</h2>
             
             <table class="table">
@@ -29,7 +29,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {% for submission in survey.submission_set.all %} 
+                    {% for submission in survey.submissions %} 
                     <tr>
                         <td>
                             <div class="custom-control custom-switch">

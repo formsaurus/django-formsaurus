@@ -1,3 +1,4 @@
+import logging
 import uuid
 
 from dateutil import parser
@@ -9,6 +10,8 @@ from django.utils import timezone
 from phonenumber_field.modelfields import PhoneNumberField
 
 User = get_user_model()
+
+logger = logging.getLogger('formsaurus')
 
 
 class BaseModel(models.Model):
@@ -42,6 +45,25 @@ class Survey(BaseModel):
     last_question = models.ForeignKey('Question', on_delete=models.SET_NULL,
                                       blank=True, null=True, default=None, related_name='last_question')
 
+    
+    @property
+    def submissions(self):
+        return self.submission_set.filter(is_preview=False).all()
+
+    @property
+    def questions(self):
+        questions = self.question_set.all()
+        # Need to order based on next_question
+        cache = {}
+        for question in questions:
+            cache[question.id] = question
+        results = []
+        current = cache[self.first_question_id]
+        while current is not None:
+            results.append(current)
+            current = cache[current.next_question_id] if current.next_question_id is not None else None
+        return results
+
     def add_hidden_field(self, name):
         return HiddenField.get_or_create(survey=self, name=name)
 
@@ -74,7 +96,7 @@ class Survey(BaseModel):
                 question_type=Question.WELCOME_SCREEN,
                 required=False,
             )
-            parameters = WelcomeParameters.objects.create(
+            _ = WelcomeParameters.objects.create(
                 question=question,
                 button_label=button_label,
                 image_url=image_url,
@@ -91,7 +113,7 @@ class Survey(BaseModel):
             question_type=Question.THANK_YOU_SCREEN,
             required=False,
         )
-        parameters = ThankYouParameters.objects.create(
+        _ = ThankYouParameters.objects.create(
             question=question,
             show_button=show_button,
             button_label=button_label,
@@ -121,7 +143,7 @@ class Survey(BaseModel):
             question_type=Question.MULTIPLE_CHOICE,
             required=required,
         )
-        parameters = MultipleChoiceParameters.objects.create(
+        _ = MultipleChoiceParameters.objects.create(
             question=question,
             multiple_selection=multiple_selection,
             randomize=randomize,
@@ -146,7 +168,7 @@ class Survey(BaseModel):
             question_type=Question.PHONE_NUMBER,
             required=required,
         )
-        parameters = PhoneNumberParameters.objects.create(
+        _ = PhoneNumberParameters.objects.create(
             question=question,
             default_country_code=default_country_code,
             image_url=image_url,
@@ -163,7 +185,7 @@ class Survey(BaseModel):
             question_type=Question.SHORT_TEXT,
             required=required,
         )
-        parameters = ShortTextParameters.objects.create(
+        _ = ShortTextParameters.objects.create(
             question=question,
             limit_character=limit_character,
             limit=limit,
@@ -181,7 +203,7 @@ class Survey(BaseModel):
             question_type=Question.LONG_TEXT,
             required=required,
         )
-        parameters = LongTextParameters.objects.create(
+        _ = LongTextParameters.objects.create(
             question=question,
             limit_character=limit_character,
             limit=limit,
@@ -199,7 +221,7 @@ class Survey(BaseModel):
             question_type=Question.STATEMENT,
             required=False,
         )
-        parameters = StatementParameters.objects.create(
+        _ = StatementParameters.objects.create(
             question=question,
             button_label=button_label,
             show_quotation_mark=show_quotation_mark,
@@ -217,7 +239,7 @@ class Survey(BaseModel):
             question_type=Question.PICTURE_CHOICE,
             required=required,
         )
-        parameters = PictureChoiceParameters.objects.create(
+        _ = PictureChoiceParameters.objects.create(
             question=question,
             multiple_selection=multiple_selection,
             randomize=randomize,
@@ -245,7 +267,7 @@ class Survey(BaseModel):
             question_type=Question.YES_NO,
             required=required,
         )
-        parameters = YesNoParameters.objects.create(
+        _ = YesNoParameters.objects.create(
             question=question,
             image_url=image_url,
             video_url=video_url,
@@ -261,7 +283,7 @@ class Survey(BaseModel):
             question_type=Question.EMAIL,
             required=required,
         )
-        parameters = EmailParameters.objects.create(
+        _ = EmailParameters.objects.create(
             question=question,
             image_url=image_url,
             video_url=video_url,
@@ -278,7 +300,7 @@ class Survey(BaseModel):
             question_type=Question.OPINION_SCALE,
             required=required,
         )
-        parameters = OpinionScaleParameters.objects.create(
+        _ = OpinionScaleParameters.objects.create(
             question=question,
             start_at_one=start_at_one,
             number_of_steps=number_of_steps,
@@ -300,7 +322,7 @@ class Survey(BaseModel):
             question_type=Question.RATING,
             required=required,
         )
-        parameters = RatingParameters.objects.create(
+        _ = RatingParameters.objects.create(
             question=question,
             number_of_steps=number_of_steps,
             shape=shape,
@@ -318,7 +340,7 @@ class Survey(BaseModel):
             question_type=Question.DATE,
             required=required,
         )
-        parameters = DateParameters.objects.create(
+        _ = DateParameters.objects.create(
             question=question,
             date_format=date_format,
             date_separator=date_separator,
@@ -336,7 +358,7 @@ class Survey(BaseModel):
             question_type=Question.NUMBER,
             required=required,
         )
-        parameters = NumberParameters.objects.create(
+        _ = NumberParameters.objects.create(
             question=question,
             enable_min=enable_min,
             min_value=min_value,
@@ -356,7 +378,7 @@ class Survey(BaseModel):
             question_type=Question.DROPDOWN,
             required=required,
         )
-        parameters = DropdownParameters.objects.create(
+        _ = DropdownParameters.objects.create(
             question=question,
             randomize=randomize,
             alphabetical=alphabetical,
@@ -379,7 +401,7 @@ class Survey(BaseModel):
             question_type=Question.LEGAL,
             required=required,
         )
-        parameters = LegalParameters.objects.create(
+        _ = LegalParameters.objects.create(
             question=question,
             image_url=image_url,
             video_url=video_url,
@@ -395,7 +417,7 @@ class Survey(BaseModel):
             question_type=Question.FILE_UPLOAD,
             required=required,
         )
-        parameters = FileUploadParameters.objects.create(
+        _ = FileUploadParameters.objects.create(
             question=question,
             image_url=image_url,
             video_url=video_url,
@@ -411,7 +433,7 @@ class Survey(BaseModel):
             question_type=Question.PAYMENT,
             required=required,
         )
-        parameters = PaymentParameters.objects.create(
+        _ = PaymentParameters.objects.create(
             question=question,
             currency=currency,
             price=price,
@@ -431,13 +453,72 @@ class Survey(BaseModel):
             question_type=Question.WEBSITE,
             required=required,
         )
-        parameters = WebsiteParameters.objects.create(
+        _ = WebsiteParameters.objects.create(
             question=question,
             image_url=image_url,
             video_url=video_url,
         )
         self.append_question(question)
         return question
+
+    def move_question_up(self, question):
+        if self.first_question == question:
+            logger.debug('Not moving first question up')
+            return
+        # We're assured there is a previous question based on the previous if statement
+        previous_question = Question.objects.filter(
+            survey=self, next_question=question)[0]
+        qs = Question.objects.filter(
+            survey=self, next_question=previous_question)
+        previous_previous_question = qs[0] if len(qs) > 0 else None
+        next_question = question.next_question
+
+        logger.debug('Trying to move %s up:', question)
+        logger.debug('%s ==> %s -> %s -> %s -> %s ==> %s',
+                     self.first_question,
+                     previous_previous_question,
+                     previous_question,
+                     question,
+                     next_question,
+                     self.last_question)
+
+        if previous_previous_question is not None:
+            previous_previous_question.next_question = question
+            previous_previous_question.save()
+        previous_question.next_question = next_question
+        question.next_question = previous_question
+        if self.first_question == previous_question:
+            self.first_question = question
+        previous_question.save()
+        if next_question is not None:
+            next_question.save()
+        question.save()
+        self.save()
+
+    def move_question_down(self, question):
+        if question.next_question is None:
+            logger.debug('Not moving question down, there is no next question')
+            return
+        qs = Question.objects.filter(survey=self, next_question=question)
+        previous_question = qs[0] if len(qs) > 0 else None
+        next_question = question.next_question
+        logger.debug('Trying to move %s down:', question)
+        logger.debug('%s ==> %s -> %s -> %s ==> %s',
+                     self.first_question,
+                     previous_question,
+                     question,
+                     next_question,
+                     self.last_question)
+
+        previous_question.next_question = next_question
+        question.next_question = next_question.next_question
+        next_question.next_question = question
+        if self.last_question == next_question:
+            self.last_question = question
+        previous_question.save()
+        next_question.save()
+        question.save()
+        self.save()
 
 
 class HiddenField(BaseModel):
@@ -496,7 +577,7 @@ class Question(BaseModel):
     description = models.TextField(blank=True, null=True, default=None)
     question_type = models.CharField(max_length=2, choices=TYPES)
     required = models.BooleanField()
-    next_question = models.ForeignKey('Question', on_delete=models.CASCADE,
+    next_question = models.ForeignKey('Question', on_delete=models.SET_NULL,
                                       related_name='previous_question', blank=True, null=True, default=None)
 
     @classmethod
@@ -745,6 +826,7 @@ class Choice(BaseModel):
 
 class Submission(BaseModel):
     survey = models.ForeignKey(Survey, on_delete=models.CASCADE)
+    is_preview = models.BooleanField(default=False)
     completed = models.BooleanField(default=False)
     completed_at = models.DateTimeField(blank=True, null=True, default=None)
 
@@ -951,6 +1033,7 @@ class FilledField(BaseModel):
     submission = models.ForeignKey(Submission, on_delete=models.CASCADE)
     field = models.ForeignKey(HiddenField, on_delete=models.CASCADE)
     value = models.TextField(blank=True, null=True)
+
 
 class Answer(BaseModel):
     question = models.ForeignKey(Question, on_delete=models.CASCADE)

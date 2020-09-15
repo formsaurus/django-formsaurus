@@ -22,11 +22,13 @@ class SurveyView(View):
     def get(self, request, survey_id):
         survey = get_object_or_404(Survey, pk=survey_id)
         if not survey.published:
-            raise Http404
+            if not request.user.is_authenticated or survey.user != request.user:
+                raise Http404
 
         question = survey.first_question
         submission = Submission.objects.create(
             survey=survey,
+            is_preview=not survey.published,
         )
         # Store fields
         for field in survey.hiddenfield_set.all():

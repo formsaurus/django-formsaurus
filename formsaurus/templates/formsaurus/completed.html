@@ -7,6 +7,9 @@
             <h1 class="display-1">Survey Completed</h1>
             <p class="lead">You can create your own forms on <a href="/">formsaurus.com</a>.</p>
             <p><a href="" class="btn btn-primary">Get Started</a></p>
+            {% if submission.is_preview %}
+                <p><a href="{% url 'formsaurus:survey_wizard' survey.id %}" class="btn btn-primary">Edit Survey</a></p>
+            {% endif %}
         </div>
     </div>
 </main>
