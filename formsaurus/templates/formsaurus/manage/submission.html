@@ -18,14 +18,28 @@
 
     <div class="row mt-5">
         <div class="col">
-            <h2>Answer</h2>
+            <h2>Submission</h2>
             <p>{% if submission.completed %}Completed{% else %}Incomplete{% endif %} &mdash; {{ submission.completed_at }}</p>
         </div>
     </div>
+    {% if submission.filledfield_set %}
     <div class="row">
         <div class="col">
-            
-            
+            <h3>Hidden Fields</h3>
+            <table class="table">
+                {% for field in submission.filledfield_set.all %}
+                <tr>
+                    <td>{{ field.field.name }}</td>
+                    <td>{{ field.value }}</td>
+                </tr>
+                {% endfor %}
+            </table>            
+        </div>
+    </div>
+    {% endif %}
+    <div class="row">
+        <div class="col">
+            <h3>Answers</h3>
             <table class="table">
                 <tbody>
                     {% for answer in submission.answers %} 

@@ -14,6 +14,7 @@ class Serializer:
     def submission(cls, submission):
         return {
             'id': str(submission.id),
+            'is_preview': submission.is_preview,
         }
 
     @classmethod
@@ -72,7 +73,7 @@ class Serializer:
 
     @classmethod
     def pc_parameters(cls, parameters):
-        p = Serializer.common_parameters(parameters)       
+        p = Serializer.common_parameters(parameters)
         p['multiple_selection'] = parameters.multiple_selection
         p['randomize'] = parameters.randomize
         p['other_option'] = parameters.other_option
@@ -82,15 +83,15 @@ class Serializer:
 
     @classmethod
     def yn_parameters(cls, parameters):
-        return Serializer.common_parameters(parameters)       
+        return Serializer.common_parameters(parameters)
 
     @classmethod
     def e__parameters(cls, parameters):
-        return Serializer.common_parameters(parameters)       
+        return Serializer.common_parameters(parameters)
 
     @classmethod
     def os_parameters(cls, parameters):
-        p = Serializer.common_parameters(parameters)       
+        p = Serializer.common_parameters(parameters)
         p['start_at_one'] = parameters.start_at_one
         p['number_of_steps'] = parameters.number_of_steps
         p['show_labels'] = parameters.show_labels
@@ -101,7 +102,7 @@ class Serializer:
 
     @classmethod
     def r__parameters(cls, parameters):
-        p = Serializer.common_parameters(parameters)   
+        p = Serializer.common_parameters(parameters)
         p['number_of_steps'] = parameters.number_of_steps
         p['shape'] = parameters.shape
         return p
@@ -210,13 +211,12 @@ class Serializer:
             start = 1 if question.parameters.start_at_one else 0
             end = start + question.parameters.number_of_steps
             for n in range(start, end):
-                result['choices'].append({'choice':n})
+                result['choices'].append({'choice': n})
         elif question.question_type == 'R_':
             result['choices'] = []
             end = question.parameters.number_of_steps
             for n in range(0, end):
-                result['choices'].append({'choice':n})
-
+                result['choices'].append({'choice': n})
 
         return result
 

@@ -49,6 +49,10 @@ class QuestionView(View):
 
     def get(self, request, survey_id, question_id, submission_id):
         survey = get_object_or_404(Survey, pk=survey_id)
+        if not survey.published:
+            if not request.user.is_authenticated or survey.user != request.user:
+                raise Http404
+
         question = get_object_or_404(Question, pk=question_id)
         if question.survey != survey:
             raise Http404

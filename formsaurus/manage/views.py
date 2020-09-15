@@ -742,9 +742,7 @@ class PublishSurveyView(LoginRequiredMixin, View):
         survey = get_object_or_404(Survey, pk=survey_id)
         if survey.user != request.user:
             raise Http404
-        survey.published = True
-        survey.published_at = timezone.now()
-        survey.save()
+        survey.publish()
         return redirect(self.success_url, survey.id)
 
 

@@ -45,6 +45,14 @@ class Survey(BaseModel):
     last_question = models.ForeignKey('Question', on_delete=models.SET_NULL,
                                       blank=True, null=True, default=None, related_name='last_question')
 
+
+    def publish(self):
+        Submission.objects.filter(survey=self, is_preview=True).delete()
+        self.published = True
+        self.published_at = timezone.now()
+        self.save()
+        
+
     @property
     def submissions(self):
         return self.submission_set.filter(is_preview=False).all()
