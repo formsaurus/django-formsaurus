@@ -45,7 +45,6 @@ class Survey(BaseModel):
     last_question = models.ForeignKey('Question', on_delete=models.SET_NULL,
                                       blank=True, null=True, default=None, related_name='last_question')
 
-    
     @property
     def submissions(self):
         return self.submission_set.filter(is_preview=False).all()

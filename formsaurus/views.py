@@ -34,9 +34,9 @@ class SurveyView(View):
         for field in survey.hiddenfield_set.all():
             value = request.GET.get(field.name)
             FilledField.objects.create(
-                submission = submission,
-                field = field,
-                value = value,
+                submission=submission,
+                field=field,
+                value=value,
             )
         return redirect(self.question_url, survey.id, question.id, submission.id)
 
@@ -114,5 +114,3 @@ class CompletedView(View):
         context['register_url'] = reverse(
             self.register_url) if self.register_url is not None else None
         return render(request, self.template_name, context=context)
-
-

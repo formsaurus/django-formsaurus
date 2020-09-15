@@ -422,6 +422,7 @@ class AddQuestionView(LoginRequiredMixin, View):
         raise Http404
         # return render(request, self.template_name, context)
 
+
 class EditQuestionView(LoginRequiredMixin, View):
     template_name = 'formsaurus/manage/survey_add_question.html'
     edit_question_url = 'formsaurus_manage:survey_wizard'
@@ -435,7 +436,7 @@ class EditQuestionView(LoginRequiredMixin, View):
             raise Http404
         if survey.published:
             raise Http404
-        
+
         # Do we already have a welcome screen?
         has_ws = survey.question_set.filter(
             question_type=Question.WELCOME_SCREEN).count() > 0
@@ -474,7 +475,8 @@ class EditQuestionView(LoginRequiredMixin, View):
             question = question_form.save()
             # Update parameters
             if question_type == Question.WELCOME_SCREEN:
-                parameters_form = WelcomeParametersForm(request.POST, instance=question.parameters)
+                parameters_form = WelcomeParametersForm(
+                    request.POST, instance=question.parameters)
                 if parameters_form.is_valid():
                     parameters_form.save()
                     return redirect(self.edit_question_url, survey.id)
@@ -482,7 +484,8 @@ class EditQuestionView(LoginRequiredMixin, View):
                     logger.warning(
                         'Failed to validate welcome_screen parameters %s', parameters_form.errors)
             elif question_type == Question.THANK_YOU_SCREEN:
-                parameters_form = ThankYouParametersForm(request.POST, instance=question.parameters)
+                parameters_form = ThankYouParametersForm(
+                    request.POST, instance=question.parameters)
                 if parameters_form.is_valid():
                     parameters_form.save()
                     return redirect(self.edit_question_url, survey.id)
@@ -490,7 +493,8 @@ class EditQuestionView(LoginRequiredMixin, View):
                     logger.warning(
                         'Failed to validate thank_you_screen parameters %s', parameters_form.errors)
             elif question_type == Question.MULTIPLE_CHOICE:
-                parameters_form = MultipleChoiceParametersForm(request.POST, instance=question.parameters)
+                parameters_form = MultipleChoiceParametersForm(
+                    request.POST, instance=question.parameters)
                 if parameters_form.is_valid():
                     parameters_form.save()
                     question.choice_set.all().delete()
@@ -499,13 +503,14 @@ class EditQuestionView(LoginRequiredMixin, View):
                             question=question,
                             choice=choice,
                         )
-                        
+
                     return redirect(self.edit_question_url, survey.id)
                 else:
                     logger.warning(
                         'Failed to validate multiple_choice parameters %s', parameters_form.errors)
             elif question_type == Question.PHONE_NUMBER:
-                parameters_form = PhoneNumberParametersForm(request.POST, instance=question.parameters)
+                parameters_form = PhoneNumberParametersForm(
+                    request.POST, instance=question.parameters)
                 if parameters_form.is_valid():
                     parameters_form.save()
                     return redirect(self.edit_question_url, survey.id)
@@ -513,7 +518,8 @@ class EditQuestionView(LoginRequiredMixin, View):
                     logger.warning(
                         'Failed to validate phone_number parameters %s', parameters_form.errors)
             elif question_type == Question.SHORT_TEXT:
-                parameters_form = ShortTextParametersForm(request.POST, instance=question.parameters)
+                parameters_form = ShortTextParametersForm(
+                    request.POST, instance=question.parameters)
                 if parameters_form.is_valid():
                     parameters_form.save()
                     return redirect(self.edit_question_url, survey.id)
@@ -521,7 +527,8 @@ class EditQuestionView(LoginRequiredMixin, View):
                     logger.warning(
                         'Failed to validate short_text parameters %s', parameters_form.errors)
             elif question_type == Question.LONG_TEXT:
-                parameters_form = LongTextParametersForm(request.POST, instance=question.parameters)
+                parameters_form = LongTextParametersForm(
+                    request.POST, instance=question.parameters)
                 if parameters_form.is_valid():
                     parameters_form.save()
                     return redirect(self.edit_question_url, survey.id)
@@ -529,7 +536,8 @@ class EditQuestionView(LoginRequiredMixin, View):
                     logger.warning(
                         'Failed to validate long_text parameters %s', parameters_form.errors)
             elif question_type == Question.STATEMENT:
-                parameters_form = StatementParametersForm(request.POST, instance=question.parameters)
+                parameters_form = StatementParametersForm(
+                    request.POST, instance=question.parameters)
                 if parameters_form.is_valid():
                     parameters_form.save()
                     return redirect(self.edit_question_url, survey.id)
@@ -537,7 +545,8 @@ class EditQuestionView(LoginRequiredMixin, View):
                     logger.warning(
                         'Failed to validate statement parameters %s', parameters_form.errors)
             elif question_type == Question.PICTURE_CHOICE:
-                parameters_form = PictureChoiceParametersForm(request.POST, instance=question.parameters)
+                parameters_form = PictureChoiceParametersForm(
+                    request.POST, instance=question.parameters)
                 if parameters_form.is_valid():
                     parameters_form.save()
                     question.choice_set.all().delete()
@@ -556,7 +565,8 @@ class EditQuestionView(LoginRequiredMixin, View):
                         'Failed to validate picture_choice parameters %s', parameters_form.errors)
 
             elif question_type == Question.YES_NO:
-                parameters_form = YesNoParametersForm(request.POST, instance=question.parameters)
+                parameters_form = YesNoParametersForm(
+                    request.POST, instance=question.parameters)
                 if parameters_form.is_valid():
                     parameters_form.save()
                     return redirect(self.edit_question_url, survey.id)
@@ -564,7 +574,8 @@ class EditQuestionView(LoginRequiredMixin, View):
                     logger.warning(
                         'Failed to validate yes_no parameters %s', parameters_form.errors)
             elif question_type == Question.EMAIL:
-                parameters_form = EmailParametersForm(request.POST, instance=question.parameters)
+                parameters_form = EmailParametersForm(
+                    request.POST, instance=question.parameters)
                 if parameters_form.is_valid():
                     parameters_form.save()
                     return redirect(self.edit_question_url, survey.id)
@@ -572,7 +583,8 @@ class EditQuestionView(LoginRequiredMixin, View):
                     logger.warning(
                         'Failed to validate email parameters %s', parameters_form.errors)
             elif question_type == Question.OPINION_SCALE:
-                parameters_form = OpinionScaleParametersForm(request.POST, instance=question.parameters)
+                parameters_form = OpinionScaleParametersForm(
+                    request.POST, instance=question.parameters)
                 if parameters_form.is_valid():
                     parameters_form.save()
                     return redirect(self.edit_question_url, survey.id)
@@ -580,7 +592,8 @@ class EditQuestionView(LoginRequiredMixin, View):
                     logger.warning(
                         'Failed to validate opinion_scale parameters %s', parameters_form.errors)
             elif question_type == Question.RATING:
-                parameters_form = RatingParametersForm(request.POST, instance=question.parameters)
+                parameters_form = RatingParametersForm(
+                    request.POST, instance=question.parameters)
                 if parameters_form.is_valid():
                     parameters_form.save()
                     return redirect(self.edit_question_url, survey.id)
@@ -588,7 +601,8 @@ class EditQuestionView(LoginRequiredMixin, View):
                     logger.warning(
                         'Failed to validate rating parameters %s', parameters_form.errors)
             elif question_type == Question.DATE:
-                parameters_form = DateParametersForm(request.POST, instance=question.parameters)
+                parameters_form = DateParametersForm(
+                    request.POST, instance=question.parameters)
                 if parameters_form.is_valid():
                     parameters_form.save()
                     return redirect(self.edit_question_url, survey.id)
@@ -596,7 +610,8 @@ class EditQuestionView(LoginRequiredMixin, View):
                     logger.warning(
                         'Failed to validate date parameters %s', parameters_form.errors)
             elif question_type == Question.NUMBER:
-                parameters_form = NumberParametersForm(request.POST, instance=question.parameters)
+                parameters_form = NumberParametersForm(
+                    request.POST, instance=question.parameters)
                 if parameters_form.is_valid():
                     parameters_form.save()
                     return redirect(self.edit_question_url, survey.id)
@@ -604,7 +619,8 @@ class EditQuestionView(LoginRequiredMixin, View):
                     logger.warning(
                         'Failed to validate number parameters %s', parameters_form.errors)
             elif question_type == Question.DROPDOWN:
-                parameters_form = DropdownParametersForm(request.POST, instance=question.parameters)
+                parameters_form = DropdownParametersForm(
+                    request.POST, instance=question.parameters)
                 if parameters_form.is_valid():
                     parameters_form.save()
                     question.choice_set.all().delete()
@@ -619,7 +635,8 @@ class EditQuestionView(LoginRequiredMixin, View):
                     logger.warning(
                         'Failed to validate dropdown parameters %s', parameters_form.errors)
             elif question_type == Question.LEGAL:
-                parameters_form = LegalParametersForm(request.POST, instance=question.parameters)
+                parameters_form = LegalParametersForm(
+                    request.POST, instance=question.parameters)
                 if parameters_form.is_valid():
                     parameters_form.save()
                     return redirect(self.edit_question_url, survey.id)
@@ -631,7 +648,8 @@ class EditQuestionView(LoginRequiredMixin, View):
             elif question_type == Question.PAYMENT:
                 raise Http404
             elif question_type == Question.WEBSITE:
-                parameters_form = WebsiteParametersForm(request.POST, instance=question.parameters)
+                parameters_form = WebsiteParametersForm(
+                    request.POST, instance=question.parameters)
                 if parameters_form.is_valid():
                     parameters_form.save()
                     return redirect(self.edit_question_url, survey.id)
@@ -649,6 +667,7 @@ class EditQuestionView(LoginRequiredMixin, View):
 
 class DeleteQuestionView(LoginRequiredMixin, View):
     success_url = 'formsaurus_manage:survey_wizard'
+
     def get(self, request, survey_id, question_id):
         survey = get_object_or_404(Survey, pk=survey_id)
         if survey.user != request.user:
@@ -661,9 +680,10 @@ class DeleteQuestionView(LoginRequiredMixin, View):
         question.delete()
         return redirect(self.success_url, survey.id)
 
+
 class QuestionUpView(LoginRequiredMixin, View):
     success_url = 'formsaurus_manage:survey_wizard'
-    
+
     def get(self, request, survey_id, question_id):
         survey = get_object_or_404(Survey, pk=survey_id)
         if survey.user != request.user:
@@ -676,9 +696,10 @@ class QuestionUpView(LoginRequiredMixin, View):
         survey.move_question_up(question)
         return redirect(self.success_url, survey.id)
 
+
 class QuestionDownView(LoginRequiredMixin, View):
     success_url = 'formsaurus_manage:survey_wizard'
-    
+
     def get(self, request, survey_id, question_id):
         survey = get_object_or_404(Survey, pk=survey_id)
         if survey.user != request.user:
@@ -690,6 +711,7 @@ class QuestionDownView(LoginRequiredMixin, View):
             raise Http404
         survey.move_question_down(question)
         return redirect(self.success_url, survey.id)
+
 
 class SurveyAddView(LoginRequiredMixin, View):
     template_name = 'formsaurus/manage/survey_add.html'
@@ -795,6 +817,7 @@ class SubmissionView(LoginRequiredMixin, View):
         context['submission'] = submission
         return render(request, self.template_name, context)
 
+
 class UnsplashSearchView(LoginRequiredMixin, View):
     def get(self, request):
         term = request.GET.get('q')
@@ -813,6 +836,7 @@ class PexelsSearchView(LoginRequiredMixin, View):
         client = Pexels(settings.PEXELS_API_KEY)
         result = client.search_videos(term, per_page=per_page, page=page)
         return JsonResponse(result)
+
 
 class TenorSearchView(LoginRequiredMixin, View):
     def get(self, request):
