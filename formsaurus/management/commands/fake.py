@@ -17,14 +17,14 @@ class Command(BaseCommand):
         survey = Survey.objects.create(
             name='Sample Survey',
             user=user,
-            published=True,
+            published=False,
         )
         survey.add_hidden_field('email')
 
-        self.add_logic(survey)
+        # self.add_logic(survey)
         # self.add_simple(survey)
         # self.add_multiple_choice(survey)
-        # self.add_one_of_each(survey)
+        self.add_one_of_each(survey)
 
         print(f"Created survey {survey.id}")
         for question in survey.question_set.all():

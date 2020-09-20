@@ -677,7 +677,7 @@ class DeleteQuestionView(LoginRequiredMixin, View):
             raise Http404
         if survey.published:
             raise Http404
-        question.delete()
+        survey.delete_question(question)
         return redirect(self.success_url, survey.id)
 
 
@@ -813,6 +813,40 @@ class SubmissionView(LoginRequiredMixin, View):
         context = {}
         context['survey'] = survey
         context['submission'] = submission
+        return render(request, self.template_name, context)
+
+
+class LogicView(LoginRequiredMixin, View):
+    template_name = 'formsaurus/manage/logic_add.html'
+
+    def get(self, request, survey_id, question_id):
+        survey = get_object_or_404(Survey, pk=survey_id)
+        if survey.user != request.user:
+            raise Http404
+        if survey.published:
+            raise Http404
+        question = get_object_or_404(Question, pk=question_id)
+        if question.survey != survey:
+            raise Http404
+        
+        questions = []
+        previous_questions = []
+        found = False
+
+        for q in survey.questions:
+            questions.append(Serializer.question(q))
+            if not found:
+                if q != question:
+                    previous_questions.append(Serializer.question(q))
+                else:
+                    previous_questions.append(Serializer.question(q))
+                    found = True
+
+        context = {}
+        context['survey'] = Serializer.survey(survey)
+        context['question'] = Serializer.question(question)
+        context['questions'] = questions
+        context['previous_questions'] = previous_questions
         return render(request, self.template_name, context)
 
 

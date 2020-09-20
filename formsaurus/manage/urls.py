@@ -24,6 +24,8 @@ urlpatterns = [
          manage.QuestionUpView.as_view(), name='question_up'),
     path('manage/form/create/<uuid:survey_id>/down/<uuid:question_id>',
          manage.QuestionDownView.as_view(), name='question_down'),
+    path('manage/form/create/<uuid:survey_id>/logic/<uuid:question_id>',
+         manage.LogicView.as_view(), name='question_logic'),
     path('manage/form/create/<uuid:survey_id>/field',
          manage.HiddenFieldView.as_view(), name='survey_add_hidden_field'),
     path('manage/form/delete/<uuid:survey_id>',

@@ -1,0 +1,317 @@
+{% extends 'formsaurus/skeleton.html' %}
+
+{% block content %}
+{% include 'formsaurus/manage/navbar.html' %}
+<div class="container">
+    <div class="row">
+        <div class="col">
+            <h1><i class="fas fa-code-branch"></i> Logic Jump</h1>
+            <h5 class="text-muted">{{ question.question }}</h5>
+        </div>
+    </div>
+
+    <!-- LOGIC JUMP TEMPLATE-->
+    <div class="form-group mt-4 bd-callout bd-callout-info logic_group d-none" id="logic_group_tmpl">
+        <p class="m-0"><small class="text-muted"><strong>When</strong> someone answers question <i>{{ question.question }}</i></small> <a href="#" class="ml-2 remove_group"><i class="far fa-trash-alt"></i></a></p>        
+        <p class="m-0"><small class="text-muted"><strong>IF</strong></small></p>
+        
+        <div class="block_container">
+            <div class="logic_block">
+                <!-- EXPECTED ANSWER -->
+                <select class="custom-select if_question">
+                    {% for q in previous_questions %}
+                        {% if q.type != 'WS' and q.type != 'S_' and q.type != 'TS' %}
+                        <option value="{{ q.id }}" {% if q == question %}selected{% endif %} data-type="{{ q.type }}">{{ forloop.counter }}. {{ q.question }}</option>
+                        {% endif %}
+                    {% endfor %}
+                </select>
+    
+                <!-- BLOCK -->
+                <div class="verb_answer"></div>
+            </div>
+
+        </div>
+        <!-- ADD BLOCK -->
+        <div class="mt-2 ml-1 text-muted">
+            <a href="#" class="add_logic_block"><i class="far fa-plus-circle"></i></a>
+        </div>    
+
+        <!-- JUMP TO -->
+        <label class="mt-2"><small class="text-muted"><strong>Then jump to</strong></small></label>
+        <select class="custom-select" name="jump_to">
+            {% for q in questions %}
+                {% if question != q %}
+                    <option value="{{ q.id }}">{{ forloop.counter }}. {{ q.question }}</option>
+                {% endif %}
+            {% endfor %}
+        </select>
+    </div>
+
+    <div class="row">
+        <div class="col">
+            <div id="logic_group_container"></div>
+           
+            <button class="btn btn-secondary" id="add_jump"><i class="fas fa-plus"></i> Add Logic Jump</button>
+
+            <!-- DEFAULT -->
+            <div class="form-group mt-4">
+                <label for="default"><small class="text-muted" id="default_label">Always jump to</small></label>
+                <select class="custom-select" name="default">
+                    <option>Choose question</option>
+                    {% for q in questions %}
+                        {% if question != q %}
+                            <option value="{{ q.id }}">{{ forloop.counter }}. {{ q.question }}</option>
+                        {% endif %}
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group mt-4">
+                <button class="btn btn-primary" id="build_logic">Save</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascript %}
+{{ questions|json_script:"questions-data"}}
+<script>
+
+function is_is_not(container) {
+    // IS|IS_NOT
+    select = $('<select>').addClass('custom-select mt-2').attr('name', 'match').appendTo(container)
+    $('<option>').text('is').attr('value', 'IS').appendTo(select)
+    $('<option>').text('is not').attr('value', 'ISN').appendTo(select)
+}
+
+function add_boolean_condition(container) {
+    // MATCH
+    is_is_not(container)
+    // PATTERN
+    select = $('<select>').addClass('custom-select mt-2').attr('name', 'pattern').appendTo(container)
+    $('<option>').text('yes').attr('value', 'True').appendTo(select)
+    $('<option>').text('no').attr('value', 'False').appendTo(select)
+}
+
+function add_choice_condition(container, question) {
+    // MATCH
+    is_is_not(container)
+    // PATTERN
+    select = $('<select>').addClass('custom-select mt-2').attr('name', 'pattern').appendTo(container)
+    question.choices.forEach(choice => {
+        $('<option>').text(choice.choice).attr('value', choice.id).appendTo(select)
+    });
+}
+
+function add_number_condition(container, question) {
+    // MATCH
+    select = $('<select>').addClass('custom-select mt-2').attr('name', 'match').appendTo(container)
+    $('<option>').text('is equal to').attr('value', 'EQ').appendTo(select)
+    $('<option>').text('is not equal to').attr('value', 'NEQ').appendTo(select)
+    $('<option>').text('is lower than').attr('value', 'LT').appendTo(select)
+    $('<option>').text('lower than or equal to').attr('value', 'LTOEQ').appendTo(select)
+    $('<option>').text('is greater than').attr('value', 'GT').appendTo(select)
+    $('<option>').text('greater than or equal to').attr('value', 'GTOEQ').appendTo(select)
+    // PATTERN
+    min_value = 0
+    max_value = null
+    step = null
+    if (question.type == 'OS' || question.type == 'R_') {
+        min_value = question.parameters.start_at_one ? 1 : 0
+        max_value = question.parameters.number_of_steps + min_value - 1
+        step = 1
+    }
+    $('<input>')
+        .attr('type', 'number')
+        .addClass('form-control mt-2 w-100')
+        .attr('min', min_value)
+        .attr('max', max_value)
+        .attr('step', step)
+        .attr('name', 'pattern')
+        .attr('value', min_value)
+        .appendTo(container)
+}
+
+function add_text_condition(container, question) {
+    // MATCH
+    select = $('<select>').addClass('custom-select mt-2').attr('name', 'match').appendTo(container)
+    $('<option>').text('is ').attr('value', 'EQ').appendTo(select)
+    $('<option>').text('is not').attr('value', 'NEQ').appendTo(select)
+    $('<option>').text('starts with').attr('value', 'SW').appendTo(select)
+    $('<option>').text('ends with').attr('value', 'EW').appendTo(select)
+    $('<option>').text('contains').attr('value', 'C').appendTo(select)
+    $('<option>').text('does not contain').attr('value', 'DNC').appendTo(select)
+    // PATTERN
+    $('<input>').attr('type', 'text').addClass('form-control mt-2 w-100').attr('name', 'pattern').appendTo(container)
+}
+
+function add_date_condition(container, question) {
+    // MATCH
+    select = $('<select>').addClass('custom-select mt-2').attr('name', 'match').appendTo(container)
+    $('<option>').text('is on').attr('value', 'IS').appendTo(select)
+    $('<option>').text('is not on').attr('value', 'ISN').appendTo(select)
+    $('<option>').text('is before').attr('value', 'ISB').appendTo(select)
+    $('<option>').text('is before or no').attr('value', 'ISBOO').appendTo(select)
+    $('<option>').text('is after').attr('value', 'ISA').appendTo(select)
+    $('<option>').text('is after or on').attr('value', 'ISAOO').appendTo(select)
+    // PATTERN
+    input = $('<input>')
+        .attr('type', 'date')
+        .addClass('form-control mt-2 w-100')
+        .attr('name', 'pattern')
+        .appendTo(container)
+    new Pikaday({
+        field: input,
+        format: question.parameters.format,
+    })
+}
+
+function build_for_question(question, block) {
+    container = block.find('.verb_answer')
+    container.empty()
+    switch (question.type) {
+        case 'YN':
+        case 'L_':
+        case 'FU':
+            add_boolean_condition(container, question)
+            break;
+        case 'MC':
+        case 'PC':
+            add_choice_condition(container, question)
+            break;
+        case 'OS':
+        case 'R_':
+        case 'N_':
+            add_number_condition(container, question)
+            break;
+        case 'PN':
+        case 'ST':
+        case 'LT':
+        case 'E_':
+        case 'W_':
+        case 'DD':
+            add_text_condition(container, question)
+            break;
+        case 'D_':
+            add_date_condition(container, question)
+            break;
+        default:
+            break;
+    }
+}
+
+function init_question(block) {
+    selected = block.find('.if_question').find(':selected')
+    qid = selected.val()
+    question = question_map[qid]
+    build_for_question(question, block)
+}
+
+function if_question_changed(evt, elt, block) {
+    selected = elt.find(':selected')
+    qid = selected.val()
+    question = question_map[qid]
+    build_for_question(question, block)
+}
+
+function init_block(block) {
+    // Monitor if_question!
+    block.find('.if_question').change(function(evt) {
+        if_question_changed(evt, $(this), block)
+    })
+    // Add selectors for the currently selected question
+    init_question(block)
+}
+
+function build_logic() {
+    var logic = []
+    var container = $('#logic_group_container')
+   
+    $.each(container.find('.logic_group'), function(index, group) {
+        var subcontainer = $(group).find('.block_container')
+        var group = {
+            'blocks': [],
+            'jump_to': $(group).find('select[name="jump_to"]').val(),
+        }
+        $.each(subcontainer.find('.logic_block'), function(jindex, block) {
+            var pattern = $(block).find('input[name="pattern"], select[name="pattern"]').val()
+            var match = $(block).find('input[name="match"], select[name="match"]').val()
+            var question = $(block).find('select.if_question').val()
+            var b = {
+                'question': question,
+                'match': match,
+                'pattern': pattern,
+            }
+            if ($(block).find('.operand').length) {
+                var operand = $(block).find('.operand').val()
+                b['operand'] = operand
+            } else {
+            }
+            group['blocks'].push(b)
+        })
+        logic.push(group)
+    })
+    return logic
+}
+
+function compute_default_label() {
+    if ($('#logic_group_container').find('.logic_group').length) {
+        $('#default_label').html('By <strong>default</strong> jump to')
+    } else {
+        $('#default_label').text('Always jump to')
+    }
+}
+
+var question_map = {}
+var count = 0;
+$(function() {
+    // Build question map
+    questions = JSON.parse($('#questions-data').text());
+    questions.forEach(question => {
+        question_map[question.id] = question
+    });
+
+    $('#build_logic').click(function(evt) {
+        var logic = build_logic();
+    })
+
+    $('#add_jump').click(function(evt) {
+        count++;
+        var group = $('#logic_group_tmpl').clone().attr('id', 'group'+count).removeClass('d-none')
+        
+        group.find('.remove_group').click(function(evt) {
+            evt.preventDefault()
+            group.remove()
+            compute_default_label()
+        })
+        
+        var block = group.find('.logic_block')
+        var logic_block_tmpl = block.clone()
+        init_block(block)
+
+        // Monitor add_logic_block
+        group.find('.add_logic_block').click(function(evt) {
+            evt.preventDefault()
+            var container = group.find('.block_container')
+            var new_block = logic_block_tmpl.clone().addClass('mt-5').appendTo(container)
+
+            var remove = $('<a>').attr('href', '#').prependTo(new_block)
+            $('<i>').addClass('far fa-minus-circle').appendTo(remove)
+            remove.click(function(evt) {
+                new_block.remove()
+            })
+
+            var select = $('<select>').addClass('d-inline form-control mb-4 w-50 mr-3 operand').prependTo(new_block)
+            $('<option>').attr('value', 'AND').text('AND').appendTo(select)
+            $('<option>').attr('value', 'OR').text('OR').appendTo(select)
+
+            init_block(new_block)
+        })
+        // Append new logic group to container
+        group.appendTo('#logic_group_container')
+        compute_default_label()
+    })
+})
+</script>
+{% endblock %}

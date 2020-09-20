@@ -72,7 +72,8 @@ class Survey(BaseModel):
         return results
 
     def add_hidden_field(self, name):
-        return HiddenField.get_or_create(survey=self, name=name)
+        field, _ = HiddenField.objects.get_or_create(survey=self, name=name)
+        return field
 
     def append_question(self, question):
         if self.first_question is None:
@@ -88,6 +89,24 @@ class Survey(BaseModel):
 
             self.last_question = question
             self.save()
+
+    def delete_question(self, question):
+        qs = Question.objects.filter(
+            survey=self, next_question=question)
+        previous_question = None
+        if len(qs) > 0:
+            previous_question = qs[0]
+
+        if self.first_question == question:
+            self.first_question = question.next_question
+        else:
+            previous_question.next_question = question.next_question
+
+        
+        if self.last_question == question:
+            self.last_question = previous_question
+        question.delete()
+            
 
     def add_welcome_screen(self, question, description=None, button_label='Start', image_url=None, video_url=None):
         # Check whether we already have a welcome screen
@@ -1286,6 +1305,8 @@ class RuleSet(BaseModel):
             conditions.append(condition)
         for condition in self.booleancondition_set.all():
             conditions.append(condition)
+        for condition in self.datecondition_set.all():
+            conditions.append(condition)
         return sorted(conditions, key=lambda condition: condition.index)
 
     def evaluate(self, submission):
@@ -1316,7 +1337,7 @@ class RuleSet(BaseModel):
 
 
 class Condition(BaseModel):
-    OR = 'OS'
+    OR = 'OR'
     AND = 'AND'
     OPERAND = [
         (OR, 'Or'),
@@ -1341,12 +1362,14 @@ class TextCondition(Condition):
     STARTS_WITH = 'SW'
     ENDS_WITH = 'EW'
     CONTAINS = 'C'
+    DOES_NOT_CONTAINS = 'DNC'
     MATCHES = [
         (EQUAL, 'Equal'),
         (NOT_EQUAL, 'Not Equal'),
         (STARTS_WITH, 'Starts With'),
         (ENDS_WITH, 'Ends With'),
         (CONTAINS, 'Contains'),
+        (DOES_NOT_CONTAINS, 'Does Not Contain'),
     ]
     match = models.CharField(max_length=3, choices=MATCHES)
     pattern = models.TextField()
@@ -1362,6 +1385,8 @@ class TextCondition(Condition):
             return answer.text.endswith(self.pattern)
         elif self.match == TextCondition.CONTAINS:
             return self.pattern in answer.text
+        elif self.match == TextCondition.DOES_NOT_CONTAINS:
+            return self.pattern not in answer.text
         return False
 
 
@@ -1441,6 +1466,41 @@ class BooleanCondition(Condition):
     def __str__(self):
         return f'{self.short_id} {self.match} {self.boolean}'
 
+
+class DateCondition(Condition):
+    IS_ON = 'IS'
+    IS_NOT_ON = 'ISN'
+    IS_BEFORE = 'ISB'
+    IS_BEFORE_OR_ON = 'ISBOO'
+    IS_AFTER = 'ISA'
+    IS_AFTER_OR_ON = 'ISAOO'
+    MATCHES = [
+        (IS_ON, 'Is on'),
+        (IS_NOT_ON, 'Is not on'),
+        (IS_BEFORE, 'Is before'),
+        (IS_BEFORE_OR_ON, 'Is before or on'),
+        (IS_AFTER, 'Is after'),
+        (IS_AFTER_OR_ON, 'Is after or on'),
+    ]
+    match = models.CharField(max_length=5, choices=MATCHES)
+    date = models.DateField()
+
+    def evaluate(self, answer):
+        if self.match == DateCondition.IS_ON:
+            return answer.date == self.date
+        elif self.match == DateCondition.IS_NOT_ON:
+            return answer.date != self.date
+        elif self.match == DateCondition.IS_BEFORE:
+            return answer.date < self.date
+        elif self.match == DateCondition.IS_BEFORE_OR_ON:
+            return answer.date <= self.date
+        elif self.match == DateCondition.IS_AFTER:
+            return answer.date > self.date
+        elif self.match == DateCondition.IS_AFTER_OR_ON:
+            return answer.date >= self.date
+
+    def __str__(self):
+        return f'{self.short_id} {self.match} {self.date}'
 
 class Builder:
     links = []

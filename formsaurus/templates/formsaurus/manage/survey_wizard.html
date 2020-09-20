@@ -85,6 +85,7 @@
                                     <a href="{% url 'formsaurus_manage:delete_question' survey.id question.id %}" onclick="return confirm('Are you sure you want to delete {{ question.question }}?');"><i class="fas fa-trash"></i></a>
                                     <a href="{% url 'formsaurus_manage:question_up' survey.id question.id %}"><i class="fas fa-angle-up"></i></a>
                                     <a href="{% url 'formsaurus_manage:question_down' survey.id question.id %}"><i class="fas fa-angle-down"></i></a>
+                                    <a href="{% url 'formsaurus_manage:question_logic' survey.id question.id %}"><i class="fas fa-code-branch"></i></a>
                                 {% endif %}
                             </td>
                         </tr>
