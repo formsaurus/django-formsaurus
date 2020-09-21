@@ -847,6 +847,14 @@ class LogicView(LoginRequiredMixin, View):
         context = {}
         context['survey'] = Serializer.survey(survey)
         context['question'] = Serializer.question(question)
+        context['question']['rules'] = []
+        for ruleset in question.ruleset_set.all():
+            rule = Serializer.ruleset(ruleset)
+            rule['conditions'] = []
+            for condition in ruleset.conditions:
+                rule['conditions'].append(Serializer.condition(condition))
+            context['question']['rules'].append(rule)
+
         context['questions'] = questions
         context['previous_questions'] = previous_questions
         return render(request, self.template_name, context)
@@ -861,8 +869,15 @@ class LogicView(LoginRequiredMixin, View):
         if question.survey != survey:
             raise Http404
 
+
+        if question.question_type in [Question.WELCOME_SCREEN, Question.THANK_YOU_SCREEN, Question.STATEMENT]:
+            return JsonResponse({'status': 'failed', 'error': 'Non answerable question'})
+
         logic = json.loads(request.body)
         default_to = get_object_or_404(Question, pk=logic['default_to'])
+
+        # Delete any existing ruleset first.
+        question.ruleset_set.all().delete()
 
         group_index = 0
         for group in logic['groups']:
@@ -908,7 +923,7 @@ class LogicView(LoginRequiredMixin, View):
                     )
                     logger.debug(f'         <ChoiceCondition:{condition}>')
                 elif tested.condition_type == Condition.NUMBER:
-                    condition = NumberCondition(
+                    condition = NumberCondition.objects.create(
                         ruleset=rs,
                         index=block_index,
                         tested=tested,
@@ -918,7 +933,7 @@ class LogicView(LoginRequiredMixin, View):
                     )
                     logger.debug(f'         <NumberCondition:{condition}>')
                 elif tested.condition_type == Condition.TEXT:
-                    condition = TextCondition(
+                    condition = TextCondition.objects.create(
                         ruleset=rs,
                         index=block_index,
                         tested=tested,
@@ -928,7 +943,7 @@ class LogicView(LoginRequiredMixin, View):
                     )
                     logger.debug(f'         <TextCondition:{condition}>')
                 elif tested.condition_type == Condition.DATE:
-                    condition = DateCondition(
+                    condition = DateCondition.objects.create(
                         ruleset=rs,
                         index=block_index,
                         tested=tested,

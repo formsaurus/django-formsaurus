@@ -1,0 +1,73 @@
+<div class="logic-block {% if condition.operand %}mt-4{% endif %}">
+    {% if condition.operand %}
+        <select class="d-inline form-control mb-4 w-50 mr-3 operand">
+            <option value="AND" {% if condition.operand == 'AND' %}selected{% endif %}>AND</option>
+            <option value="OR" {% if condition.operand == 'OR' %}selected{% endif %}>OR</option>
+        </select>
+        <a href="#" class="remove-block"><i class="far fa-minus-circle"></i></a>
+    {% endif %}
+    <!-- EXPECTED ANSWER -->
+    <select class="custom-select if-question">
+        {% for q in previous_questions %}
+            {% if q.type != 'WS' and q.type != 'S_' and q.type != 'TS' %}
+            <option value="{{ q.id }}" {% if q == question %}selected{% endif %} data-type="{{ q.type }}">{{ forloop.counter }}. {{ q.question }}</option>
+            {% endif %}
+        {% endfor %}
+    </select>
+    <!-- BLOCK -->
+    <div class="verb-answer">
+        {% if condition %}
+            {% if condition.type == 'B' %}
+                <select class="custom-select mt-2" name="match">
+                    <option value="IS" {% if condition.match == 'IS' %}selected{% endif %}>is</option>
+                    <option value="ISN" {% if condition.match == 'ISN' %}selected{% endif %}>is not</option>
+                </select>
+                <select class="custom-select mt-2" name="pattern" required>
+                    <option value="True" {% if condition.pattern %}selected{% endif %}>yes</option>
+                    <option value="False" {% if not condition.pattern %}selected{% endif %}>no</option>
+                </select>
+            {% elif condition.type == 'T' %}
+                <select class="custom-select mt-2" name="match">
+                    <option value="EQ" {% if condition.match == 'EQ' %}selected{% endif %}>is</option>
+                    <option value="NEQ" {% if condition.match == 'NEQ' %}selected{% endif %}>is not</option>
+                    <option value="SW" {% if condition.match == 'SW' %}selected{% endif %}>starts with</option>
+                    <option value="EW" {% if condition.match == 'EW' %}selected{% endif %}>ends with</option>
+                    <option value="C" {% if condition.match == 'C' %}selected{% endif %}>contains</option>
+                    <option value="DNC" {% if condition.match == 'DNC' %}selected{% endif %}>does not contain</option>
+                </select>
+                <input type="text" class="form-control mt-2 w-100" name="pattern" value="{{ condition.pattern }}" required/>
+            {% elif condition.type == 'N' %}
+                <select class="custom-select mt-2" name="match">
+                    <option value="EQ" {% if condition.match == 'EQ' %}selected{% endif %}>is equal to</option>
+                    <option value="NEQ" {% if condition.match == 'NEQ' %}selected{% endif %}>is not equal to</option>
+                    <option value="LT" {% if condition.match == 'LT' %}selected{% endif %}>is lower than</option>
+                    <option value="LTOEQ" {% if condition.match == 'LTOEQ' %}selected{% endif %}>is lower than or equal to</option>
+                    <option value="GT" {% if condition.match == 'GT' %}selected{% endif %}>is greater than</option>
+                    <option value="GTOEQ" {% if condition.match == 'GTOEQ' %}selected{% endif %}>is greater than or equal to</option>
+                </select>
+                <!-- TODO ADD MIN/MAX/STEP When neccessary-->
+                <input type="number" required class="form-control mt-2 w-100" name="pattern" value="{{ condition.pattern }}">
+            {% elif condition.type == 'C' %}
+                <select class="custom-select mt-2" name="match">
+                    <option value="IS" {% if condition.match == 'IS' %}selected{% endif %}>is</option>
+                    <option value="ISN" {% if condition.match == 'ISN' %}selected{% endif %}>is not</option>
+                </select>
+                <select class="custom-select mt-2"  name="pattern" required>
+                    {% for choice in condition.tested.choices %}
+                        <option value="{{ choice.id }}" {% if condition.pattern.id == choice.id %}selected{% endif %}>{{ choice.choice}}</option>
+                    {% endfor %}
+                </select>
+            {% elif condition.type == 'D' %}
+                <select class="custom-select mt-2" name="match">
+                    <option value="IS" {% if condition.match == 'IS' %}selected{% endif %}>is on</option>
+                    <option value="ISN" {% if condition.match == 'ISN' %}selected{% endif %}>is not on</option>
+                    <option value="ISB" {% if condition.match == 'ISB' %}selected{% endif %}>is before</option>
+                    <option value="ISBOO" {% if condition.match == 'ISBOO' %}selected{% endif %}>is before or on</option>
+                    <option value="ISA" {% if condition.match == 'ISA' %}selected{% endif %}>is after</option>
+                    <option value="ISAOO" {% if condition.match == 'ISAOO' %}selected{% endif %}>is after or on</option>
+                </select>
+                <input type="date" required class="from-control mt-2 w-100" name="pattern" value="{{ condition.pattern }}">
+            {% endif %}
+        {% endif %}
+    </div>
+</div>

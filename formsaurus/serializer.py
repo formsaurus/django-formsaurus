@@ -1,4 +1,5 @@
-from formsaurus.models import Question
+from formsaurus.models import (
+    Question, Condition, TextCondition, NumberCondition, ChoiceCondition, BooleanCondition, DateCondition)
 
 
 class Serializer:
@@ -19,10 +20,12 @@ class Serializer:
 
     @classmethod
     def common_parameters(cls, parameters):
-        return {
-            'image_url': parameters.image_url,
-            'video_url': parameters.video_url,
-        }
+        result = {}
+        if parameters.image_url is not None:
+            result['image_url'] = parameters.image_url
+        if parameters.video_url is not None:
+            result['video_url'] = parameters.video_url
+        return result
 
     @classmethod
     def ws_parameters(cls, parameters):
@@ -197,22 +200,25 @@ class Serializer:
         result = {
             'id': str(question.id),
             'question': question.question,
-            'description': question.description,
             'type': question.question_type,
             'required': question.required,
             'parameters': Serializer.parameters(question),
         }
-        if question.question_type == 'MC' or question.question_type == 'PC' or question.question_type == 'DD':
+        # if question.next_question_id is not None:
+        result['next_question'] = str(question.next_question_id)
+        if question.description is not None and question.description != "":
+            result['description'] = question.description
+        if question.question_type in [Question.MULTIPLE_CHOICE, Question.PICTURE_CHOICE, Question.DROPDOWN]:
             result['choices'] = []
             for choice in question.choice_set.all():
                 result['choices'].append(Serializer.choice(choice))
-        elif question.question_type == 'OS':
+        elif question.question_type == Question.OPINION_SCALE:
             result['choices'] = []
             start = 1 if question.parameters.start_at_one else 0
             end = start + question.parameters.number_of_steps
             for n in range(start, end):
                 result['choices'].append({'choice': n})
-        elif question.question_type == 'R_':
+        elif question.question_type == Question.RATING:
             result['choices'] = []
             end = question.parameters.number_of_steps
             for n in range(0, end):
@@ -223,7 +229,92 @@ class Serializer:
     @classmethod
     def choice(cls, choice):
         return {
-            'id': choice.id,
+            'id': str(choice.id),
             'choice': choice.choice,
             'image_url': choice.image_url,
         }
+
+    @classmethod
+    def ruleset(cls, ruleset):
+        return {
+            'id': str(ruleset.id),
+            'question': Serializer.question(ruleset.question),
+            'jump_to': Serializer.question(ruleset.jump_to),
+            'index': ruleset.index,
+        }
+
+    @classmethod
+    def condition(cls, condition):
+        if isinstance(condition, TextCondition):
+            return Serializer.text_condition(condition)
+        elif isinstance(condition, NumberCondition):
+            return Serializer.number_condition(condition)
+        elif isinstance(condition, ChoiceCondition):
+            return Serializer.choice_condition(condition)
+        elif isinstance(condition, BooleanCondition):
+            return Serializer.boolean_condition(condition)
+        elif isinstance(condition, DateCondition):
+            return Serializer.date_condition(condition)
+        else:
+            return None
+
+
+    @classmethod
+    def condition_type(cls, condition):
+        if isinstance(condition, TextCondition):
+            return Condition.TEXT
+        elif isinstance(condition, NumberCondition):
+            return Condition.NUMBER
+        elif isinstance(condition, ChoiceCondition):
+            return Condition.CHOICE
+        elif isinstance(condition, BooleanCondition):
+            return Condition.BOOLEAN
+        elif isinstance(condition, DateCondition):
+            return Condition.DATE
+        else:
+            return None
+
+    @classmethod
+    def base_condition(cls, condition):
+        return {
+            'id': str(condition.id),
+            'index': condition.index,
+            'tested': Serializer.question(condition.tested),
+            'operand': condition.operand,
+            'type': Serializer.condition_type(condition),
+        }
+
+    @classmethod
+    def text_condition(cls, condition):
+        hashmap = Serializer.base_condition(condition)
+        hashmap['match'] = condition.match
+        hashmap['pattern'] = condition.pattern
+        return hashmap
+
+    @classmethod
+    def number_condition(cls, condition):
+        hashmap = Serializer.base_condition(condition)
+        hashmap['match'] = condition.match
+        hashmap['pattern'] = condition.pattern
+        return hashmap
+
+    @classmethod
+    def choice_condition(cls, condition):
+        hashmap = Serializer.base_condition(condition)
+        hashmap['match'] = condition.match
+        hashmap['pattern'] = Serializer.choice(condition.choice)
+        return hashmap
+
+    @classmethod
+    def boolean_condition(cls, condition):
+        hashmap = Serializer.base_condition(condition)
+        hashmap['match'] = condition.match
+        hashmap['pattern'] = condition.boolean
+        return hashmap
+
+    @classmethod
+    def date_condition(cls, condition):
+        hashmap = Serializer.base_condition(condition)
+        hashmap['match'] = condition.match
+        hashmap['pattern'] = condition.date
+        return hashmap

@@ -632,18 +632,18 @@ class Question(BaseModel):
         # Any rules associated to this question
         qs = self.ruleset_set.all()
         if qs.count() == 0:
-            print(
+            logger.debug(
                 f"{self.short_id} has no ruleset, returning default {self.next_question}")
             return self.next_question
-        print(f"{self.short_id} has {qs.count()} ruleset(s)")
+        logger.debug(f"{self.short_id} has {qs.count()} ruleset(s)")
         for ruleset in qs:
-            print(f"{self.short_id} evaluating ruleset {ruleset.short_id}")
+            logger.debug(f"{self.short_id} evaluating ruleset {ruleset.short_id}")
             q = ruleset.evaluate(submission)
-            print(f"{self.short_id} evaluation of {ruleset.id} returned {q}")
+            logger.debug(f"{self.short_id} evaluation of {ruleset.id} returned {q}")
             if q is not None:
                 return q
         # If none of the ruleset evaluated successfully, fallback to next_question
-        print(
+        logger.debug(
             f"{self.short_id} no ruleset matched, returning default {self.next_question}")
         return self.next_question
 
@@ -918,17 +918,17 @@ class Submission(BaseModel):
         elif question.question_type == Question.THANK_YOU_SCREEN:
             return None
         elif question.question_type == Question.MULTIPLE_CHOICE:
-            print("Recording a multiple choice answer")
+            logger.debug("Recording a multiple choice answer")
             answer = MultipleChoiceAnswer(
                 question=question,
                 submission=self,
             )
             answer.save()
             choice_id = post_data.get('answer', None)
-            print(f"Raw response {choice_id}")
+            logger.debug(f"Raw response {choice_id}")
             if choice_id is not None:
                 choice = Choice.objects.get(pk=choice_id)
-                print(f"Picked up choice {choice}")
+                logger.debug(f"Picked up choice {choice}")
                 answer.choices.add(choice)
 
             return answer
@@ -1325,25 +1325,25 @@ class RuleSet(BaseModel):
         return sorted(conditions, key=lambda condition: condition.index)
 
     def evaluate(self, submission):
-        print(f"{self.short_id} evaluating for submission {submission.short_id}")
+        logger.debug(f"{self.short_id} evaluating for submission {submission.short_id}")
         value = None
         answers = submission.answers()
-        print(
+        logger.debug(
             f"{self.short_id} submission {submission.short_id} has {len(answers)} answer(s)")
-        print(f"{self.short_id} has {len(self.conditions)} condition(s)")
+        logger.debug(f"{self.short_id} has {len(self.conditions)} condition(s)")
         for condition in self.conditions:
-            print(f"{self.short_id} checking condition {condition}")
+            logger.debug(f"{self.short_id} checking condition {condition}")
             for answer in answers:
                 if answer.question.id == condition.tested.id:
-                    print(
+                    logger.debug(
                         f"Condition {condition.short_id} testing against {condition.tested.short_id} which we have answer {answer.short_id}")
                     current = condition.evaluate(answer)
-                    print(
+                    logger.debug(
                         f"condition {condition.short_id} evaluated to {current}")
                     if value is None:
                         value = current
                     else:
-                        print(f"Chaining using {condition.operand}")
+                        logger.debug(f"Chaining using {condition.operand}")
                         if condition.operand == Condition.OR:
                             value = value or current
                         else:
@@ -1487,12 +1487,8 @@ class BooleanCondition(Condition):
 
     def evaluate(self, answer):
         if self.match == BooleanCondition.IS:
-            print(
-                f"[=] self.boolean = {self.boolean} answer.boolean = {answer.boolean}")
             return answer.boolean == self.boolean
         elif self.match == BooleanCondition.IS_NOT:
-            print(
-                f"[!] self.boolean = {self.boolean} answer.boolean = {answer.boolean}")
             return answer.boolean != self.boolean
 
     def __str__(self):
@@ -1534,48 +1530,3 @@ class DateCondition(Condition):
     def __str__(self):
         return f'{self.short_id} {self.match} {self.date} {self.operand}'
 
-class Builder:
-    links = []
-
-    def add_text_condition(self, question, pattern, match=TextCondition.EQUAL, operand=Condition.AND):
-        links.push({
-            'type': 'text',
-            'question': question,
-            'pattern': pattern,
-            'match': match,
-            'operand': operand,
-        })
-        return self
-
-    def add_number_condition(self, question, pattern, match=NumberCondition.EQUAL, operand=Condition.AND):
-        links.push({
-            'type': 'number',
-            'question': question,
-            'pattern': pattern,
-            'match': match,
-            'operand': operand,
-        })
-        return self
-
-    def add_choice_condition(self, question, choice, match=ChoiceCondition.IS, operand=Condition.AND):
-        links.push({
-            'type': 'choice',
-            'question': question,
-            'choice': choice,
-            'match': match,
-            'operand': operand,
-        })
-        return self
-
-    def add_boolean_condition(self, question, boolean, match=BooleanCondition.IS, operand=Condition.AND):
-        links.push({
-            'type': 'boolean',
-            'question': question,
-            'boolean': boolean,
-            'match': match,
-            'operand': operand,
-        })
-        return self
-
-    def build(self, jump_to):
-        pass

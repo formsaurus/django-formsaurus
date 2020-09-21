@@ -1,0 +1,28 @@
+<div class="form-group mt-4 bd-callout bd-callout-info logic-group {{ logic_group_classes }}" id="{{ logic_group_id }}">
+    <p class="m-0"><small class="text-muted"><strong>When</strong> someone answers question <i>{{ question.question }}</i></small> <a href="#" class="ml-2 remove-group"><i class="far fa-trash-alt"></i></a></p>        
+    <p class="m-0"><small class="text-muted"><strong>IF</strong></small></p>
+    
+    <div class="block_container">
+        {% if logic_group.conditions %}
+        {% for condition in logic_group.conditions %}
+            {% include 'formsaurus/manage/fragments/logic_block.html' with question=condition.tested %}
+        {% endfor %}
+        {% else %}
+            {% include 'formsaurus/manage/fragments/logic_block.html' %}
+        {% endif %}
+    </div>
+    <!-- ADD BLOCK -->
+    <div class="mt-2 ml-1 text-muted">
+        <a href="#" class="add-logic-block"><i class="far fa-plus-circle"></i></a>
+    </div>    
+
+    <!-- JUMP TO -->
+    <label class="mt-2"><small class="text-muted"><strong>Then jump to</strong></small></label>
+    <select class="custom-select" name="jump_to">
+        {% for q in questions %}
+            {% if question != q %}
+                <option value="{{ q.id }}" {% if logic_group.jump_to.id == q.id %}selected{% endif %}>{{ forloop.counter }}. {{ q.question }}</option>
+            {% endif %}
+        {% endfor %}
+    </select>
+</div>

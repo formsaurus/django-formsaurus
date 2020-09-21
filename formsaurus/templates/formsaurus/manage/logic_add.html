@@ -5,69 +5,40 @@
 <div class="container">
     <div class="row">
         <div class="col">
-            <h1><i class="fas fa-code-branch"></i> Logic Jump</h1>
+            <h1><a href="{% url 'formsaurus_manage:survey_wizard' survey.id %}">&laquo;</a>  <i class="fas fa-code-branch"></i> Logic Jump</h1>
             <h5 class="text-muted">{{ question.question }}</h5>
         </div>
     </div>
 
     <!-- LOGIC JUMP TEMPLATE-->
-    <div class="form-group mt-4 bd-callout bd-callout-info logic_group d-none" id="logic_group_tmpl">
-        <p class="m-0"><small class="text-muted"><strong>When</strong> someone answers question <i>{{ question.question }}</i></small> <a href="#" class="ml-2 remove_group"><i class="far fa-trash-alt"></i></a></p>        
-        <p class="m-0"><small class="text-muted"><strong>IF</strong></small></p>
-        
-        <div class="block_container">
-            <div class="logic_block">
-                <!-- EXPECTED ANSWER -->
-                <select class="custom-select if_question">
-                    {% for q in previous_questions %}
-                        {% if q.type != 'WS' and q.type != 'S_' and q.type != 'TS' %}
-                        <option value="{{ q.id }}" {% if q == question %}selected{% endif %} data-type="{{ q.type }}">{{ forloop.counter }}. {{ q.question }}</option>
-                        {% endif %}
-                    {% endfor %}
-                </select>
-    
-                <!-- BLOCK -->
-                <div class="verb_answer"></div>
-            </div>
-
-        </div>
-        <!-- ADD BLOCK -->
-        <div class="mt-2 ml-1 text-muted">
-            <a href="#" class="add_logic_block"><i class="far fa-plus-circle"></i></a>
-        </div>    
-
-        <!-- JUMP TO -->
-        <label class="mt-2"><small class="text-muted"><strong>Then jump to</strong></small></label>
-        <select class="custom-select" name="jump_to">
-            {% for q in questions %}
-                {% if question != q %}
-                    <option value="{{ q.id }}">{{ forloop.counter }}. {{ q.question }}</option>
-                {% endif %}
-            {% endfor %}
-        </select>
-    </div>
+    {% include 'formsaurus/manage/fragments/logic_group.html' with logic_group_id="logic_group_tmpl" logic_group_classes="d-none" %}
 
     <div class="row">
         <div class="col">
-            <div id="logic_group_container"></div>
+            <div id="logic_group_container">
+                {% for logic_group in question.rules %}
+                    {% include 'formsaurus/manage/fragments/logic_group.html' with logic_group_id="group" %}
+                {% endfor %}
+            </div>
            
             <button class="btn btn-secondary" id="add_jump"><i class="fas fa-plus"></i> Add Logic Jump</button>
 
             <!-- DEFAULT -->
             <div class="form-group mt-4">
-                <label for="default"><small class="text-muted" id="default_label">Always jump to</small></label>
+                <label for="default"><small class="text-muted" id="default_label">{% if question.rules %}By <strong>default</strong> jump to{% else %}Always jump to{% endif %}</small></label>
                 <select class="custom-select" name="default" required>
                     <option>Choose question</option>
                     {% for q in questions %}
                         {% if question != q %}
-                            <option value="{{ q.id }}">{{ forloop.counter }}. {{ q.question }}</option>
+                            <option value="{{ q.id }}" {% if question.rules and question.next_question == q.id %}selected{% endif %}>{{ forloop.counter }}. {{ q.question }}</option>
                         {% endif %}
                     {% endfor %}
                 </select>
             </div>
 
             <div class="form-group mt-4">
-                <button class="btn btn-primary" id="build_logic">Save</button>
+                <button class="btn btn-primary" id="build-logic">Save</button>
+                <a href="{% url 'formsaurus_manage:survey_wizard' survey.id %}" class="btn btn-secondary">Cancel</a>
             </div>
         </div>
     </div>
@@ -115,9 +86,9 @@ function add_number_condition(container, question) {
     $('<option>').text('is equal to').attr('value', 'EQ').appendTo(select)
     $('<option>').text('is not equal to').attr('value', 'NEQ').appendTo(select)
     $('<option>').text('is lower than').attr('value', 'LT').appendTo(select)
-    $('<option>').text('lower than or equal to').attr('value', 'LTOEQ').appendTo(select)
+    $('<option>').text('is lower than or equal to').attr('value', 'LTOEQ').appendTo(select)
     $('<option>').text('is greater than').attr('value', 'GT').appendTo(select)
-    $('<option>').text('greater than or equal to').attr('value', 'GTOEQ').appendTo(select)
+    $('<option>').text('is greater than or equal to').attr('value', 'GTOEQ').appendTo(select)
     // PATTERN
     min_value = 0
     max_value = null
@@ -158,7 +129,7 @@ function add_date_condition(container, question) {
     $('<option>').text('is on').attr('value', 'IS').appendTo(select)
     $('<option>').text('is not on').attr('value', 'ISN').appendTo(select)
     $('<option>').text('is before').attr('value', 'ISB').appendTo(select)
-    $('<option>').text('is before or no').attr('value', 'ISBOO').appendTo(select)
+    $('<option>').text('is before or on').attr('value', 'ISBOO').appendTo(select)
     $('<option>').text('is after').attr('value', 'ISA').appendTo(select)
     $('<option>').text('is after or on').attr('value', 'ISAOO').appendTo(select)
     // PATTERN
@@ -175,7 +146,7 @@ function add_date_condition(container, question) {
 }
 
 function build_for_question(question, block) {
-    container = block.find('.verb_answer')
+    container = block.find('.verb-answer')
     container.empty()
     switch (question.type) {
         case 'YN':
@@ -209,7 +180,7 @@ function build_for_question(question, block) {
 }
 
 function init_question(block) {
-    selected = block.find('.if_question').find(':selected')
+    selected = block.find('.if-question').find(':selected')
     qid = selected.val()
     question = question_map[qid]
     build_for_question(question, block)
@@ -223,8 +194,8 @@ function if_question_changed(evt, elt, block) {
 }
 
 function init_block(block) {
-    // Monitor if_question!
-    block.find('.if_question').change(function(evt) {
+    // Monitor .if-question!
+    block.find('.if-question').change(function(evt) {
         if_question_changed(evt, $(this), block)
     })
     // Add selectors for the currently selected question
@@ -235,16 +206,16 @@ function build_logic() {
     var groups = []
     var container = $('#logic_group_container')
    
-    $.each(container.find('.logic_group'), function(index, group) {
+    $.each(container.find('.logic-group'), function(index, group) {
         var subcontainer = $(group).find('.block_container')
         var group = {
             'blocks': [],
             'jump_to': $(group).find('select[name="jump_to"]').val(),
         }
-        $.each(subcontainer.find('.logic_block'), function(jindex, block) {
+        $.each(subcontainer.find('.logic-block'), function(jindex, block) {
             var pattern = $(block).find('input[name="pattern"], select[name="pattern"]').val()
             var match = $(block).find('input[name="match"], select[name="match"]').val()
-            var question = $(block).find('select.if_question').val()
+            var question = $(block).find('select.if-question').val()
             var b = {
                 'question': question,
                 'match': match,
@@ -266,11 +237,28 @@ function build_logic() {
 }
 
 function compute_default_label() {
-    if ($('#logic_group_container').find('.logic_group').length) {
+    if ($('#logic_group_container').find('.logic-group').length) {
         $('#default_label').html('By <strong>default</strong> jump to')
     } else {
         $('#default_label').text('Always jump to')
     }
+}
+
+function create_new_block(block_tmpl, group) {
+    var container = group.find('.block_container')
+    var new_block = block_tmpl.clone().addClass('mt-4').appendTo(container)
+
+    var remove = $('<a>').attr('href', '#').addClass('remove-block').prependTo(new_block)
+    $('<i>').addClass('far fa-minus-circle').appendTo(remove)
+    remove.click(function(evt) {
+        new_block.remove()
+    })
+
+    var select = $('<select>').addClass('d-inline form-control mb-4 w-50 mr-3 operand').prependTo(new_block)
+    $('<option>').attr('value', 'AND').text('AND').appendTo(select)
+    $('<option>').attr('value', 'OR').text('OR').appendTo(select)
+
+    init_block(new_block)
 }
 
 var question_map = {}
@@ -282,56 +270,76 @@ $(function() {
         question_map[question.id] = question
     });
 
-    $('#build_logic').click(function(evt) {
+    $('#build-logic').click(function(evt) {
         var logic = build_logic();
-        $.ajax({
-            type: 'POST',
-            url: '{% url "formsaurus_manage:question_logic" survey.id question.id %}', 
-            headers: {'X-CSRFTOKEN': csrftoken},
-            data: JSON.stringify(logic),
-            contentType: 'application/json',
-            success: function(data) {
-                console.log('Success')
-                window.location.href = '{% url "formsaurus_manage:survey_wizard" survey.id %}'
-            },
-            dataType: 'json',
+        console.log(logic)
+        if (confirm('Are you sure?')) {
+            $.ajax({
+                type: 'POST',
+                url: '{% url "formsaurus_manage:question_logic" survey.id question.id %}', 
+                headers: {'X-CSRFTOKEN': csrftoken},
+                data: JSON.stringify(logic),
+                contentType: 'application/json',
+                success: function(data) {
+                    console.log('Success')
+                    window.location.href = '{% url "formsaurus_manage:survey_wizard" survey.id %}'
+                },
+                dataType: 'json',
+            })
+        }
+    })
+
+    // Initialize existing logic-group
+    $.each($.find('.logic-group'), function(index, group) {
+        group = $(group)
+        if (group.hasClass('d-none')) {
+            return
+        }
+        // Hook up .remove-group
+        group.find('.remove-group').click(function(evt) {
+            evt.preventDefault()
+            group.remove()
+            compute_default_label()
         })
+        // Handle each logic-block inside logic-group
+        $.each(group.find('.logic-block'), function(jindex, block) {
+            block = $(block)
+            block.find('.remove-block').click(function(evt) {
+                evt.preventDefault()
+                block.remove()
+            })
+            block.find('.if-question').change(function(evt) {
+                if_question_changed(evt, $(this), block)
+            })
+        })
+        var logic_block_tmpl = $(group.find('.logic-block')[0]).clone()
+        // Handle .add-logic-block
+        group.find('.add-logic-block').click(function(evt) {
+            evt.preventDefault()
+            create_new_block(logic_block_tmpl, group)
+        })
+
     })
 
     $('#add_jump').click(function(evt) {
         count++;
-        var group = $('#logic_group_tmpl').clone().attr('id', 'group'+count).removeClass('d-none')
+        var group = $('#logic_group_tmpl').clone().attr('id', 'group'+count).removeClass('d-none').appendTo('#logic_group_container')
         
-        group.find('.remove_group').click(function(evt) {
+        group.find('.remove-group').click(function(evt) {
             evt.preventDefault()
             group.remove()
             compute_default_label()
         })
         
-        var block = group.find('.logic_block')
+        var block = group.find('.logic-block')
         var logic_block_tmpl = block.clone()
         init_block(block)
 
-        // Monitor add_logic_block
-        group.find('.add_logic_block').click(function(evt) {
+        // Monitor add-logic-block
+        group.find('.add-logic-block').click(function(evt) {
             evt.preventDefault()
-            var container = group.find('.block_container')
-            var new_block = logic_block_tmpl.clone().addClass('mt-5').appendTo(container)
-
-            var remove = $('<a>').attr('href', '#').prependTo(new_block)
-            $('<i>').addClass('far fa-minus-circle').appendTo(remove)
-            remove.click(function(evt) {
-                new_block.remove()
-            })
-
-            var select = $('<select>').addClass('d-inline form-control mb-4 w-50 mr-3 operand').prependTo(new_block)
-            $('<option>').attr('value', 'AND').text('AND').appendTo(select)
-            $('<option>').attr('value', 'OR').text('OR').appendTo(select)
-
-            init_block(new_block)
+            create_new_block(logic_block_tmpl, group)
         })
-        // Append new logic group to container
-        group.appendTo('#logic_group_container')
         compute_default_label()
     })
 })
