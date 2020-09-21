@@ -613,8 +613,23 @@ class Question(BaseModel):
                 return value[1]
         return "Unknown"
 
+    @property
+    def condition_type(self):
+        if self.question_type in [Question.YES_NO, Question.LEGAL, Question.FILE_UPLOAD]:
+            return Condition.BOOLEAN
+        elif self.question_type in [Question.MULTIPLE_CHOICE, Question.PICTURE_CHOICE]:
+            return Condition.CHOICE
+        elif self.question_type in [Question.OPINION_SCALE, Question.RATING, Question.NUMBER]:
+            return Condition.NUMBER
+        elif self.question_type in [Question.PHONE_NUMBER, Question.SHORT_TEXT, Question.LONG_TEXT, Question.EMAIL, Question.WEBSITE, Question.DROPDOWN]:
+            return Condition.TEXT
+        elif self.question_type in [Question.DATE]:
+            return Condition.DATE
+        else:
+            return None
+
     def next(self, submission):
-        # Any rules
+        # Any rules associated to this question
         qs = self.ruleset_set.all()
         if qs.count() == 0:
             print(
@@ -1335,8 +1350,17 @@ class RuleSet(BaseModel):
                             value = value and current
         return self.jump_to if value else None
 
+    def __str__(self):
+        return f'{self.short_id} #{self.index} <Question:{self.question}> => <Question:{self.jump_to}>'
+
 
 class Condition(BaseModel):
+    TEXT = 'T'
+    NUMBER = 'N'
+    CHOICE = 'C'
+    BOOLEAN = 'B'
+    DATE = 'D'
+
     OR = 'OR'
     AND = 'AND'
     OPERAND = [
@@ -1389,6 +1413,9 @@ class TextCondition(Condition):
             return self.pattern not in answer.text
         return False
 
+    def __str__(self):
+        return f'{self.short_id} {self.match} {self.pattern} {self.operand}'
+
 
 class NumberCondition(Condition):
     EQUAL = 'EQ'
@@ -1424,6 +1451,8 @@ class NumberCondition(Condition):
             return self.number >= self.pattern
         return False
 
+    def __str__(self):
+        return f'{self.short_id} {self.match} {self.pattern} {self.operand}'
 
 class ChoiceCondition(Condition):
     IS = 'IS'
@@ -1441,6 +1470,9 @@ class ChoiceCondition(Condition):
         elif self.match == ChoiceCondition.IS_NOT:
             return self.choice not in answer.choices.all()
         return False
+
+    def __str__(self):
+        return f'{self.short_id} {self.match} <Choice:{self.choice}> {self.operand}'
 
 
 class BooleanCondition(Condition):
@@ -1464,7 +1496,7 @@ class BooleanCondition(Condition):
             return answer.boolean != self.boolean
 
     def __str__(self):
-        return f'{self.short_id} {self.match} {self.boolean}'
+        return f'{self.short_id} {self.match} {self.boolean} {self.operand}'
 
 
 class DateCondition(Condition):
@@ -1500,7 +1532,7 @@ class DateCondition(Condition):
             return answer.date >= self.date
 
     def __str__(self):
-        return f'{self.short_id} {self.match} {self.date}'
+        return f'{self.short_id} {self.match} {self.date} {self.operand}'
 
 class Builder:
     links = []

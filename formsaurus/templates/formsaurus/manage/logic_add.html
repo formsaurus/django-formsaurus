@@ -56,7 +56,7 @@
             <!-- DEFAULT -->
             <div class="form-group mt-4">
                 <label for="default"><small class="text-muted" id="default_label">Always jump to</small></label>
-                <select class="custom-select" name="default">
+                <select class="custom-select" name="default" required>
                     <option>Choose question</option>
                     {% for q in questions %}
                         {% if question != q %}
@@ -75,6 +75,11 @@
 {% endblock %}
 
 {% block javascript %}
+{% csrf_token %}
+<script type="text/javascript">
+    var csrftoken = jQuery("[name=csrfmiddlewaretoken]").val();
+</script>
+
 {{ questions|json_script:"questions-data"}}
 <script>
 
@@ -89,7 +94,7 @@ function add_boolean_condition(container) {
     // MATCH
     is_is_not(container)
     // PATTERN
-    select = $('<select>').addClass('custom-select mt-2').attr('name', 'pattern').appendTo(container)
+    select = $('<select>').addClass('custom-select mt-2').attr('name', 'pattern').attr('required', true).appendTo(container)
     $('<option>').text('yes').attr('value', 'True').appendTo(select)
     $('<option>').text('no').attr('value', 'False').appendTo(select)
 }
@@ -98,7 +103,7 @@ function add_choice_condition(container, question) {
     // MATCH
     is_is_not(container)
     // PATTERN
-    select = $('<select>').addClass('custom-select mt-2').attr('name', 'pattern').appendTo(container)
+    select = $('<select>').addClass('custom-select mt-2').attr('name', 'pattern').attr('required', true).appendTo(container)
     question.choices.forEach(choice => {
         $('<option>').text(choice.choice).attr('value', choice.id).appendTo(select)
     });
@@ -106,7 +111,7 @@ function add_choice_condition(container, question) {
 
 function add_number_condition(container, question) {
     // MATCH
-    select = $('<select>').addClass('custom-select mt-2').attr('name', 'match').appendTo(container)
+    select = $('<select>').addClass('custom-select mt-2').attr('name', 'match').attr('required', true).appendTo(container)
     $('<option>').text('is equal to').attr('value', 'EQ').appendTo(select)
     $('<option>').text('is not equal to').attr('value', 'NEQ').appendTo(select)
     $('<option>').text('is lower than').attr('value', 'LT').appendTo(select)
@@ -124,6 +129,7 @@ function add_number_condition(container, question) {
     }
     $('<input>')
         .attr('type', 'number')
+        .attr('required', true)
         .addClass('form-control mt-2 w-100')
         .attr('min', min_value)
         .attr('max', max_value)
@@ -135,7 +141,7 @@ function add_number_condition(container, question) {
 
 function add_text_condition(container, question) {
     // MATCH
-    select = $('<select>').addClass('custom-select mt-2').attr('name', 'match').appendTo(container)
+    select = $('<select>').addClass('custom-select mt-2').attr('name', 'match').attr('required', true).appendTo(container)
     $('<option>').text('is ').attr('value', 'EQ').appendTo(select)
     $('<option>').text('is not').attr('value', 'NEQ').appendTo(select)
     $('<option>').text('starts with').attr('value', 'SW').appendTo(select)
@@ -143,12 +149,12 @@ function add_text_condition(container, question) {
     $('<option>').text('contains').attr('value', 'C').appendTo(select)
     $('<option>').text('does not contain').attr('value', 'DNC').appendTo(select)
     // PATTERN
-    $('<input>').attr('type', 'text').addClass('form-control mt-2 w-100').attr('name', 'pattern').appendTo(container)
+    $('<input>').attr('type', 'text').addClass('form-control mt-2 w-100').attr('name', 'pattern').attr('required', true).appendTo(container)
 }
 
 function add_date_condition(container, question) {
     // MATCH
-    select = $('<select>').addClass('custom-select mt-2').attr('name', 'match').appendTo(container)
+    select = $('<select>').addClass('custom-select mt-2').attr('name', 'match').attr('required', true).appendTo(container)
     $('<option>').text('is on').attr('value', 'IS').appendTo(select)
     $('<option>').text('is not on').attr('value', 'ISN').appendTo(select)
     $('<option>').text('is before').attr('value', 'ISB').appendTo(select)
@@ -158,6 +164,7 @@ function add_date_condition(container, question) {
     // PATTERN
     input = $('<input>')
         .attr('type', 'date')
+        .attr('required', true)
         .addClass('form-control mt-2 w-100')
         .attr('name', 'pattern')
         .appendTo(container)
@@ -225,7 +232,7 @@ function init_block(block) {
 }
 
 function build_logic() {
-    var logic = []
+    var groups = []
     var container = $('#logic_group_container')
    
     $.each(container.find('.logic_group'), function(index, group) {
@@ -250,9 +257,12 @@ function build_logic() {
             }
             group['blocks'].push(b)
         })
-        logic.push(group)
+        groups.push(group)
     })
-    return logic
+    return {
+        'groups': groups,
+        'default_to': $($.find('select[name="default"]')).val(),
+    }
 }
 
 function compute_default_label() {
@@ -274,6 +284,18 @@ $(function() {
 
     $('#build_logic').click(function(evt) {
         var logic = build_logic();
+        $.ajax({
+            type: 'POST',
+            url: '{% url "formsaurus_manage:question_logic" survey.id question.id %}', 
+            headers: {'X-CSRFTOKEN': csrftoken},
+            data: JSON.stringify(logic),
+            contentType: 'application/json',
+            success: function(data) {
+                console.log('Success')
+                window.location.href = '{% url "formsaurus_manage:survey_wizard" survey.id %}'
+            },
+            dataType: 'json',
+        })
     })
 
     $('#add_jump').click(function(evt) {

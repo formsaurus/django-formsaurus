@@ -1,3 +1,4 @@
+import json
 import logging
 
 from django.shortcuts import render, get_object_or_404, redirect
@@ -9,7 +10,8 @@ from django.utils import timezone
 from django.db.models import Count, Sum
 from django.conf import settings
 
-from formsaurus.models import Survey, Question, Submission, Choice
+from formsaurus.models import (Survey, Question, Submission, Choice, RuleSet, Condition,
+                               TextCondition, BooleanCondition, ChoiceCondition, BooleanCondition, DateCondition, NumberCondition)
 from formsaurus.serializer import Serializer
 from formsaurus.forms import *
 from formsaurus.manage.unsplash import Unsplash
@@ -828,7 +830,7 @@ class LogicView(LoginRequiredMixin, View):
         question = get_object_or_404(Question, pk=question_id)
         if question.survey != survey:
             raise Http404
-        
+
         questions = []
         previous_questions = []
         found = False
@@ -848,6 +850,99 @@ class LogicView(LoginRequiredMixin, View):
         context['questions'] = questions
         context['previous_questions'] = previous_questions
         return render(request, self.template_name, context)
+
+    def post(self, request, survey_id, question_id):
+        survey = get_object_or_404(Survey, pk=survey_id)
+        if survey.user != request.user:
+            raise Http404
+        if survey.published:
+            raise Http404
+        question = get_object_or_404(Question, pk=question_id)
+        if question.survey != survey:
+            raise Http404
+
+        logic = json.loads(request.body)
+        default_to = get_object_or_404(Question, pk=logic['default_to'])
+
+        group_index = 0
+        for group in logic['groups']:
+            logger.debug(f'{group_index}) Creating new RuleSet')
+            jump_to = get_object_or_404(Question, pk=group['jump_to'])
+            logger.debug(f'     Jump to <Question:{jump_to}>')
+            # Create a ruleset for this group
+            rs = RuleSet.objects.create(
+                question=question,
+                jump_to=jump_to,
+                index=group_index
+            )
+            logger.debug(f'     <RuleSet:{rs}>')
+            group_index = group_index + 1
+            block_index = 0
+            for block in group['blocks']:
+                logger.debug(f'     {block_index}) Creating new condition for <RuleSet:{rs}>')
+                
+                # Create the proper condition
+                tested = get_object_or_404(Question, pk=block['question'])
+                operand = block['operand'] if 'operand' in block else None
+                logger.debug(f'         Tested <Question:{tested}> operand = {operand}')
+                if tested.condition_type == Condition.BOOLEAN:
+                    boolean = True if block['pattern'] == 'True' else False
+                    condition = BooleanCondition.objects.create(
+                        ruleset=rs,
+                        index=block_index,
+                        tested=tested,
+                        match=block['match'],
+                        boolean=boolean,
+                        operand=operand,
+                    )
+                    logger.debug(f'         <BooleanCondition:{condition}>')
+                elif tested.condition_type == Condition.CHOICE:
+                    choice = get_object_or_404(Choice, pk=block['pattern'])
+                    condition = ChoiceCondition.objects.create(
+                        ruleset=rs,
+                        index=block_index,
+                        tested=tested,
+                        match=block['match'],
+                        choice=choice,
+                        operand=operand,
+                    )
+                    logger.debug(f'         <ChoiceCondition:{condition}>')
+                elif tested.condition_type == Condition.NUMBER:
+                    condition = NumberCondition(
+                        ruleset=rs,
+                        index=block_index,
+                        tested=tested,
+                        match=block['match'],
+                        pattern=block['pattern'],
+                        operand=operand
+                    )
+                    logger.debug(f'         <NumberCondition:{condition}>')
+                elif tested.condition_type == Condition.TEXT:
+                    condition = TextCondition(
+                        ruleset=rs,
+                        index=block_index,
+                        tested=tested,
+                        match=block['match'],
+                        pattern=block['pattern'],
+                        operand=operand,
+                    )
+                    logger.debug(f'         <TextCondition:{condition}>')
+                elif tested.condition_type == Condition.DATE:
+                    condition = DateCondition(
+                        ruleset=rs,
+                        index=block_index,
+                        tested=tested,
+                        match=block['match'],
+                        date=block['pattern'],
+                        operand=operand,
+                    )
+                    logger.debug(f'         <DateCondition:{condition}>')
+                block_index = block_index + 1
+
+        question.next_question = default_to
+        question.save()
+
+        return JsonResponse({'status': 'ok'})
 
 
 class UnsplashSearchView(LoginRequiredMixin, View):
