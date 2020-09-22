@@ -13,7 +13,8 @@ from django.conf import settings
 from formsaurus.models import (Survey, Question, Submission, Choice, RuleSet, Condition,
                                TextCondition, BooleanCondition, ChoiceCondition, BooleanCondition, DateCondition, NumberCondition)
 from formsaurus.serializer import Serializer
-from formsaurus.forms import *
+from formsaurus.manage.forms import (SurveyForm, HiddenFieldForm, AddQuestionForm, WelcomeParametersForm, ThankYouParametersForm, MultipleChoiceParametersForm, PhoneNumberParametersForm, ShortTextParametersForm, LongTextParametersForm, StatementParametersForm, PictureChoiceParametersForm,
+                              YesNoParametersForm, EmailParametersForm, OpinionScaleParametersForm, RatingParametersForm, DateParameters, NumberParametersForm, DropdownParametersForm, LegalParametersForm, FileUploadParametersForm, PaymentParametersForm, WebsiteParametersForm)
 from formsaurus.manage.unsplash import Unsplash
 from formsaurus.manage.pexels import Pexels
 from formsaurus.manage.tenor import Tenor
@@ -82,7 +83,7 @@ class AddQuestionView(LoginRequiredMixin, View):
         context['survey'] = survey
         context['types'] = {}
         for key, value in Question.TYPES:
-            if key == Question.PAYMENT or key == Question.FILE_UPLOAD:
+            if key == Question.PAYMENT:
                 continue
             if has_ws and key == Question.WELCOME_SCREEN:
                 continue
@@ -392,7 +393,17 @@ class AddQuestionView(LoginRequiredMixin, View):
                     logger.warning(
                         'Failed to validate email parameters %s', parameters_form.errors)
             elif question_type == Question.FILE_UPLOAD:
-                raise Http404
+                parameters_form = FileUploadParametersForm(request.POST)
+                if parameters_form.is_valid():
+                    question = survey.add_file_upload(
+                        question_form.cleaned_data['question'],
+                        description=question_form.cleaned_data['description'],
+                        required=question_form.cleaned_data['required'],
+                        image_url=parameters_form.cleaned_data['image_url'],
+                        video_url=parameters_form.cleaned_data['video_url'],
+                    )
+                    logger.info('Created File Upload %s', question.id)
+                    return redirect(self.add_question_url, survey.id)
             elif question_type == Question.PAYMENT:
                 raise Http404
             elif question_type == Question.WEBSITE:
@@ -448,7 +459,7 @@ class EditQuestionView(LoginRequiredMixin, View):
         context['survey'] = survey
         context['types'] = {}
         for key, value in Question.TYPES:
-            if key == Question.PAYMENT or key == Question.FILE_UPLOAD:
+            if key == Question.PAYMENT:
                 continue
             context['types'][key] = value
             if key == question_type:
@@ -644,9 +655,16 @@ class EditQuestionView(LoginRequiredMixin, View):
                     return redirect(self.edit_question_url, survey.id)
                 else:
                     logger.warning(
-                        'Failed to validate email parameters %s', parameters_form.errors)
+                        'Failed to validate legal parameters %s', parameters_form.errors)
             elif question_type == Question.FILE_UPLOAD:
-                raise Http404
+                parameters_form = FileUploadParametersForm(
+                    request.POST, instance=question.parameters)
+                if parameters_form.is_valid():
+                    parameters_form.save()
+                    return redirect(self.edit_question_url, survey.id)
+                else:
+                    logger.warning(
+                        'Failed to validate file_upload parameters %s', parameters_form.errors)
             elif question_type == Question.PAYMENT:
                 raise Http404
             elif question_type == Question.WEBSITE:
@@ -657,7 +675,7 @@ class EditQuestionView(LoginRequiredMixin, View):
                     return redirect(self.edit_question_url, survey.id)
                 else:
                     logger.warning(
-                        'Failed to validate email parameters %s', parameters_form.errors)
+                        'Failed to validate website parameters %s', parameters_form.errors)
 
             else:
                 logger.warning('Unsupported type %s', question_type)
@@ -869,7 +887,6 @@ class LogicView(LoginRequiredMixin, View):
         if question.survey != survey:
             raise Http404
 
-
         if question.question_type in [Question.WELCOME_SCREEN, Question.THANK_YOU_SCREEN, Question.STATEMENT]:
             return JsonResponse({'status': 'failed', 'error': 'Non answerable question'})
 
@@ -894,12 +911,14 @@ class LogicView(LoginRequiredMixin, View):
             group_index = group_index + 1
             block_index = 0
             for block in group['blocks']:
-                logger.debug(f'     {block_index}) Creating new condition for <RuleSet:{rs}>')
-                
+                logger.debug(
+                    f'     {block_index}) Creating new condition for <RuleSet:{rs}>')
+
                 # Create the proper condition
                 tested = get_object_or_404(Question, pk=block['question'])
                 operand = block['operand'] if 'operand' in block else None
-                logger.debug(f'         Tested <Question:{tested}> operand = {operand}')
+                logger.debug(
+                    f'         Tested <Question:{tested}> operand = {operand}')
                 if tested.condition_type == Condition.BOOLEAN:
                     boolean = True if block['pattern'] == 'True' else False
                     condition = BooleanCondition.objects.create(

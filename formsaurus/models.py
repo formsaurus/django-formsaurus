@@ -3,6 +3,7 @@ import uuid
 
 from dateutil import parser
 from decimal import Decimal
+from django import forms
 from django.db import models
 from django.contrib.auth import get_user_model
 from django.utils.timezone import make_aware
@@ -45,13 +46,11 @@ class Survey(BaseModel):
     last_question = models.ForeignKey('Question', on_delete=models.SET_NULL,
                                       blank=True, null=True, default=None, related_name='last_question')
 
-
     def publish(self):
         Submission.objects.filter(survey=self, is_preview=True).delete()
         self.published = True
         self.published_at = timezone.now()
         self.save()
-        
 
     @property
     def submissions(self):
@@ -102,11 +101,9 @@ class Survey(BaseModel):
         else:
             previous_question.next_question = question.next_question
 
-        
         if self.last_question == question:
             self.last_question = previous_question
         question.delete()
-            
 
     def add_welcome_screen(self, question, description=None, button_label='Start', image_url=None, video_url=None):
         # Check whether we already have a welcome screen
@@ -637,9 +634,11 @@ class Question(BaseModel):
             return self.next_question
         logger.debug(f"{self.short_id} has {qs.count()} ruleset(s)")
         for ruleset in qs:
-            logger.debug(f"{self.short_id} evaluating ruleset {ruleset.short_id}")
+            logger.debug(
+                f"{self.short_id} evaluating ruleset {ruleset.short_id}")
             q = ruleset.evaluate(submission)
-            logger.debug(f"{self.short_id} evaluation of {ruleset.id} returned {q}")
+            logger.debug(
+                f"{self.short_id} evaluation of {ruleset.id} returned {q}")
             if q is not None:
                 return q
         # If none of the ruleset evaluated successfully, fallback to next_question
@@ -1056,7 +1055,18 @@ class Submission(BaseModel):
             answer.save()
             return answer
         elif question.question_type == Question.FILE_UPLOAD:
-            return None
+            logger.debug(f'File Upload {post_data} {files_data}')
+            form = FileUploadAnswerForm(post_data, files_data)
+            if form.is_valid():
+                answer = form.save(commit=False)
+                answer.question = question
+                answer.submission = self
+                answer.save()
+                logger.debug(f'<FileUploadAnswer:{answer}>')
+                return answer
+            else:
+                logger.warn(f'Failed to validate form {form.errors}')
+                return None
         elif question.question_type == Question.PAYMENT:
             return None
         elif question.question_type == Question.WEBSITE:
@@ -1272,8 +1282,20 @@ class LegalAnswer(Answer):
         return f'{self.short_id} {self.accept}'
 
 
+def survey_directory(instance, filename):
+    return 'files/survey/{}/{}/{}'.format(instance.submission.survey.id, instance.submission.id, filename)
+
+
 class FileUploadAnswer(Answer):
-    file = models.FileField(blank=True, null=True, default=None)
+    file = models.FileField(blank=True,
+                               null=True, default=None, upload_to=survey_directory)
+
+    @property
+    def answer(self):
+        return self.file
+
+    def __str__(self):
+        return f'{self.short_id} {self.file}'
 
 
 class PaymentAnswer(Answer):
@@ -1325,12 +1347,14 @@ class RuleSet(BaseModel):
         return sorted(conditions, key=lambda condition: condition.index)
 
     def evaluate(self, submission):
-        logger.debug(f"{self.short_id} evaluating for submission {submission.short_id}")
+        logger.debug(
+            f"{self.short_id} evaluating for submission {submission.short_id}")
         value = None
         answers = submission.answers()
         logger.debug(
             f"{self.short_id} submission {submission.short_id} has {len(answers)} answer(s)")
-        logger.debug(f"{self.short_id} has {len(self.conditions)} condition(s)")
+        logger.debug(
+            f"{self.short_id} has {len(self.conditions)} condition(s)")
         for condition in self.conditions:
             logger.debug(f"{self.short_id} checking condition {condition}")
             for answer in answers:
@@ -1454,6 +1478,7 @@ class NumberCondition(Condition):
     def __str__(self):
         return f'{self.short_id} {self.match} {self.pattern} {self.operand}'
 
+
 class ChoiceCondition(Condition):
     IS = 'IS'
     IS_NOT = 'ISN'
@@ -1530,3 +1555,8 @@ class DateCondition(Condition):
     def __str__(self):
         return f'{self.short_id} {self.match} {self.date} {self.operand}'
 
+
+class FileUploadAnswerForm(forms.ModelForm):
+    class Meta:
+        model = FileUploadAnswer
+        fields = ['file']

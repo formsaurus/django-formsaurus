@@ -24,12 +24,16 @@ class Command(BaseCommand):
         # self.add_logic(survey)
         # self.add_simple(survey)
         # self.add_multiple_choice(survey)
-        self.add_one_of_each(survey)
+        # self.add_one_of_each(survey)
+        self.add_upload(survey)
 
         print(f"Created survey {survey.id}")
         for question in survey.question_set.all():
             print(f"{question.question_type} {question.question} {question.parameters}")
         print(f"http://localhost:8003/form/{survey.id}")
+
+    def add_upload(self, survey):
+        q1 = survey.add_file_upload('Upload submission', required=True)
 
     def add_simple(self, survey):
         q1 = survey.add_yes_no('Do you struggle with budgeting?', required=True)

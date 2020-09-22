@@ -10,7 +10,6 @@ from django.db.models import Count, Sum
 
 from formsaurus.models import Survey, Question, Submission, FilledField
 from formsaurus.serializer import Serializer
-from formsaurus.forms import *
 
 logger = logging.getLogger('formsaurus')
 

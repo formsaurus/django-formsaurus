@@ -47,7 +47,13 @@
                         <td>{{ forloop.counter }}</td>
                         <td>{{ answer.question.question }}</td>
                         <td>
+                            {% if answer.question.question_type == 'FU' %}
+                                {% if answer.answer %}
+                                <a download="{{ answer.answer.url|filename }}" href="{{ answer.answer.url }}">{{ answer.answer.url|filename }} <i class="ml-2 fas fa-external-link"></i></a>
+                                {% endif %}
+                            {% else %}
                             {{ answer.answer }}
+                            {% endif %}
                         </td>
                     </tr>
                     {% endfor %}

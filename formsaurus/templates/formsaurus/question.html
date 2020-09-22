@@ -40,6 +40,8 @@
                     {% include 'formsaurus/templates/legal.html' %}
                 {% elif question.type == 'W_' %}
                     {% include 'formsaurus/templates/website.html' %}
+                {% elif question.type == 'FU' %}
+                    {% include 'formsaurus/templates/file_upload.html' %}
                 {% endif %}
             </div>
         </div>
@@ -49,13 +51,44 @@
 
 {% block javascript %}
 <script>
-$(document).ready(function() {
-    form = $('#ze_form')
+function readFile(input) {
+  if (input.files && input.files[0]) {
+    var reader = new FileReader();
+
+    reader.onload = function(e) {
+        console.log(e.target)
+        console.log(input.files[0])
+        var preview = $('<div>')
+        if (input.files[0].type.startsWith('image')) {
+            $('<img width="200" src="' + e.target.result + '" />').appendTo(preview)
+                
+        } else {
+            $('<i class="far fa-file"></i>').appendTo(preview)
+        }
+        $('<p>' + input.files[0].name + '</p>').appendTo(preview)
+        $('<a>').attr('href', '#').text('Clear').appendTo(preview).click(function(evt) {
+            evt.preventDefault()
+            $('#question-form')[0].reset()
+            $('.preview-zone').empty().addClass('d-none')
+            $('.dropzone-wrapper').removeClass('d-none')
+        })
+        $('.preview-zone').removeClass('d-none').append(preview)
+        $('.dropzone-wrapper').addClass('d-none')
+    };
+
+    reader.readAsDataURL(input.files[0]);
+  }
+}
+
+$(function() {
+    form = $('#question-form')
+    // Grow textarea dynamically
     form.find('textarea').keyup(function() {
         this.style.height = '1px';
         this.style.height = (this.scrollHeight)+"px";
     })
 
+    // Use Pikaday for input[type="date"]
     date = $('.datepicker')
     if (date.length > 0) {
         date = date[0]
@@ -68,9 +101,26 @@ $(document).ready(function() {
                 }   
             });
     }
+    // Use select2 for dropdown
     $('.dropdown').select2({
         allowClear: true,
         placeholder: 'Select an option',
+    });
+    // Drag & Drop for file upload
+    $('.dropzone').change(function() {
+        readFile(this)
+    });
+
+    $('.dropzone-wrapper').on('dragover', function(e) {
+        e.preventDefault()
+        e.stopPropagation()
+        $(this).addClass('dragover')
+    });
+
+    $('.dropzone-wrapper').on('dragleave', function(e) {
+        e.preventDefault()
+        e.stopPropagation()
+        $(this).removeClass('dragover')
     });
 
 });

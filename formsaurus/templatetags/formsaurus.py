@@ -1,4 +1,6 @@
 """ Define helper template tags """
+import os
+
 from django import template
 from django.utils.safestring import mark_safe
 
@@ -27,3 +29,7 @@ def embed(video_url):
     elif uri.netloc.endswith('vimeo.com'):
         return mark_safe(f'<iframe width="1000" height="558" src="{video_url}&autoplay=1" frameborder="0"></iframe>')
     return ""
+
+@register.filter
+def filename(path):
+    return os.path.basename(path)
