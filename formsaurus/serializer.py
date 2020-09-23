@@ -25,6 +25,11 @@ class Serializer:
             result['image_url'] = parameters.image_url
         if parameters.video_url is not None:
             result['video_url'] = parameters.video_url
+        if parameters.orientation is not None:
+            result['orientation'] = parameters.orientation
+            result['position_x'] = parameters.position_x if parameters.position_x is not None else 50
+            result['position_y'] = parameters.position_y if parameters.position_y is not None else 50
+            result['opacity'] = parameters.opacity if parameters.opacity is not None else 1.0
         return result
 
     @classmethod

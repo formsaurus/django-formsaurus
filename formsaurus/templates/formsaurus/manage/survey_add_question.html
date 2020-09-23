@@ -102,6 +102,37 @@
                     {% endif %}
                 </div>
 
+                <!-- Image/Video Positioning -->
+                <fieldset class="p-3 img-thumbnail mt-2 bg-light {% if not question.parameters.video_url and not question.parameters.image_url %}d-none{% endif %}" id="media-positioning">
+                    <div class="form-group">
+                        <label><small class="text-muted">Image Positioning</small></label>
+                        <select class="custom-select" name="orientation">
+                            <option value="S" {% if question.parameters.orientation == 'S' %}selected{% endif %}>Stack</option>
+                            <option value="F" {% if question.parameters.orientation == 'F' %}selected{% endif %}>Float</option>
+                            <option value="2" {% if question.parameters.orientation == '2' %}selected{% endif %}>Split</option>
+                            <option value="B" {% if question.parameters.orientation == 'B' %}selected{% endif %}>Background</option>
+                        </select>
+                    </div>
+                    <div class="row">
+                        <div class="col-6">
+                            <div class="form-group">
+                                <label><small class="text-muted">X Position</small></label>
+                                <input type="range" class="form-control-range" min="0" max="100" step="1" name="position_x" value="{{ question.parameters.position_x }}">
+                            </div>          
+                        </div>
+                        <div class="col-6">
+                            <div class="form-group">
+                                <label><small class="text-muted">X Position</small></label>
+                                <input type="range" class="form-control-range" min="0" max="100" step="1" name="position_y" value="{{ question.parameters.position_y }}">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label><small class="text-muted">Opacity</small></label>
+                        <input type="range" class="form-control-range" min="0" max="100" step="1" name="opacity" value="{% if question.parameters.opacity %}{{ question.parameters.opacity }}{% else %}100{% endif %}">
+                    </div>
+                </fieldset>
+
                 {% if type == 'WS' %}
                 <!-- Welcome Screen Parameters -->
                 <p class="mt-3 mb-1"><small class="text-muted mt-5">Welcome Screen</small></p>
@@ -448,10 +479,12 @@
                 $('#show_image_content').removeClass('d-none');
                 $('#show_video_switch').prop('disabled', true)
                 $('#image_preview').removeClass('d-none')
+                $('#media-positioning').removeClass('d-none')
             } else {
                 $('#show_image_content').addClass('d-none');
                 $('#show_video_switch').prop('disabled', false)
                 $('#image_preview').addClass('d-none')
+                $('#media-positioning').addClass('d-none')
             }
         })
         $('#image_url').change(function(evt) {
@@ -463,9 +496,11 @@
             if ($(this).prop('checked')) {
                 $('#show_video_content').removeClass('d-none');
                 $('#show_image_switch').prop('disabled', true)
+                $('#media-positioning').removeClass('d-none')
             } else {
                 $('#show_video_content').addClass('d-none');
                 $('#show_image_switch').prop('disabled', false)
+                $('#media-positioning').addClass('d-none')
             }
         })
 

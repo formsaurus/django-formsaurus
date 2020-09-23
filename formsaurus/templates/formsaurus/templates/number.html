@@ -1,4 +1,4 @@
-{% extends "formsaurus/templates/base.html" %}
+{% extends question_base %}
 
 {% block input %}
 <input type="number" name="answer" autofocus placeholder="123" class="survey-input" {% if question.required %}required{% endif %}/>

@@ -8,7 +8,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.db.models import Count, Sum
 
-from formsaurus.models import Survey, Question, Submission, FilledField
+from formsaurus.models import (Survey, Question, Submission, FilledField, QuestionParameter)
 from formsaurus.serializer import Serializer
 
 logger = logging.getLogger('formsaurus')
@@ -59,6 +59,14 @@ class QuestionView(View):
         if submission.survey != survey:
             raise Http404
         context = {}
+        if question.parameters.orientation is None or question.parameters.orientation == QuestionParameter.STACK:
+            context['question_base'] = 'formsaurus/templates/base_stack.html'
+        elif question.parameters.orientation == QuestionParameter.FLOAT:
+            context['question_base'] = 'formsaurus/templates/base_float.html'
+        elif question.parameters.orientation == QuestionParameter.SPLIT:
+            context['question_base'] = 'formsaurus/templates/base_split.html'
+        elif question.parameters.orientation == QuestionParameter.BACKGROUND:
+            context['question_base'] = 'formsaurus/templates/base_background.html'
         context['survey'] = Serializer.survey(survey)
         context['question'] = Serializer.question(question)
         context['submission'] = Serializer.submission(

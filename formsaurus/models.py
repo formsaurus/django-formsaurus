@@ -105,7 +105,7 @@ class Survey(BaseModel):
             self.last_question = previous_question
         question.delete()
 
-    def add_welcome_screen(self, question, description=None, button_label='Start', image_url=None, video_url=None):
+    def add_welcome_screen(self, question, description=None, button_label='Start', image_url=None, video_url=None, orientation=None, position_x=None, position_y=None, opacity=None):
         # Check whether we already have a welcome screen
         qs = self.question_set.filter(question_type='WS')
         if qs.count() == 1:
@@ -124,11 +124,15 @@ class Survey(BaseModel):
                 button_label=button_label,
                 image_url=image_url,
                 video_url=video_url,
+                orientation=orientation,
+                position_x=position_x,
+                position_y=position_y,
+                opacity=opacity,
             )
             self.append_question(question)
             return question
 
-    def add_thank_you_screen(self, question, description=None, show_button=True, button_label='Done', button_link=None, show_social_media=True, image_url=None, video_url=None):
+    def add_thank_you_screen(self, question, description=None, show_button=True, button_label='Done', button_link=None, show_social_media=True, image_url=None, video_url=None, orientation=None, position_x=None, position_y=None, opacity=None):
         question = Question.objects.create(
             survey=self,
             question=question,
@@ -144,6 +148,10 @@ class Survey(BaseModel):
             show_social_media=show_social_media,
             image_url=image_url,
             video_url=video_url,
+            orientation=orientation,
+            position_x=position_x,
+            position_y=position_y,
+            opacity=opacity,
         )
         self.append_question(question)
         return question
@@ -158,7 +166,7 @@ class Survey(BaseModel):
                             choices=[],
                             vertical_alignment=False,
                             image_url=None,
-                            video_url=None):
+                            video_url=None, orientation=None, position_x=None, position_y=None, opacity=None):
         question = Question.objects.create(
             survey=self,
             question=question,
@@ -174,6 +182,10 @@ class Survey(BaseModel):
             vertical_alignment=vertical_alignment,
             image_url=image_url,
             video_url=video_url,
+            orientation=orientation,
+            position_x=position_x,
+            position_y=position_y,
+            opacity=opacity,
         )
         for choice in choices:
             Choice.objects.create(
@@ -183,7 +195,7 @@ class Survey(BaseModel):
         self.append_question(question)
         return question
 
-    def add_phone_number(self, question, required=True, description=None, default_country_code=1, image_url=None, video_url=None):
+    def add_phone_number(self, question, required=True, description=None, default_country_code=1, image_url=None, video_url=None, orientation=None, position_x=None, position_y=None, opacity=None):
         question = Question.objects.create(
             survey=self,
             question=question,
@@ -196,11 +208,15 @@ class Survey(BaseModel):
             default_country_code=default_country_code,
             image_url=image_url,
             video_url=video_url,
+            orientation=orientation,
+            position_x=position_x,
+            position_y=position_y,
+            opacity=opacity,
         )
         self.append_question(question)
         return question
 
-    def add_short_text(self, question, required=True, description=None, limit_character=False, limit=None, image_url=None, video_url=None):
+    def add_short_text(self, question, required=True, description=None, limit_character=False, limit=None, image_url=None, video_url=None, orientation=None, position_x=None, position_y=None, opacity=None):
         question = Question.objects.create(
             survey=self,
             question=question,
@@ -214,11 +230,15 @@ class Survey(BaseModel):
             limit=limit,
             image_url=image_url,
             video_url=video_url,
+            orientation=orientation,
+            position_x=position_x,
+            position_y=position_y,
+            opacity=opacity,
         )
         self.append_question(question)
         return question
 
-    def add_long_text(self, question, required=True, description=None, limit_character=False, limit=None, image_url=None, video_url=None):
+    def add_long_text(self, question, required=True, description=None, limit_character=False, limit=None, image_url=None, video_url=None, orientation=None, position_x=None, position_y=None, opacity=None):
         question = Question.objects.create(
             survey=self,
             question=question,
@@ -232,11 +252,15 @@ class Survey(BaseModel):
             limit=limit,
             image_url=image_url,
             video_url=video_url,
+            orientation=orientation,
+            position_x=position_x,
+            position_y=position_y,
+            opacity=opacity,
         )
         self.append_question(question)
         return question
 
-    def add_statement(self, question, description=None, button_label='Next', show_quotation_mark=True, image_url=None, video_url=None):
+    def add_statement(self, question, description=None, button_label='Next', show_quotation_mark=True, image_url=None, video_url=None, orientation=None, position_x=None, position_y=None, opacity=None):
         question = Question.objects.create(
             survey=self,
             question=question,
@@ -250,11 +274,15 @@ class Survey(BaseModel):
             show_quotation_mark=show_quotation_mark,
             image_url=image_url,
             video_url=video_url,
+            orientation=orientation,
+            position_x=position_x,
+            position_y=position_y,
+            opacity=opacity,
         )
         self.append_question(question)
         return question
 
-    def add_picture_choice(self, question, required=False, description=None, multiple_selection=False, randomize=False, other_option=False, choices=[], show_labels=False, supersize=False, image_url=None, video_url=None):
+    def add_picture_choice(self, question, required=False, description=None, multiple_selection=False, randomize=False, other_option=False, choices=[], show_labels=False, supersize=False, image_url=None, video_url=None, orientation=None, position_x=None, position_y=None, opacity=None):
         question = Question.objects.create(
             survey=self,
             question=question,
@@ -271,6 +299,10 @@ class Survey(BaseModel):
             supersize=supersize,
             image_url=image_url,
             video_url=video_url,
+            orientation=orientation,
+            position_x=position_x,
+            position_y=position_y,
+            opacity=opacity,
         )
 
         for choice in choices:
@@ -282,7 +314,7 @@ class Survey(BaseModel):
         self.append_question(question)
         return question
 
-    def add_yes_no(self, question, required=False, description=None, image_url=None, video_url=None):
+    def add_yes_no(self, question, required=False, description=None, image_url=None, video_url=None, orientation=None, position_x=None, position_y=None, opacity=None):
         question = Question.objects.create(
             survey=self,
             question=question,
@@ -294,11 +326,15 @@ class Survey(BaseModel):
             question=question,
             image_url=image_url,
             video_url=video_url,
+            orientation=orientation,
+            position_x=position_x,
+            position_y=position_y,
+            opacity=opacity,
         )
         self.append_question(question)
         return question
 
-    def add_email(self, question, required=False, description=None, image_url=None, video_url=None):
+    def add_email(self, question, required=False, description=None, image_url=None, video_url=None, orientation=None, position_x=None, position_y=None, opacity=None):
         question = Question.objects.create(
             survey=self,
             question=question,
@@ -310,12 +346,16 @@ class Survey(BaseModel):
             question=question,
             image_url=image_url,
             video_url=video_url,
+            orientation=orientation,
+            position_x=position_x,
+            position_y=position_y,
+            opacity=opacity,
         )
 
         self.append_question(question)
         return question
 
-    def add_opinion_scale(self, question, required=False, description=None, start_at_one=True, number_of_steps=11, show_labels=False, left_label=None, center_label=None, right_label=None, image_url=None, video_url=None):
+    def add_opinion_scale(self, question, required=False, description=None, start_at_one=True, number_of_steps=11, show_labels=False, left_label=None, center_label=None, right_label=None, image_url=None, video_url=None, orientation=None, position_x=None, position_y=None, opacity=None):
         question = Question.objects.create(
             survey=self,
             question=question,
@@ -333,11 +373,15 @@ class Survey(BaseModel):
             right_label=right_label,
             image_url=image_url,
             video_url=video_url,
+            orientation=orientation,
+            position_x=position_x,
+            position_y=position_y,
+            opacity=opacity,
         )
         self.append_question(question)
         return question
 
-    def add_rating(self, question, required=False, description=None, number_of_steps=5, shape='S', image_url=None, video_url=None):
+    def add_rating(self, question, required=False, description=None, number_of_steps=5, shape='S', image_url=None, video_url=None, orientation=None, position_x=None, position_y=None, opacity=None):
         question = Question.objects.create(
             survey=self,
             question=question,
@@ -351,11 +395,15 @@ class Survey(BaseModel):
             shape=shape,
             image_url=image_url,
             video_url=video_url,
+            orientation=orientation,
+            position_x=position_x,
+            position_y=position_y,
+            opacity=opacity,
         )
         self.append_question(question)
         return question
 
-    def add_date(self, question, required=False, description=None, date_format='A', date_separator='/', image_url=None, video_url=None):
+    def add_date(self, question, required=False, description=None, date_format='A', date_separator='/', image_url=None, video_url=None, orientation=None, position_x=None, position_y=None, opacity=None):
         question = Question.objects.create(
             survey=self,
             question=question,
@@ -369,11 +417,15 @@ class Survey(BaseModel):
             date_separator=date_separator,
             image_url=image_url,
             video_url=video_url,
+            orientation=orientation,
+            position_x=position_x,
+            position_y=position_y,
+            opacity=opacity,
         )
         self.append_question(question)
         return question
 
-    def add_number(self, question, required=False, description=None, enable_min=False, min_value=None, enable_max=False, max_value=None, image_url=None, video_url=None):
+    def add_number(self, question, required=False, description=None, enable_min=False, min_value=None, enable_max=False, max_value=None, image_url=None, video_url=None, orientation=None, position_x=None, position_y=None, opacity=None):
         question = Question.objects.create(
             survey=self,
             question=question,
@@ -389,11 +441,15 @@ class Survey(BaseModel):
             max_value=max_value,
             image_url=image_url,
             video_url=video_url,
+            orientation=orientation,
+            position_x=position_x,
+            position_y=position_y,
+            opacity=opacity,
         )
         self.append_question(question)
         return question
 
-    def add_dropdown(self, question, required=False, description=None, randomize=False, alphabetical=False, choices=[], image_url=None, video_url=None):
+    def add_dropdown(self, question, required=False, description=None, randomize=False, alphabetical=False, choices=[], image_url=None, video_url=None, orientation=None, position_x=None, position_y=None, opacity=None):
         question = Question.objects.create(
             survey=self,
             question=question,
@@ -407,6 +463,10 @@ class Survey(BaseModel):
             alphabetical=alphabetical,
             image_url=image_url,
             video_url=video_url,
+            orientation=orientation,
+            position_x=position_x,
+            position_y=position_y,
+            opacity=opacity,
         )
         for choice in choices:
             Choice.objects.create(
@@ -416,7 +476,7 @@ class Survey(BaseModel):
         self.append_question(question)
         return question
 
-    def add_legal(self, question, required=False, description=None, image_url=None, video_url=None):
+    def add_legal(self, question, required=False, description=None, image_url=None, video_url=None, orientation=None, position_x=None, position_y=None, opacity=None):
         question = Question.objects.create(
             survey=self,
             question=question,
@@ -428,11 +488,15 @@ class Survey(BaseModel):
             question=question,
             image_url=image_url,
             video_url=video_url,
+            orientation=orientation,
+            position_x=position_x,
+            position_y=position_y,
+            opacity=opacity,
         )
         self.append_question(question)
         return question
 
-    def add_file_upload(self, question, required=False, description=None, image_url=None, video_url=None):
+    def add_file_upload(self, question, required=False, description=None, image_url=None, video_url=None, orientation=None, position_x=None, position_y=None, opacity=None):
         question = Question.objects.create(
             survey=self,
             question=question,
@@ -444,11 +508,15 @@ class Survey(BaseModel):
             question=question,
             image_url=image_url,
             video_url=video_url,
+            orientation=orientation,
+            position_x=position_x,
+            position_y=position_y,
+            opacity=opacity,
         )
         self.append_question(question)
         return question
 
-    def add_payment(self, question, required=False, description=None, currency='USD', price=0.0, stripe_token=None, button_label='Pay', image_url=None, video_url=None):
+    def add_payment(self, question, required=False, description=None, currency='USD', price=0.0, stripe_token=None, button_label='Pay', image_url=None, video_url=None, orientation=None, position_x=None, position_y=None, opacity=None):
         question = Question.objects.create(
             survey=self,
             question=question,
@@ -464,11 +532,15 @@ class Survey(BaseModel):
             button_label=button_label,
             image_url=image_url,
             video_url=video_url,
+            orientation=orientation,
+            position_x=position_x,
+            position_y=position_y,
+            opacity=opacity,
         )
         self.append_question(question)
         return question
 
-    def add_website(self, question, description=None, required=False, image_url=None, video_url=None):
+    def add_website(self, question, description=None, required=False, image_url=None, video_url=None, orientation=None, position_x=None, position_y=None, opacity=None):
         question = Question.objects.create(
             survey=self,
             question=question,
@@ -480,6 +552,10 @@ class Survey(BaseModel):
             question=question,
             image_url=image_url,
             video_url=video_url,
+            orientation=orientation,
+            position_x=position_x,
+            position_y=position_y,
+            opacity=opacity,
         )
         self.append_question(question)
         return question
@@ -696,9 +772,28 @@ class Question(BaseModel):
 
 
 class QuestionParameter(BaseModel):
+    STACK = 'S'
+    FLOAT = 'F'
+    SPLIT = '2'
+    BACKGROUND = 'B'
+
+    ORIENTATIONS = [
+        (STACK, 'Stack'),
+        (FLOAT, 'Float'),
+        (SPLIT, 'Split'),
+        (BACKGROUND, 'Background'),
+    ]
+
     question = models.ForeignKey(Question, on_delete=models.CASCADE)
     image_url = models.URLField(blank=True, null=True, default=None)
     video_url = models.URLField(blank=True, null=True, default=None)
+    orientation = models.CharField(
+        max_length=1, choices=ORIENTATIONS, blank=True, null=True, default=None)
+    position_x = models.PositiveIntegerField(
+        blank=True, null=True, default=None)
+    position_y = models.PositiveIntegerField(
+        blank=True, null=True, default=None)
+    opacity = models.PositiveIntegerField(blank=True, null=True, default=None)
 
     class Meta:
         abstract = True
@@ -1288,7 +1383,7 @@ def survey_directory(instance, filename):
 
 class FileUploadAnswer(Answer):
     file = models.FileField(blank=True,
-                               null=True, default=None, upload_to=survey_directory)
+                            null=True, default=None, upload_to=survey_directory)
 
     @property
     def answer(self):
