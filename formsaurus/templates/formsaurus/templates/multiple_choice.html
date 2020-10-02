@@ -2,12 +2,22 @@
 
 
 {% block input %}
-{% for choice in question.choices %}
-<div class="mb-1">
-    <button type="submit" name="answer" value="{{choice.id}}" class="text-left btn btn-secondary choice">{{ choice.choice }}</button>
-</div>
-{% endfor %}
+{% if question.required %}
+<input type="hidden" name="filled" required>
+{% endif %}
+    {% for choice in question.choices %}
+        <div class="mb-1">
+            {% if question.parameters.multiple_selection %}
+                <a href="#" data-value="{{ choice.id }}" data-keycode="{{ choice.keycode }}" class="text-left btn btn-outline-primary choice btn-wide">{{ choice.letter }}. {{ choice.choice }}</a>
+            {% else %}
+                <button type="submit" name="answer" value="{{choice.id}}" data-keycode="{{ choice.keycode }}" class="text-left btn btn-outline-primary choice btn-wide">{{ choice.letter }}. {{ choice.choice }}</button>
+            {% endif %}
+        </div>
+    {% endfor %}
 {% endblock %}
 
 {% block button %}
+{% if not question.required or question.parameters.multiple_selection %}
+    {{ block.super }}
+{% endif %}
 {% endblock %}

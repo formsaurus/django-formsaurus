@@ -1,6 +1,18 @@
+import random
+
 from formsaurus.models import (
     Question, Condition, TextCondition, NumberCondition, ChoiceCondition, BooleanCondition, DateCondition)
 
+
+class ObjectDict(object):
+    def __init__(self, d):
+        self.__dict__ = d
+
+    def __getattr__(self, name):
+        if name in self.__dict__:
+            return self.__dict__[name]
+        else:
+            return None
 
 class Serializer:
     @classmethod
@@ -215,8 +227,20 @@ class Serializer:
             result['description'] = question.description
         if question.question_type in [Question.MULTIPLE_CHOICE, Question.PICTURE_CHOICE, Question.DROPDOWN]:
             result['choices'] = []
+            index = 0
+            choices = []
             for choice in question.choice_set.all():
-                result['choices'].append(Serializer.choice(choice))
+                choices.append(choice)
+            if 'randomize' in result['parameters'] and result['parameters']['randomize']:
+                random.shuffle(choices)
+            if 'other_option' in result['parameters'] and result['parameters']['other_option']:
+                choices.append(ObjectDict({
+                    'id': '',
+                    'choice': 'Other',
+                }))
+            for choice in choices:
+                result['choices'].append(Serializer.choice(choice, index))
+                index = index + 1
         elif question.question_type == Question.OPINION_SCALE:
             result['choices'] = []
             start = 1 if question.parameters.start_at_one else 0
@@ -232,12 +256,16 @@ class Serializer:
         return result
 
     @classmethod
-    def choice(cls, choice):
-        return {
+    def choice(cls, choice, index=None):
+        result = {
             'id': str(choice.id),
             'choice': choice.choice,
             'image_url': choice.image_url,
         }
+        if index is not None:
+            result['keycode'] = 97+index
+            result['letter'] = chr(65+index)
+        return result
 
     @classmethod
     def ruleset(cls, ruleset):

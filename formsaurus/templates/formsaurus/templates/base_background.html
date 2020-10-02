@@ -6,6 +6,7 @@
                 <form method="POST" class="w-100"
                     action="{% url 'formsaurus:question' survey.id question.id submission.id %}" id="question-form"
                     {% if question.type == 'FU' %}enctype="multipart/form-data" {% endif %}>
+                    {% csrf_token %}
                     <div class="mb-4">
                         {% block header %}
                         <h2 class="mb-0">

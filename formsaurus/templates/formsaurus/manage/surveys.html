@@ -36,7 +36,7 @@
                         </td>
                         <td>
                             {% if form.published %}
-                            <a href="{% url 'formsaurus:survey' form.id %}"><i class="fas fa-external-link"></i></a>
+                            <a href="{% url 'formsaurus:survey' form.id %}" target="_blank"><i class="fas fa-external-link"></i></a>
                             {% else %}
                                 <i class="fas fa-external-link text-muted"></i>
                             {% endif %}

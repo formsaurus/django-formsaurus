@@ -12,12 +12,22 @@ User = get_user_model()
 class Command(BaseCommand):
     help = 'Generate a sample Survey'
 
+    def add_arguments(self, parser):
+        parser.add_argument('--user_id', type=str)
+        parser.add_argument('--title', type=str)
+        parser.add_argument('--published', action='store_true')
+
     def handle(self, *args, **options):
-        user = User.objects.get(pk=1)
+        if 'user_id' in options and options['user_id'] is not None:
+            user = User.objects.get(pk=options['user_id'])        
+        else:
+            user = User.objects.get(pk=1)
+        
+        survey_name = options['title'] if 'title' in options and options['title'] is not None and options['title'] != "" else 'Sample Survey'
         survey = Survey.objects.create(
-            name='Sample Survey',
+            name=survey_name,
             user=user,
-            published=False,
+            published=options['published'],
         )
         survey.add_hidden_field('email')
 
@@ -25,7 +35,9 @@ class Command(BaseCommand):
         # self.add_simple(survey)
         # self.add_multiple_choice(survey)
         # self.add_one_of_each(survey)
-        self.add_upload(survey)
+        # self.add_upload(survey)
+        # self.add_multiple_choices(survey)
+        self.add_multiple_choices_with_others(survey)
 
         print(f"Created survey {survey.id}")
         for question in survey.question_set.all():
@@ -39,6 +51,20 @@ class Command(BaseCommand):
         q1 = survey.add_yes_no('Do you struggle with budgeting?', required=True)
         q2 = survey.add_opinion_scale('How much do you struggle?', required=True)
         q3 = survey.add_thank_you_screen('Thank you!')
+
+
+    def add_multiple_choices(self, survey):
+        _ = survey.add_multiple_choice('Randomize, Not Required, Single Selection', randomize=True, required=False, choices=['Vanilla', 'Chocolate', 'Strawberry'])
+        _ = survey.add_multiple_choice('Required, Single Selection', required=True, choices=['Vanilla', 'Chocolate', 'Strawberry'])
+        _ = survey.add_multiple_choice('Not Required, Multiple Selection', required=False, multiple_selection=True, choices=['Vanilla', 'Chocolate', 'Strawberry'])
+        _ = survey.add_multiple_choice('Required, Multiple Selection', required=True, multiple_selection=True, choices=['Vanilla', 'Chocolate', 'Strawberry'])
+
+    def add_multiple_choices_with_others(self, survey):
+        _ = survey.add_multiple_choice('Other, Not Required, Single Selection', other_option=True, required=False, choices=['Vanilla', 'Chocolate', 'Strawberry'])
+        _ = survey.add_multiple_choice('Other, Required, Single Selection', other_option=True, required=True, choices=['Vanilla', 'Chocolate', 'Strawberry'])
+        _ = survey.add_multiple_choice('Other, Not Required, Multiple Selection', other_option=True, required=False, multiple_selection=True, choices=['Vanilla', 'Chocolate', 'Strawberry'])
+        _ = survey.add_multiple_choice('Other, Required, Multiple Selection', other_option=True, required=True, multiple_selection=True, choices=['Vanilla', 'Chocolate', 'Strawberry'])
+
 
     def add_multiple_choice(self, survey):
         q1 = survey.add_multiple_choice('Flavor?', choices=['Vanilla', 'Chocolate', 'Strawberry'])

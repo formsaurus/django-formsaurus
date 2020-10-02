@@ -9,6 +9,7 @@ from django.contrib.auth import get_user_model
 from django.utils.timezone import make_aware
 from django.utils import timezone
 from phonenumber_field.modelfields import PhoneNumberField
+from urllib.parse import urlparse
 
 User = get_user_model()
 
@@ -959,6 +960,35 @@ class Choice(BaseModel):
 # SUBMISSIONS & ANSWERS
 #
 
+class MissingRequiredAnswer:
+    pass
+
+
+class OutOfRangeAnswer:
+    pass
+
+
+def is_empty(text):
+    return text is None or text.strip() == ""
+
+
+def is_number(s):
+    try:
+        float(s)
+        return True
+    except ValueError:
+        pass
+
+    try:
+        import unicodedata
+        unicodedata.numeric(s)
+        return True
+    except (TypeError, ValueError):
+        pass
+
+    return False
+
+
 class Submission(BaseModel):
     survey = models.ForeignKey(Survey, on_delete=models.CASCADE)
     is_preview = models.BooleanField(default=False)
@@ -1006,149 +1036,432 @@ class Submission(BaseModel):
             answers.append(answer)
         return answers
 
-    def record_answer(self, question, post_data, files_data):
+    def previous_answer(self, question):
         if question.question_type == Question.WELCOME_SCREEN:
             return None
         elif question.question_type == Question.THANK_YOU_SCREEN:
             return None
         elif question.question_type == Question.MULTIPLE_CHOICE:
-            logger.debug("Recording a multiple choice answer")
-            answer = MultipleChoiceAnswer(
-                question=question,
-                submission=self,
-            )
-            answer.save()
-            choice_id = post_data.get('answer', None)
-            logger.debug(f"Raw response {choice_id}")
-            if choice_id is not None:
-                choice = Choice.objects.get(pk=choice_id)
-                logger.debug(f"Picked up choice {choice}")
-                answer.choices.add(choice)
-
-            return answer
+            try:
+                return MultipleChoiceAnswer.objects.get(
+                    question=question,
+                    submission=self,
+                )
+            except:
+                return None
         elif question.question_type == Question.PHONE_NUMBER:
-            answer = PhoneNumberAnswer(
-                question=question,
-                submission=self,
-            )
-            answer.phone_number = post_data.get('answer', None)
-            answer.save()
-            return answer
+            try:
+                return PhoneNumberAnswer.objects.get(
+                    question=question,
+                    submission=self,
+                )
+            except:
+                return None
         elif question.question_type == Question.SHORT_TEXT:
-            answer = ShortTextAnswer(
-                question=question,
-                submission=self,
-            )
-            answer.short_text = post_data.get('answer', None)
-            answer.save()
-            return answer
+            try:
+                return ShortTextAnswer.objects.get(
+                    question=question,
+                    submission=self,
+                )
+            except:
+                return None
         elif question.question_type == Question.LONG_TEXT:
-            answer = LongTextAnswer(
-                question=question,
-                submission=self,
-            )
-            answer.long_text = post_data.get('answer', None)
-            answer.save()
-            return answer
+            try:
+                return LongTextAnswer.objects.get(
+                    question=question,
+                    submission=self,
+                )
+            except:
+                return None
         elif question.question_type == Question.STATEMENT:
             return None
         elif question.question_type == Question.PICTURE_CHOICE:
-            answer = PictureChoiceAnswer(
-                question=question,
-                submission=self
-            )
+            try:
+                return PictureChoiceAnswer.objects.get(
+                    question=question,
+                    submission=self,
+                )
+            except:
+                return None
+        elif question.question_type == Question.YES_NO:
+            try:
+                return YesNoAnswer.objects.get(
+                    question=question,
+                    submission=self,
+                )
+            except:
+                return None
+        elif question.question_type == Question.EMAIL:
+            try:
+                return EmailAnswer.objects.get(
+                    question=question,
+                    submission=self,
+                )
+            except:
+                return None
+        elif question.question_type == Question.OPINION_SCALE:
+            try:
+                return OpinionScaleAnswer.objects.get(
+                    question=question,
+                    submission=self,
+                )
+            except:
+                return None
+        elif question.question_type == Question.RATING:
+            try:
+                return RatingAnswer.objects.get(
+                    question=question,
+                    submission=self,
+                )
+            except:
+                return None
+        elif question.question_type == Question.DATE:
+            try:
+                return DateAnswer.objects.get(
+                    question=question,
+                    submission=self,
+                )
+            except:
+                return None
+        elif question.question_type == Question.NUMBER:
+            try:
+                return NumberAnswer.objects.get(
+                    question=question,
+                    submission=self,
+                )
+            except:
+                return None
+        elif question.question_type == Question.DROPDOWN:
+            try:
+                return DropdownAnswer.objects.get(
+                    question=question,
+                    submission=self,
+                )
+            except:
+                return None
+        elif question.question_type == Question.LEGAL:
+            try:
+                return LegalAnswer.objects.get(
+                    question=question,
+                    submission=self,
+                )
+            except:
+                return None
+        elif question.question_type == Question.FILE_UPLOAD:
+            try:
+                return FileUploadAnswer.objects.get(
+                    question=question,
+                    submission=self,
+                )
+            except:
+                return None
+        elif question.question_type == Question.PAYMENT:
+            return None
+        elif question.question_type == Question.WEBSITE:
+            try:
+                return WebsiteAnswer.objects.get(
+                    question=question,
+                    submission=self,
+                )
+            except:
+                return None
+        return None
+
+    def record_answer(self, question, post_data, files_data):
+        answer = self.previous_answer(question)
+        if question.question_type == Question.WELCOME_SCREEN:
+            return None, None
+        elif question.question_type == Question.THANK_YOU_SCREEN:
+            return None, None
+        elif question.question_type == Question.MULTIPLE_CHOICE:            
+            choices = post_data.getlist('answer')
+            if question.required and len(choices) == 0:
+                return None, MissingRequiredAnswer()
+            
+            parameters = question.parameters
+            if choices is not None and not parameters.multiple_selection and len(choices) > 1:
+                return None, OutOfRangeAnswer()
+
+            logger.debug("Recording a multiple choice answer")
+            if answer is None:
+                answer = MultipleChoiceAnswer(
+                    question=question,
+                    submission=self,
+                )
+                answer.save()
+            
+            # Clear choices first
+            answer.choices.clear()
+            # Add each choice
+            for choice_id in choices:
+                logger.debug(f"Raw response {choice_id}")
+                if choice_id is not None:
+                    try:
+                        choice = Choice.objects.get(pk=choice_id)
+                        logger.debug(f"Picked up choice {choice}")
+                        answer.choices.add(choice)
+                    except:
+                        if not parameters.other_option:
+                            return OutOfRangeAnswer()
+                        answer.other = choice_id
+                        answer.save()
+
+            return answer, None
+        elif question.question_type == Question.PHONE_NUMBER:
+            if question.required and is_empty(post_data.get('answer', None)):
+                return None, MissingRequiredAnswer()
+
+            if answer is None:
+                answer = PhoneNumberAnswer(
+                    question=question,
+                    submission=self,
+                )
+            answer.phone_number = post_data.get('answer', None)
             answer.save()
-            choice_id = post_data.get('answer', None)
-            if choice_id is not None:
-                choice = Choice.objects.get(pk=choice_id)
-                answer.choices.add(choice)
-            return answer
+            return answer, None
+        elif question.question_type == Question.SHORT_TEXT:
+            short_text = post_data.get('answer', None)
+            if question.required and is_empty(short_text):
+                return None, MissingRequiredAnswer()
+
+            # Is it within parameters
+            parameters = question.parameters
+            if parameters.limit_character and len(short_text) > parameters.limit:
+                return None, OutOfRangeAnswer()
+
+            if answer is None:
+                answer = ShortTextAnswer(
+                    question=question,
+                    submission=self,
+                )
+            answer.short_text = short_text
+            answer.save()
+            return answer, None
+        elif question.question_type == Question.LONG_TEXT:
+            long_text = post_data.get('answer', None)
+            if question.required and is_empty(long_text):
+                return None, MissingRequiredAnswer()
+
+            # Is it within parameters
+            parameters = question.parameters
+            if parameters.limit_character and len(long_text) > parameters.limit:
+                return None, OutOfRangeAnswer()
+
+            if answer is None:
+                answer = LongTextAnswer(
+                    question=question,
+                    submission=self,
+                )
+            answer.long_text = long_text
+            answer.save()
+            return answer, None
+        elif question.question_type == Question.STATEMENT:
+            return None, None
+        elif question.question_type == Question.PICTURE_CHOICE:
+            choices = post_data.getlist('answer')
+            if question.required and len(choices) == 0:
+                return None, MissingRequiredAnswer()
+
+            parameters = question.parameters
+            if choices is not None and not parameters.multiple_selection and len(choices) > 1:
+                return None, OutOfRangeAnswer()
+
+            if answer is None:
+                answer = PictureChoiceAnswer(
+                    question=question,
+                    submission=self
+                )
+                answer.save()
+            # Clear choices first
+            answer.choices.clear()
+
+            for choice_id in choices:
+                if choice_id is not None:
+                    try:
+                        choice = Choice.objects.get(pk=choice_id)
+                        answer.choices.add(choice)
+                    except:
+                        if not parameters.other_option:
+                            return OutOfRangeAnswer()
+                        answer.other = choice_id
+                        answer.save()
+
+            return answer, None
         elif question.question_type == Question.YES_NO:
             y = post_data.get('answer', None)
+            if y not in ['Yes', 'No', None]:
+                return None, OutOfRangeAnswer()
+
+            if y is None and question.required:
+                return None, MissingRequiredAnswer()
+
             if y == 'Yes':
                 y = True
             elif y == 'No':
                 y = False
-            answer = YesNoAnswer(
-                question=question,
-                submission=self,
-                yes=y,
-            )
+
+            if answer is None:
+                answer = YesNoAnswer(
+                    question=question,
+                    submission=self,
+                )
+            answer.yes = y
             answer.save()
-            return answer
+            return answer, None
         elif question.question_type == Question.EMAIL:
-            answer = EmailAnswer(
-                question=question,
-                submission=self,
-            )
-            answer.email = post_data.get('answer', None)
+            email = post_data.get('answer', None)
+            if question.required and is_empty(email):
+                return None, MissingRequiredAnswer()
+
+            if answer is None:
+                answer = EmailAnswer(
+                    question=question,
+                    submission=self,
+                )
+            answer.email = email
             answer.save()
-            return answer
+            return answer, None
         elif question.question_type == Question.OPINION_SCALE:
             level = post_data.get('answer', None)
             if level is not None:
                 level = Decimal(level)
-            answer = OpinionScaleAnswer(
-                question=question,
-                submission=self,
-                opinion=level,
-            )
+            if question.required and level is None:
+                return None, MissingRequiredAnswer()
+
+            parameters = question.parameters
+            if parameters.start_at_one and level < 1:
+                return None, OutOfRangeAnswer()
+            elif not parameters.start_at_one and level < 0:
+                return None, OutOfRangeAnswer()
+            max_value = parameters.number_of_steps
+            if parameters.start_at_one:
+                max_value = max_value + 1
+            if level >= max_value:
+                return None, OutOfRangeAnswer()
+
+            if answer is None:
+                answer = OpinionScaleAnswer(
+                    question=question,
+                    submission=self,
+                )
+            answer.opinion = level
             answer.save()
-            return answer
+            return answer, None
         elif question.question_type == Question.RATING:
-            answer = RatingAnswer(
-                question=question,
-                submission=self,
-            )
             level = post_data.get('answer', None)
             if level is not None:
                 level = Decimal(level)
+            if question.required and level is None:
+                return None, MissingRequiredAnswer()
+
+            parameters = question.parameters
+            if level > parameters.number_of_steps:
+                return None, OutOfRangeAnswer()
+            elif level < 0:
+                return None, OutOfRangeAnswer()
+
+            if answer is None:
+                answer = RatingAnswer(
+                    question=question,
+                    submission=self,
+                )
             answer.rating = level
             answer.save()
-            return answer
+            return answer, None
         elif question.question_type == Question.DATE:
-            answer = DateAnswer(
-                question=question,
-                submission=self,
-            )
             raw = post_data.get('answer', None)
-            if raw is not None:
-                answer.date = make_aware(parser.parse(raw))
-            answer.save()
-            return answer
-        elif question.question_type == Question.NUMBER:
-            answer = NumberAnswer(
-                question=question,
-                submission=self,
-            )
-            answer.number = post_data.get('answer', None)
-            answer.save()
-            return answer
-        elif question.question_type == Question.DROPDOWN:
-            answer = DropdownAnswer(
-                question=question,
-                submission=self
-            )
-            answer.save()
-            choice_id = post_data.get('answer', None)
-            if choice_id is not None:
-                choice = Choice.objects.get(pk=choice_id)
-                answer.choices.add(choice)
+            if question.required and raw is None:
+                return None, MissingRequiredAnswer()
 
-            return answer
+            date = None
+            if raw is not None:
+                try:
+                    date = make_aware(parser.parse(raw))
+                except:
+                    return None, OutOfRangeAnswer()
+
+            if answer is None:
+                answer = DateAnswer(
+                    question=question,
+                    submission=self,
+                )
+            answer.date = date
+            answer.save()
+            return answer, None
+        elif question.question_type == Question.NUMBER:
+            number = post_data.get('answer', None)
+            if question.required and number is None:
+                return None, MissingRequiredAnswer()
+
+            if number is not None and not is_number(number):
+                return None, OutOfRangeAnswer()
+            if number is not None:
+                try:
+                    number = Decimal(number)
+                except:
+                    try:
+                        import unicodedata
+                        number = unicodedata.numeric(number)
+                    except (TypeError, ValueError):
+                        return None, OutOfRangeAnswer()
+
+            parameters = question.parameters
+            if number is not None and parameters.enable_min and number < parameters.min_value:
+                return None, OutOfRangeAnswer()
+            if number is not None and parameters.enable_max and number > parameters.max_value:
+                return None, OutOfRangeAnswer()
+
+            if answer is None:
+                answer = NumberAnswer(
+                    question=question,
+                    submission=self,
+                )
+            answer.number = number
+            answer.save()
+            return answer, None
+        elif question.question_type == Question.DROPDOWN:
+            choices = post_data.getlist('answer')
+            if question.required and len(choices) == 0:
+                return None, MissingRequiredAnswer()
+            if len(choices) > 1:
+                return None, OutOfRangeAnswer()
+
+            if answer is None:            
+                answer = DropdownAnswer(
+                    question=question,
+                    submission=self
+                )
+                answer.save()
+            answer.choices.clear()
+            for choice_id in choices:
+                if choice_id is not None:
+                    try:
+                        choice = Choice.objects.get(pk=choice_id)
+                        answer.choices.add(choice)
+                    except:
+                        return None, OutOfRangeAnswer()
+
+            return answer, None
         elif question.question_type == Question.LEGAL:
             y = post_data.get('answer', None)
+            if y not in ['accept', 'no_accept', None]:
+                return None, OutOfRangeAnswer()
+
             if y == 'accept':
                 y = True
             elif y == 'no_accept':
                 y = False
-            answer = LegalAnswer(
-                question=question,
-                submission=self,
-                accept=y,
-            )
+            if y is None and question.required:
+                return None, MissingRequiredAnswer()
+            
+            if answer is None:
+                answer = LegalAnswer(
+                    question=question,
+                    submission=self,
+                )
+            answer.accept = y
             answer.save()
-            return answer
+            return answer, None
         elif question.question_type == Question.FILE_UPLOAD:
             logger.debug(f'File Upload {post_data} {files_data}')
             form = FileUploadAnswerForm(post_data, files_data)
@@ -1158,21 +1471,31 @@ class Submission(BaseModel):
                 answer.submission = self
                 answer.save()
                 logger.debug(f'<FileUploadAnswer:{answer}>')
-                return answer
+                return answer, None
             else:
                 logger.warn(f'Failed to validate form {form.errors}')
-                return None
+                return None, None
         elif question.question_type == Question.PAYMENT:
-            return None
+            return None, None
         elif question.question_type == Question.WEBSITE:
-            answer = WebsiteAnswer(
-                question=question,
-                submission=self,
-            )
-            answer.url = post_data.get('answer', None)
+            url = post_data.get('answer', None)
+            if question.required and is_empty(url):
+                return None, MissingRequiredAnswer()
+
+            if url is not None:
+                parsed = urlparse(url)
+                if is_empty(parsed.netloc):
+                    return None, OutOfRangeAnswer()
+
+            if answer is None:
+                answer = WebsiteAnswer(
+                    question=question,
+                    submission=self,
+                )
+            answer.url = url
             answer.save()
-            return answer
-        return None
+            return answer, None
+        return None, None
 
 
 class FilledField(BaseModel):
@@ -1255,6 +1578,8 @@ class LongTextAnswer(Answer):
 
 class PictureChoiceAnswer(Answer):
     choices = models.ManyToManyField(Choice)
+    other = models.CharField(
+        max_length=1024, blank=True, null=True, default=None)
 
     @property
     def answer(self):

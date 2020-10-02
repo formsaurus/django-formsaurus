@@ -46,18 +46,7 @@ class QuestionView(View):
     completed_url = 'formsaurus:completed'
     template_name = 'formsaurus/question.html'
 
-    def get(self, request, survey_id, question_id, submission_id):
-        survey = get_object_or_404(Survey, pk=survey_id)
-        if not survey.published:
-            if not request.user.is_authenticated or survey.user != request.user:
-                raise Http404
-
-        question = get_object_or_404(Question, pk=question_id)
-        if question.survey != survey:
-            raise Http404
-        submission = get_object_or_404(Submission, pk=submission_id)
-        if submission.survey != survey:
-            raise Http404
+    def context(self, question, survey, submission):
         context = {}
         if question.parameters.orientation is None or question.parameters.orientation == QuestionParameter.STACK:
             context['question_base'] = 'formsaurus/templates/base_stack.html'
@@ -71,6 +60,21 @@ class QuestionView(View):
         context['question'] = Serializer.question(question)
         context['submission'] = Serializer.submission(
             submission) if submission is not None else None
+        return context
+
+    def get(self, request, survey_id, question_id, submission_id):
+        survey = get_object_or_404(Survey, pk=survey_id)
+        if not survey.published:
+            if not request.user.is_authenticated or survey.user != request.user:
+                raise Http404
+
+        question = get_object_or_404(Question, pk=question_id)
+        if question.survey != survey:
+            raise Http404
+        submission = get_object_or_404(Submission, pk=submission_id)
+        if submission.survey != survey:
+            raise Http404
+        context = self.context(question, survey, submission)
         return render(request, self.template_name, context=context)
 
     def post(self, request, survey_id, question_id, submission_id):
@@ -84,10 +88,14 @@ class QuestionView(View):
         if submission.survey != survey:
             raise Http404
 
-        answer = submission.record_answer(
+        answer, error = submission.record_answer(
             question, request.POST, request.FILES)
         if answer is None:
             logger.debug("No answer recorded")
+            if error is not None:
+                context = self.context(question, survey, submission)
+                context['error'] = True
+                return render(request, self.template_name, context=context)
         else:
             logger.debug(f"Recorded answer {answer.id}")
 

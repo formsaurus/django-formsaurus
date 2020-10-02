@@ -2,11 +2,14 @@
 
 {% block input %}
 {% for choice in question.choices %}
-    <input type="submit" name="answer" value="{{choice.choice}}" class="text-center btn btn-secondary opinion">
+    <button type="submit" name="answer" value="{{choice.choice}}" class="text-center btn btn-outline-primary opinion">{{ choice.choice }}</button>
 {% endfor %}
 {% if question.parameters.show_labels %}
 {% endif %}
 {% endblock %}
 
 {% block button %}
+{% if not question.required %}
+{{ block.super }}
+{% endif %}
 {% endblock %}

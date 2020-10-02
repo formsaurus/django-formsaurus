@@ -72,8 +72,108 @@ function readFile(input) {
   }
 }
 
+$.fn.enterKey = function (fnc) {
+    return this.each(function () {
+        $(this).keypress(function (ev) {
+            var keycode = (ev.keyCode ? ev.keyCode : ev.which);
+            if (keycode == '13') {
+                fnc.call(this, ev);
+            }
+        })
+    })
+}
+
 $(function() {
-    form = $('#question-form')
+    var form = $('#question-form')
+    
+    function do_submit() {
+        // Make sure all required fields are filled up
+        var completed = true
+        $.each(form.find(':input[required]'), function(index, input) {
+            input = $(input)
+            if (input.val() == "") {
+                console.log('Missing required')
+                completed = false
+                return
+            }
+            console.log(input.val())
+        })
+        if (completed && confirm('Submit')) {
+            form.submit()
+        }
+    }
+
+    // Global enter submits (FIXME probably not working on text area)
+    $(document).enterKey(function(evt) {
+        do_submit();
+    })
+
+    // Multiple choice
+    var choice_keymap = {}
+    $.each($('.choice'), function(index, elt) {
+        elt = $(elt)
+        choice_keymap[elt.attr('data-keycode')] = elt
+    })
+    function toggle_choice(choice) {
+        console.log('Toggle choice', choice)
+        var choice_value = choice.is('button') ? choice.val() : choice.attr('data-value');
+        console.log('Choice Value', choice_value)
+
+        if (choice.hasClass('btn-outline-primary')) {
+            choice.addClass('btn-primary').removeClass('btn-outline-primary')
+        } else {
+            choice.removeClass('btn-primary').addClass('btn-outline-primary')
+        }
+        if (choice.is('button') && choice_value != undefined && choice_value != '') {
+            do_submit()
+        } else {
+            // Multiple selection, need to handle the input
+            if (choice.hasClass('btn-primary')) {
+                $('<input>').attr('name', 'answer').attr('type', 'hidden').val(choice_value).appendTo(choice.parent())
+            } else {
+                choice.next().remove()
+            }
+            if (form.hasClass('question-required')) {
+                if (form.find('input[name="answer"]').length > 0) {
+                    form.find('input[name="filled"]').val(true)
+                    $('.question-form-submit').removeClass('disabled')
+                } else {
+                    form.find('input[name="filled"]').val('')
+                    $('.question-form-submit').addClass('disabled')
+                }
+            }
+
+        }
+    }
+    // Opinion
+    $('.opinion').hover(function() {
+        // In
+        var opinion = $(this).val()
+        console.log(opinion)
+        $.each($('.opinion'), function(index, elt) {
+            elt = $(elt)
+            if (index < opinion) {
+                elt.removeClass('btn-outline-primary').addClass('btn-primary')
+            } else if (index > opinion) {
+                elt.addClass('btn-outline-primary').removeClass('btn-primary')
+            }
+        })
+    }, function() {
+        // Out
+        $.each($('.opinion'), function(index, elt) {
+            elt = $(elt)
+            elt.addClass('btn-outline-primary').removeClass('btn-primary')
+        })
+    })
+
+    $(document).keypress(function(evt) {
+        var keycode = (evt.keyCode ? evt.keyCode : evt.which)
+        console.log('Keycode', keycode)
+        if (keycode in choice_keymap) {
+            toggle_choice(choice_keymap[keycode])
+        }
+    })
+
     // Grow textarea dynamically
     form.find('textarea').keyup(function() {
         this.style.height = '1px';
@@ -81,10 +181,10 @@ $(function() {
     })
 
     // Use Pikaday for input[type="date"]
-    date = $('.datepicker')
+    var date = $('.datepicker')
     if (date.length > 0) {
         date = date[0]
-        format = $(date).attr('data-format')
+        var format = $(date).attr('data-format')
         new Pikaday({
                 field: date,
                 format: format,
@@ -93,11 +193,13 @@ $(function() {
                 }   
             });
     }
+
     // Use select2 for dropdown
     $('.dropdown').select2({
         allowClear: true,
         placeholder: 'Select an option',
     });
+
     // Drag & Drop for file upload
     $('.dropzone').change(function() {
         readFile(this)
@@ -114,7 +216,6 @@ $(function() {
         e.stopPropagation()
         $(this).removeClass('dragover')
     });
-
 });
 </script>
 

@@ -4,6 +4,7 @@
         <div class="col-6">
             <div class="vertical-center">
                 <form method="POST" class="w-100 p-5" action="{% url 'formsaurus:question' survey.id question.id submission.id %}" id="question-form" {% if question.type == 'FU' %}enctype="multipart/form-data"{% endif %}>
+                    {% csrf_token %}
                     <div class="mb-4">
                         <h2 class="mb-0">
                             {% if question.parameters.show_quotation_mark %}

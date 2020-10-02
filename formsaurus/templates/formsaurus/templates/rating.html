@@ -2,7 +2,7 @@
 
 {% block input %}
 {% for choice in question.choices %}
-<button type="submit" value="{{ forloop.counter }}" name="answer" class="text-center btn btn-secondary opinion">
+<button type="submit" value="{{ forloop.counter }}" name="answer" class="text-center btn btn-outline-primary opinion">
     {% if question.parameters.shape == 'S_' %}
     <i class="fas fa-star"></i>
     {% elif question.parameters.shape == 'T_' %}
@@ -13,4 +13,8 @@
 {% endblock %}
 
 {% block button %}
+{% if not question.required %}
+{{ block.super }}
+{% endif %}
+
 {% endblock %}
