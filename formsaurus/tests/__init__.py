@@ -13,4 +13,5 @@ from formsaurus.tests.date import *
 from formsaurus.tests.number import *
 from formsaurus.tests.dropdown import *
 from formsaurus.tests.legal import *
+from formsaurus.tests.file_upload import *
 from formsaurus.tests.website import *

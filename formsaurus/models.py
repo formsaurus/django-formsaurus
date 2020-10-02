@@ -1464,6 +1464,8 @@ class Submission(BaseModel):
             return answer, None
         elif question.question_type == Question.FILE_UPLOAD:
             logger.debug(f'File Upload {post_data} {files_data}')
+            if question.required and len(files_data) == 0:
+                return None, MissingRequiredAnswer()
             form = FileUploadAnswerForm(post_data, files_data)
             if form.is_valid():
                 answer = form.save(commit=False)
@@ -1474,7 +1476,7 @@ class Submission(BaseModel):
                 return answer, None
             else:
                 logger.warn(f'Failed to validate form {form.errors}')
-                return None, None
+                return None, OutOfRangeAnswer()
         elif question.question_type == Question.PAYMENT:
             return None, None
         elif question.question_type == Question.WEBSITE:
