@@ -287,8 +287,16 @@
                         <input type="url" name="choice" class="w-100 mb-2 title pc_choice"
                             placeholder="https://unsplash.com/..." value="{{ choice.image_url }}" />
                         <label for="choice"><small class="text-muted">Choice</small></label>
+                        {% if has_unsplash %}
+                        <small><a href="#" data-toggle="modal" data-target="#imageModal">Search Images</a></small>
+                        {% endif %}
+
                         <input type="text" name="label" class="w-100 mb-2 title pc_label" placeholder="Kitten"
                             value="{{ choice.choice }}" />
+                        {% if has_unsplash %}
+                            <small><a href="#" data-toggle="modal" data-target="#imageModal">Search Images</a></small>
+                        {% endif %}
+
                         <label for="label"><small class="text-muted">Label</small></label>
                     </div>
                     {% endfor %}
@@ -297,6 +305,10 @@
                         <input type="url" name="choice" class="w-100 mb-2 title pc_choice"
                             placeholder="https://unsplash.com/..." />
                         <label for="choice"><small class="text-muted">Choice</small></label>
+                        {% if has_unsplash %}
+                        <small><a href="#" data-toggle="modal" data-target="#imageModal">Search Images</a></small>
+                        {% endif %}
+
                         <input type="text" name="label" class="w-100 mb-2 title pc_label" placeholder="Kitten" />
                         <label for="label"><small class="text-muted">Label</small></label>
                     </div>
@@ -592,15 +604,25 @@
         })
     })
 
+    var modalOrigin = null;
     $(function () {
+        $('a[data-target="#imageModal"]').click(function(evt) {
+            modalOrigin = $(this)
+        })
+        function on_image_selected(url) {
+            var target = modalOrigin.parent().parent().find('input[type="url"]')
+            console.log('Selected Image ' + url, target)
+            target.val(url)
+            $('#image_preview').find('img').attr('src', url)
+        }
         // image_search
         $('#image_search_query').enterKey(function(evt) {
             backend = $('#image_search_tabs').find('a.active').attr('data-backend')
-            console.log(backend)
-            search_images($(this).val(), 1, 9, backend, $('#image_url'), $('#image_preview').find('img'))
+            search_images($(this).val(), 1, 9, backend, on_image_selected)
         })
         $('#image_search_query_button').click(function(evt) {
-            search_images($('#image_search_query').val(), 1, 9, 'tenor', $('#image_url'), $('#image_preview').find('img'))
+            backend = $('#image_search_tabs').find('a.active').attr('data-backend')
+            search_images($('#image_search_query').val(), 1, 9, backend, on_image_selected)
         })
         $('#image_search_tabs').find('a').click(function(evt) {
             $('#image_search_tabs').find('a').removeClass('active')
@@ -620,24 +642,25 @@
         $('#image_search_next').off()
     }
 
-    function search_images(term, page, per_page, backend, target, preview_target) {
+    function search_images(term, page, per_page, backend, callback) {
         clear_image_search()
         url = "{% url 'formsaurus_manage:unsplash_search' %}?per_page=" + per_page + "&page=" + page + "&q=" + term
         if (backend == 'tenor') {
             url = "{% url 'formsaurus_manage:tenor_search' %}?per_page=" + per_page + "&q=" + term
         }
+        console.log(url)
         $.get(url, function (data) {
             console.log(data)
             if (data.total_pages > 0) {
                 $('#image_search_paging').removeClass('d-none')
                 $('#image_search_prev').click(function (evt) {
                     if (page > 1) {
-                        search_images(term, page - 1, per_page, backend, target, preview_target)
+                        search_images(term, page - 1, per_page, backend, callback)
                     }
                 })
                 $('#image_search_next').click(function (evt) {
                     if (page < data.total_pages - 1) {
-                        search_images(term, page + 1, per_page, backend, target, preview_target)
+                        search_images(term, page + 1, per_page, backend, callback)
                     }
                 })
             }
@@ -652,10 +675,9 @@
                 img = $('<div/>').addClass('img-thumbnail m-1').attr('style', 'width: 240px; height: 150px; background-image: url("' + bg_url + '"); background-position: center; background-repeat: no-repeat; background-size: cover;')
                 a = $('<a/>').attr('href', '#').attr('data-url', target_url)
                 a.click(function (evt) {
-                    target.val($(this).attr('data-url'))
                     $('#imageModal').modal('hide')
-                    if (preview_target) {
-                        preview_target.attr('src', $(this).attr('data-url'))
+                    if (callback) {
+                        callback($(this).attr('data-url'))
                     }
                 })
                 a.append(img)
@@ -713,14 +735,20 @@
     }
 
     function addPictureChoice(evt) {
-        d = $('<div/>').addClass('form-group')
+        var d = $('<div/>').addClass('form-group')
         // Choice
-        i1 = $('<input/>').attr('type', 'url').attr('name', 'choice').addClass('w-100').addClass('mb-2').addClass('title').addClass('pc_choice').attr('placeholder', 'https://unsplash.com/..')
+        var i1 = $('<input/>').attr('type', 'url').attr('name', 'choice').addClass('w-100').addClass('mb-2').addClass('title').addClass('pc_choice').attr('placeholder', 'https://unsplash.com/..')
         d.append(i1)
-        l = $('<label/>').attr('for', 'choice')
-        s = $('<small/>').addClass('text-muted').text('Choice')
+        var l = $('<label/>').attr('for', 'choice')
+        var s = $('<small/>').addClass('text-muted').text('Choice ')
         l.append(s)
         d.append(l)
+        s = $('<small/>').appendTo(d)
+        $('<a/>').attr('href', '#').attr('data-toggle', 'modal').attr('data-target', '#imageModal').text('Search Images').appendTo(s).click(function(evt) {
+            evt.preventDefault()
+            modalOrigin = $(this)
+        })
+
         // Label
         i2 = $('<input/>').attr('type', 'text').attr('name', 'label').addClass('w-100').addClass('mb-2').addClass('title').addClass('pc_label').attr('placeholder', 'Puppy')
         d.append(i2)
