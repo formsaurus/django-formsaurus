@@ -1,5 +1,6 @@
 {% extends question_base %}
 
 {% block button %}
-    <button type="submit" class="btn btn-primary">{% if question.parameters.button_label %}{{ question.parameters.button_label }}{% else %}Continue{% endif %}</button>
+    <button type="submit" class="btn btn-primary btn-wide">{% if question.parameters.button_label %}{{ question.parameters.button_label }}{% else %}Continue{% endif %}</button>
+    <span class="ml-3 text-muted"><small>or press <span class="badge badge-light">⏎ Enter</span></small></span>
 {% endblock %}
