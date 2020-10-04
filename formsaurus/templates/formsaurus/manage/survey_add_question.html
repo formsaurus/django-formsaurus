@@ -5,29 +5,33 @@
 <div class="container">
     <div class="row">
         <div class="col">
-            <h1><a href="{% url 'formsaurus_manage:survey_wizard' survey.id %}">&laquo;</a> {% if question %}Edit
-                Question for{% else %}Add Question to{% endif %} {{ survey.name }}</h1>
+            <h1>
+                <a href="{% url 'formsaurus_manage:survey_wizard' survey.id %}">&laquo;</a>
+                {% if question %}
+                    Edit Question for
+                {% else %}
+                    Add
+                    {% if question %}
+                    <button type="button" class="btn btn-secondary btn-wide" disabled>{{ type_name }}</button>
+                    {% else %}
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-secondary btn-wide dropdown-toggle" data-toggle="dropdown"
+                            aria-haspopup="true" aria-expanded="false">{{ type_name }}</button>
+                        <div class="dropdown-menu">
+                            {% for type in types.items %}
+                            <a class="dropdown-item"
+                                href="{% url 'formsaurus_manage:survey_add_question' survey.id type.0 %}">{{ type.1 }}</a>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    to
+                    {% endif %}        
+                {% endif %} 
+                &laquo;{{ survey.name }}&raquo;
+            </h1>
         </div>
     </div>
-    <div class="row">
-        <div class="col">
-            {% if question %}
-            <button type="button" class="btn btn-secondary btn-wide" disabled>{{ type_name }}</button>
-            {% else %}
-            <div class="btn-group">
-                <button type="button" class="btn btn-secondary btn-wide dropdown-toggle" data-toggle="dropdown"
-                    aria-haspopup="true" aria-expanded="false">{{ type_name }}</button>
-                <div class="dropdown-menu">
-                    {% for type in types.items %}
-                    <a class="dropdown-item"
-                        href="{% url 'formsaurus_manage:survey_add_question' survey.id type.0 %}">{{ type.1 }}</a>
-                    {% endfor %}
-                </div>
-            </div>
-            {% endif %}
-            <div><label for="button_label"><small class="text-muted">Type</small></label></div>
-        </div>
-    </div>
+
     <div class="row pt-5">
         <div class="col">
             {% if question %}
