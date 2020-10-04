@@ -1269,12 +1269,18 @@ class Submission(BaseModel):
         elif question.question_type == Question.STATEMENT:
             return None, None
         elif question.question_type == Question.PICTURE_CHOICE:
-            choices = post_data.getlist('answer')
+            choices = []
+            for choice_id in post_data.getlist('answer'):
+                if not is_empty(choice_id):
+                    choices.append(choice_id)
+            logger.debug(f'<Question:{question}> {choices}')
             if question.required and len(choices) == 0:
+                logger.info(f'<Question:{question}> MissingRequiredAnswer()')
                 return None, MissingRequiredAnswer()
 
             parameters = question.parameters
             if choices is not None and not parameters.multiple_selection and len(choices) > 1:
+                logger.info(f'<Question:{question}> OutOfRangeAnswer()')
                 return None, OutOfRangeAnswer()
 
             if answer is None:
@@ -1283,17 +1289,20 @@ class Submission(BaseModel):
                     submission=self
                 )
                 answer.save()
-            # Clear choices first
-            answer.choices.clear()
 
+            answer.choices.clear()
             for choice_id in choices:
+                logger.debug(f"<Question:{question}> Recording Choice '{choice_id}'")
                 if choice_id is not None:
                     try:
                         choice = Choice.objects.get(pk=choice_id)
+                        logger.debug(f"<Question:{question}> Matched Choice <Choice:{choice}>")
                         answer.choices.add(choice)
                     except:
                         if not parameters.other_option:
+                            logger.info(f'<Question:{question}> OutOfRangeAnswer() Other detected when not allowed')
                             return OutOfRangeAnswer()
+                        logger.debug(f"<Question:{question}> Other '{choice_id}'")                            
                         answer.other = choice_id
                         answer.save()
 

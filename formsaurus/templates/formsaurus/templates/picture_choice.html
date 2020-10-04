@@ -4,11 +4,13 @@
 {% block input %}
 <div class="clearfix">
     {% for choice in question.choices %}
-        <div class="mb-1 float-left mr-3 img-thumbnail" style="height: 185px;">
-            <button type="submit" data-keycode="{{ choice.keycode }}" class="fake-button choice" name="answer" value="{{ choice.id }}">
+        <div class="mb-1 float-left mr-3" style="height: 185px;">
+            <button type="submit" data-keycode="{{ choice.keycode }}" data-letter="{{ choice.letter }}" class="btn btn-outline-primary choice {% if not choice.id %}other{% endif %}" name="answer" value="{{ choice.id }}">
                 <div style="width: 200px; height: 150px; background-image: url({{ choice.image_url }}); background-size: 200px; background-repeat: no-repeat;"></div>
                 {% if question.parameters.show_labels %}
                     <p>{{ choice.letter }}. {{ choice.choice }}</p>
+                {% else %}
+                    <p>{{ choice.letter }}</p>
                 {% endif %}
             </button>
         </div>
