@@ -953,7 +953,7 @@ class Choice(BaseModel):
     image_url = models.URLField(blank=True, null=True, default=None)
 
     def __str__(self):
-        return f'{self.short_id} {self.choice}'
+        return f'{self.short_id}: "{self.choice}"'
 
 
 #
@@ -1174,15 +1174,21 @@ class Submission(BaseModel):
         elif question.question_type == Question.THANK_YOU_SCREEN:
             return None, None
         elif question.question_type == Question.MULTIPLE_CHOICE:            
-            choices = post_data.getlist('answer')
+            choices = []
+            for choice_id in post_data.getlist('answer'):
+                if not is_empty(choice_id):
+                    choices.append(choice_id)
+            logger.debug(f'<Question:{question}> {choices}')
+            
             if question.required and len(choices) == 0:
+                logger.info(f'<Question:{question}> MissingRequiredAnswer()')
                 return None, MissingRequiredAnswer()
             
             parameters = question.parameters
             if choices is not None and not parameters.multiple_selection and len(choices) > 1:
+                logger.info(f'<Question:{question}> OutOfRangeAnswer()')
                 return None, OutOfRangeAnswer()
 
-            logger.debug("Recording a multiple choice answer")
             if answer is None:
                 answer = MultipleChoiceAnswer(
                     question=question,
@@ -1194,15 +1200,17 @@ class Submission(BaseModel):
             answer.choices.clear()
             # Add each choice
             for choice_id in choices:
-                logger.debug(f"Raw response {choice_id}")
+                logger.debug(f"<Question:{question}> Recording Choice '{choice_id}'")
                 if choice_id is not None:
                     try:
                         choice = Choice.objects.get(pk=choice_id)
-                        logger.debug(f"Picked up choice {choice}")
+                        logger.debug(f"<Question:{question}> Matched Choice <Choice:{choice}>")
                         answer.choices.add(choice)
                     except:
                         if not parameters.other_option:
+                            logger.info(f'<Question:{question}> OutOfRangeAnswer() Other detected when not allowed')
                             return OutOfRangeAnswer()
+                        logger.debug(f"<Question:{question}> Other '{choice_id}'")                            
                         answer.other = choice_id
                         answer.save()
 

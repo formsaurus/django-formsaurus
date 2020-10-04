@@ -1,6 +1,5 @@
 {% extends question_base %}
 
-
 {% block input %}
 {% if question.required %}
 <input type="hidden" name="filled" required>
@@ -8,9 +7,9 @@
     {% for choice in question.choices %}
         <div class="mb-1">
             {% if question.parameters.multiple_selection %}
-                <a href="#" data-value="{{ choice.id }}" data-keycode="{{ choice.keycode }}" class="text-left btn btn-outline-primary choice btn-wide">{{ choice.letter }}. {{ choice.choice }}</a>
+                <a href="#" data-value="{{ choice.id }}" data-keycode="{{ choice.keycode }}" data-letter="{{ choice.letter }}" class="text-left btn btn-outline-primary choice btn-wide {% if not choice.id %}other{% endif %}">{{ choice.letter }}. {{ choice.choice }}</a>
             {% else %}
-                <button type="submit" name="answer" value="{{choice.id}}" data-keycode="{{ choice.keycode }}" class="text-left btn btn-outline-primary choice btn-wide">{{ choice.letter }}. {{ choice.choice }}</button>
+                <button type="submit" name="answer" value="{{choice.id}}" data-keycode="{{ choice.keycode }}" data-letter="{{ choice.letter }}" class="text-left btn btn-outline-primary choice btn-wide {% if not choice.id %}other{% endif %}">{{ choice.letter }}. {{ choice.choice }}</button>
             {% endif %}
         </div>
     {% endfor %}

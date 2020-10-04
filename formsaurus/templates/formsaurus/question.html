@@ -92,7 +92,7 @@ $(function() {
         $.each(form.find(':input[required]'), function(index, input) {
             input = $(input)
             if (input.val() == "") {
-                console.log('Missing required')
+                console.log('Missing required', input)
                 completed = false
                 return
             }
@@ -105,6 +105,10 @@ $(function() {
 
     // Global enter submits (FIXME probably not working on text area)
     $(document).enterKey(function(evt) {
+        console.log('Global Enter', evt)
+        if ($(evt.target).is(':input')) {
+            return
+        }
         do_submit();
     })
 
@@ -114,37 +118,80 @@ $(function() {
         elt = $(elt)
         choice_keymap[elt.attr('data-keycode')] = elt
     })
+
     function toggle_choice(choice) {
         console.log('Toggle choice', choice)
         var choice_value = choice.is('button') ? choice.val() : choice.attr('data-value');
+        var other = choice.hasClass('other')
         console.log('Choice Value', choice_value)
+        console.log('Other', other)
 
+
+        if (other) {
+            if (choice.hasClass('d-none')) {
+                choice.removeClass('d-none')
+                choice.next().remove()
+            } else {
+                var group = $('<div>').addClass('input-group').appendTo(choice.parent())
+                var prepend = $('<div>').addClass('input-group-prepend').appendTo(group)
+                $('<span>').addClass('input-group-text').text(choice.attr('data-letter')+'. ').appendTo(prepend)
+                var input = $('<input>').attr('type', 'text').attr('name', 'answer').addClass('form-control btn-outline-primary').appendTo(group)
+                input.enterKey(function(evt) {
+                    if (!choice.is('button')) {
+                        evt.preventDefault()
+                        input.blur()
+                    } else {
+                        evt.preventDefault()
+                        do_submit()
+                    }
+                })
+                var append = $('<div>').addClass('input-group-append').appendTo(group)
+                var button = $('<button>').addClass('btn btn-outline-primary').appendTo(append)
+                button.click(function(evt) {
+                    console.log('Other button clicked, toggle choice', choice)
+                    evt.preventDefault()
+                    toggle_choice(choice)
+                })
+                $('<i>').addClass('fas fa-times').appendTo(button)
+                choice.addClass('d-none')
+                input.focus()
+            }
+        }
         if (choice.hasClass('btn-outline-primary')) {
             choice.addClass('btn-primary').removeClass('btn-outline-primary')
         } else {
             choice.removeClass('btn-primary').addClass('btn-outline-primary')
         }
-        if (choice.is('button') && choice_value != undefined && choice_value != '') {
-            do_submit()
-        } else {
-            // Multiple selection, need to handle the input
-            if (choice.hasClass('btn-primary')) {
-                $('<input>').attr('name', 'answer').attr('type', 'hidden').val(choice_value).appendTo(choice.parent())
-            } else {
-                choice.next().remove()
-            }
-            if (form.hasClass('question-required')) {
-                if (form.find('input[name="answer"]').length > 0) {
-                    form.find('input[name="filled"]').val(true)
-                    $('.question-form-submit').removeClass('disabled')
-                } else {
-                    form.find('input[name="filled"]').val('')
-                    $('.question-form-submit').addClass('disabled')
-                }
-            }
 
+        // Multiple selection, need to handle the input
+        if (choice.hasClass('btn-primary')) {
+            $('<input>').attr('name', 'answer').attr('type', 'hidden').val(choice_value).appendTo(choice.parent())
+        } else {
+            choice.next().remove()
+        }
+        if (form.hasClass('question-required')) {
+            if (form.find('input[name="answer"]').length > 0) {
+                form.find('input[name="filled"]').val(true)
+                $('.question-form-submit').removeClass('disabled')
+            } else {
+                form.find('input[name="filled"]').val('')
+                $('.question-form-submit').addClass('disabled')
+            }
+        }
+
+        // button is used for single selection
+        if (choice.is('button') && choice_value != undefined && choice_value != '') {
+            form.find('input[name="filled"]').val(true)
+            do_submit()
         }
     }
+
+    $('.choice').click(function(evt) {
+        console.log('choice clicked, toggle', $(this))
+        evt.preventDefault()
+        toggle_choice($(this))
+    })
+
     // Opinion
     $('.opinion').hover(function() {
         // In
@@ -168,8 +215,11 @@ $(function() {
 
     $(document).keypress(function(evt) {
         var keycode = (evt.keyCode ? evt.keyCode : evt.which)
-        console.log('Keycode', keycode)
-        if (keycode in choice_keymap) {
+        console.log('Keypress ' + keycode, evt)
+        
+        if (keycode in choice_keymap && evt.target == document.body) {
+            console.log('Keypress -> choice toggle', choice_keymap[keycode])
+            evt.preventDefault()
             toggle_choice(choice_keymap[keycode])
         }
     })

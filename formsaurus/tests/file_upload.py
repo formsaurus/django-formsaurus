@@ -1,6 +1,3 @@
-# with open('wishlist.doc') as fp:
-#  c.post('/customers/wishes/', {'name': 'fred', 'attachment': fp})
-
 import datetime
 import os
 
