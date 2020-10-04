@@ -229,6 +229,17 @@ $(function() {
     form.find('textarea').keyup(function() {
         this.style.height = '1px';
         this.style.height = (this.scrollHeight)+"px";
+
+        if (form.hasClass('question-required')) {
+            if ($(this).val() != "") {
+                form.find('input[name="filled"]').val(true)
+                $('.question-form-submit').removeClass('disabled')
+            } else {
+                form.find('input[name="filled"]').val('')
+                $('.question-form-submit').addClass('disabled')
+            }
+        }
+
     })
 
     // Use Pikaday for input[type="date"]
