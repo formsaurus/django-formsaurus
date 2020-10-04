@@ -10,4 +10,7 @@
 {% endblock %}
 
 {% block button %}
+{% if not question.required %}
+    {{ block.super }}
+{% endif %}
 {% endblock %}
