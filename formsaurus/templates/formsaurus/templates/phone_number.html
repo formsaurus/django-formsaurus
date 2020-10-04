@@ -3,7 +3,7 @@
 
 {% block input %}
 
-<input type="tel" name="answer" autofocus placeholder="800-555-5555" class="survey-input" pattern="[0-9]{3}-[0-9]{3}-[0-9]{4}" {% if question.required %}required{% endif %} />
+<input type="tel" name="phone_number" autofocus data-code="{{ question.parameters.default_country_code }}" placeholder="800-555-5555" class="survey-input" {% if question.required %}required{% endif %} />
 {% endblock %}
 
 {% block button %}

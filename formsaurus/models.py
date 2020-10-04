@@ -1216,7 +1216,9 @@ class Submission(BaseModel):
 
             return answer, None
         elif question.question_type == Question.PHONE_NUMBER:
-            if question.required and is_empty(post_data.get('answer', None)):
+            phone_number = post_data.get('answer', None)
+            logger.debug(f'<Question:{question}> {phone_number}')
+            if question.required and is_empty(answer):
                 return None, MissingRequiredAnswer()
 
             if answer is None:
@@ -1224,12 +1226,13 @@ class Submission(BaseModel):
                     question=question,
                     submission=self,
                 )
-            answer.phone_number = post_data.get('answer', None)
+            answer.phone_number = phone_number
             answer.save()
             return answer, None
         elif question.question_type == Question.SHORT_TEXT:
             short_text = post_data.get('answer', None)
             if question.required and is_empty(short_text):
+                logger.info(f'<Question:{question}> MissingRequiredAnswer()')
                 return None, MissingRequiredAnswer()
 
             # Is it within parameters
