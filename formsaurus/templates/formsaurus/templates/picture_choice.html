@@ -2,7 +2,7 @@
 
 
 {% block input %}
-<div class="clearfix">
+<div class="clearfix mb-4">
     {% for choice in question.choices %}
         <div class="mb-1 float-left mr-3" style="height: 185px;">
             <button type="submit" data-keycode="{{ choice.keycode }}" data-letter="{{ choice.letter }}" class="btn btn-outline-primary choice {% if not choice.id %}other{% endif %}" name="answer" value="{{ choice.id }}">
@@ -21,5 +21,9 @@
 {% block button %}
 {% if not question.required or question.parameters.multiple_selection %}
 {{ block.super }}
+{% endif %}
+
+{% if question.parameters.multiple_selection %}
+<p class="m-0 text-muted"><small>You can select more than one.</small></p>
 {% endif %}
 {% endblock %}

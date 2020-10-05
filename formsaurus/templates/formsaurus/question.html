@@ -99,9 +99,12 @@ $(function() {
             }
             console.log(input.val())
         })
-        if (completed && confirm('Submit')) {
+        if (completed) {
             form.submit()
         }
+        // if (completed && confirm('Submit')) {
+        //     form.submit()
+        // }
     }
 
     // Global enter submits (FIXME probably not working on text area)
@@ -252,6 +255,15 @@ $(function() {
                 format: format,
                 onSelect: function() {
                     console.log(this.getMoment().format(format));
+                    if (form.hasClass('question-required')) {
+                        if ($(date).val() != "") {
+                            form.find('input[name="filled"]').val(true)
+                            $('.question-form-submit').removeClass('disabled')
+                        } else {
+                            form.find('input[name="filled"]').val('')
+                            $('.question-form-submit').addClass('disabled')
+                        }
+                    }
                 }   
             });
     }
@@ -261,6 +273,19 @@ $(function() {
         allowClear: true,
         placeholder: 'Select an option',
     });
+    $('.dropdown').change(function(evt) {
+        if (form.hasClass('question-required')) {
+            if ($(this).val() != "") {
+                form.find('input[name="filled"]').val(true)
+                $('.question-form-submit').removeClass('disabled')
+                do_submit()
+            } else {
+                form.find('input[name="filled"]').val('')
+                $('.question-form-submit').addClass('disabled')
+            }
+        }
+
+    })
 
     // Drag & Drop for file upload
     $('.dropzone').change(function() {
@@ -279,6 +304,19 @@ $(function() {
         $(this).removeClass('dragover')
     });
 
+    $(':input.short-text, :input.email, :input.datepicker, :input.number, :input.website').keyup(function(evt) {
+        console.log('short-text', $(this).val())
+        if (form.hasClass('question-required')) {
+                if ($(this).val() != "") {
+                    form.find('input[name="filled"]').val(true)
+                    $('.question-form-submit').removeClass('disabled')
+                } else {
+                    form.find('input[name="filled"]').val('')
+                    $('.question-form-submit').addClass('disabled')
+                }
+            }
+    })
+
     // Phone Number
     $.each($(':input[type="tel"]'), function(index, input) {
         var countryData = window.intlTelInputGlobals.getCountryData();
@@ -286,6 +324,17 @@ $(function() {
         $.each(countryData, function(index, country) {
             if (country.dialCode == $(input).attr('data-code')) {
                 initial = country.iso2
+            }
+        })
+        $(input).keyup(function(evt) {
+            if (form.hasClass('question-required')) {
+                if ($(input).val() != "") {
+                    form.find('input[name="filled"]').val(true)
+                    $('.question-form-submit').removeClass('disabled')
+                } else {
+                    form.find('input[name="filled"]').val('')
+                    $('.question-form-submit').addClass('disabled')
+                }
             }
         })
         $(input).intlTelInput({

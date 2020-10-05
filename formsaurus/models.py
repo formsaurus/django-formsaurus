@@ -869,9 +869,12 @@ class OpinionScaleParameters(QuestionParameter):
 
 
 class RatingParameters(QuestionParameter):
+    STAR = 'S_'
+    THUMB = 'T_'
+
     SHAPES = [
-        ('S_', 'Stars'),
-        ('T_', 'Thumbs'),
+        (STAR, 'Stars'),
+        (THUMB, 'Thumbs'),
     ]
     number_of_steps = models.PositiveSmallIntegerField()
     shape = models.CharField(max_length=2, choices=SHAPES)
@@ -887,10 +890,13 @@ class DateParameters(QuestionParameter):
         (DDMMYYYY, 'DDMMYYYY'),
         (MMDDYYYY, 'MMDDYYYY'),
     ]
+    DASH = '-'
+    DOT = '.'
+    SLASH = '/'
     SEPARATORS = [
-        ('-', '-'),
-        ('.', '.'),
-        ('/', '/'),
+        (DASH, '-'),
+        (DOT, '.'),
+        (SLASH, '/'),
     ]
     date_format = models.CharField(max_length=1, choices=FORMATS)
     date_separator = models.CharField(max_length=1, choices=SEPARATORS)
@@ -1218,7 +1224,8 @@ class Submission(BaseModel):
         elif question.question_type == Question.PHONE_NUMBER:
             phone_number = post_data.get('answer', None)
             logger.debug(f'<Question:{question}> {phone_number}')
-            if question.required and is_empty(answer):
+            if question.required and is_empty(phone_number):
+                logger.info(f'<Question:{question}> MissingRequiredAnswer()')
                 return None, MissingRequiredAnswer()
 
             if answer is None:

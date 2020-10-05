@@ -17,6 +17,11 @@
 
 {% block button %}
 {% if not question.required or question.parameters.multiple_selection %}
-    {{ block.super }}
+{{ block.super }}
 {% endif %}
+
+{% if question.parameters.multiple_selection %}
+<p class="m-0 text-muted"><small>You can select more than one.</small></p>
+{% endif %}
+
 {% endblock %}

@@ -4,7 +4,7 @@ import secrets
 from datetime import datetime
 from django.contrib.auth import get_user_model
 from django.core.management.base import BaseCommand, CommandError
-from formsaurus.models import Survey, HiddenField, Question, RuleSet, BooleanCondition
+from formsaurus.models import Survey, HiddenField, Question, RuleSet, BooleanCondition, RatingParameters, DateParameters
 
 User = get_user_model()
 
@@ -34,10 +34,10 @@ class Command(BaseCommand):
         # self.add_logic(survey)
         # self.add_simple(survey)
         # self.add_multiple_choice(survey)
-        # self.add_one_of_each(survey)
+        self.add_one_of_each(survey)
         # self.add_upload(survey)
         # self.add_multiple_choices(survey)
-        self.add_multiple_choices_with_others(survey)
+        # self.add_multiple_choices_with_others(survey)
 
         print(f"Created survey {survey.id}")
         for question in survey.question_set.all():
@@ -103,6 +103,7 @@ class Command(BaseCommand):
         survey.add_multiple_choice(
             'Eye Color',
             description="T'as beaux yeux.",
+            required=True,
             multiple_selection=True,
             other_option=True,
             choices=['Blue', 'Brown', 'Green'],
@@ -149,7 +150,7 @@ class Command(BaseCommand):
         #    def add_picture_choice(self, question, required=False, description=None, multiple_selection=False, randomize=False, other_option=False, choices=[], show_labels=False, supersize=False, image_url=None, video_url=None):
         survey.add_picture_choice(
             'Cutest?',
-            required=False,
+            required=True,
             description='Do I really have to choose?',
             multiple_selection=True,
             other_option=True,
@@ -187,6 +188,7 @@ class Command(BaseCommand):
         survey.add_opinion_scale(
             'Opinion?',
             description='We want to know',
+            required=True,
             start_at_one=True,
             number_of_steps=10,
             show_labels=True,
@@ -202,7 +204,7 @@ class Command(BaseCommand):
             required=True,
             description='How was it?',
             number_of_steps=6,
-            shape='T_',
+            shape=RatingParameters.STAR,
             image_url='https://images.unsplash.com/photo-1521967906867-14ec9d64bee8?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1350&q=80',
         )
 
@@ -211,8 +213,8 @@ class Command(BaseCommand):
             'Date of Birth',
             description='So we can wish you a happy birthday',
             required=True,
-            date_format='A',
-            date_separator='/',
+            date_format=DateParameters.YYYYMMDD,
+            date_separator= DateParameters.SLASH,
             image_url='https://images.unsplash.com/photo-1464347601390-25e2842a37f7?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1385&q=80',
         )
 

@@ -1,8 +1,12 @@
 {% extends question_base %}
 
 {% block input %}
-<input type="number" name="answer" autofocus placeholder="123" class="survey-input" {% if question.required %}required{% endif %}/>
-{% endblock %}
-
-{% block button %}
+<input type="number" name="answer" autofocus placeholder="123" class="survey-input number" {% if question.required %}required{% endif %} {%if question.parameters.enable_min %}min="{{ question.parameters.min_value }}"{% endif %} {%if question.parameters.max_value %}max="{{ question.parameters.max_value }}"{% endif %}/>
+{% if question.parameters.enable_min and question.parameters.enable_max %}
+    <small class="text-muted">Between {{ question.parameters.min_value }} and {{ question.parameters.max_value }}.</small>
+{% elif question.parameters.enable_min %}
+    <small class="text-muted">Greather or equal than {{ question.parameters.min_value }}.</small>
+{% elif question.parameters.enable_max %}
+    <small class="text-muted">Less or equal than {{ question.parameters.max_value }}.</small>
+{% endif %}
 {% endblock %}

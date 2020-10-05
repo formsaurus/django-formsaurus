@@ -4,17 +4,18 @@
 {% block button %}
 {% if question.parameters.show_button %}
     {% if question.parameters.button_link %}
-        <a href="{{question.parameters.button_link}}" class="btn btn-primary">{{question.parameters.button_label}}</a>
+        <a href="{{question.parameters.button_link}}" class="btn btn-primary btn-wide">{{question.parameters.button_label}}</a>
     {% else %}
-        <a href="{% url 'formsaurus:completed' survey.id submission.id %}" class="btn btn-primary">{{question.parameters.button_label}}</a>
+        <a href="{% url 'formsaurus:completed' survey.id submission.id %}" class="btn btn-primary btn-wide">{{question.parameters.button_label}}</a>
     {% endif %}
+    <span class="ml-3 text-muted"><small>or press <span class="badge badge-light">⏎ Enter</span></small></span>
 {% endif %}
 
-<div class="mt-4">
-    {% if question.parameters.show_social_media %}
+{% if question.parameters.show_social_media %}
+    <div class="mt-4">
         <a href="https://twitter.com/intent/tweet?url={{ request.scheme }}://{{ request.META.HTTP_HOST }}{% url 'formsaurus:survey' survey.id %}"><i class="fab fa-twitter fa-2x mr-2"></i></a>
         <a href="https://www.facebook.com/sharer/sharer.php?u={{ request.scheme }}://{{ request.META.HTTP_HOST }}{% url 'formsaurus:survey' survey.id %}"><i class="fab fa-facebook-f fa-2x mr-2"></i></a>
         <a href="https://www.linkedin.com/shareArticle?url={{ request.scheme }}://{{ request.META.HTTP_HOST }}{% url 'formsaurus:survey' survey.id %}"><i class="fab fa-linkedin-in fa-2x mr-2"></i></a>
-    {% endif %}    
-</div>
+    </div>
+{% endif %}
 {% endblock %}

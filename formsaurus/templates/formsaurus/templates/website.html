@@ -2,8 +2,5 @@
 
 
 {% block input %}
-<input type="url" name="answer" autofocus placeholder="https://" class="survey-input" {% if question.required %}required{% endif %}/>
-{% endblock %}
-
-{% block button %}
+    <input type="url" name="answer" autofocus placeholder="https://" class="survey-input website" {% if question.required %}required{% endif %}/>
 {% endblock %}

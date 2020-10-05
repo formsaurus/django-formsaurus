@@ -1,10 +1,5 @@
 {% extends question_base %}
 
-
 {% block input %}
-
-<input type="tel" name="phone_number" autofocus data-code="{{ question.parameters.default_country_code }}" placeholder="800-555-5555" class="survey-input" {% if question.required %}required{% endif %} />
-{% endblock %}
-
-{% block button %}
+    <input type="tel" name="phone_number" autofocus data-code="{{ question.parameters.default_country_code }}" placeholder="800-555-5555" class="survey-input" {% if question.required %}required{% endif %} />
 {% endblock %}

@@ -1,5 +1,5 @@
 {% extends question_base %}
 
 {% block input %}
-<input type="text" name="answer" autofocus required data-format="{{ question.parameters.format }}" class="survey-input datepicker" {% if question.required %}required{% endif %}/>
+    <input type="text" name="answer" autofocus required data-format="{{ question.parameters.format }}" class="survey-input datepicker" {% if question.required %}required{% endif %}/>
 {% endblock %}

@@ -2,4 +2,7 @@
 
 {% block input %}
     <textarea name="answer" autofocus placeholder="Type your answer here..." {% if question.required %}required{% endif %} rows="1" class="survey-input"></textarea>
+    {% if question.parameters.limit_character %}
+    <small class="text-muted">{{ question.parameters.limit }} characters maximum.</small>
+    {% endif %}
 {% endblock %}

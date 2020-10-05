@@ -1,5 +1,5 @@
 {% extends question_base %}
 
 {% block input %}
-    <input type="email" name="answer" autofocus placeholder="marty@mclfy.com" class="survey-input" {% if question.required %}required{% endif %}/>
+    <input type="email" name="answer" autofocus placeholder="marty@mclfy.com" class="email survey-input" {% if question.required %}required{% endif %}/>
 {% endblock %}
