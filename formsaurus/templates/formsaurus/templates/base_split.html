@@ -3,7 +3,7 @@
     <div class="row no-gutters">
         <div class="col-6">
             <div class="vertical-center">
-                <form method="POST" class="w-100 p-5" action="{% url 'formsaurus:question' survey.id question.id submission.id %}" id="question-form" {% if question.type == 'FU' %}enctype="multipart/form-data"{% endif %}>
+                <form method="POST" class="w-100 p-5 {% if question.required %}question-required{% endif %}" action="{% url 'formsaurus:question' survey.id question.id submission.id %}" id="question-form" {% if question.type == 'FU' %}enctype="multipart/form-data"{% endif %}>
                     {% csrf_token %}
                     <div class="mb-4">
                         <h2 class="mb-0">
@@ -17,11 +17,14 @@
                         {% endif %}
                     </div>
 
-                    <div class="">
-
+                    <div class="mb-3">
                         {% block input %}
                         {% endblock %}
                     </div>
+                    {% block button %}
+                        <button type="submit" class="question-form-submit btn btn-primary btn-wide {% if question.required %}disabled{% endif %}">Next</button>
+                        <span class="ml-3 text-muted"><small>or press <span class="badge badge-light">⏎ Enter</span></small></span>
+                    {% endblock %}
                 </form>
             </div>
         </div>

@@ -35,7 +35,7 @@ class SurveysView(LoginRequiredMixin, View):
 
     def get(self, request):
         context = {}
-        context['surveys'] = Survey.objects.filter(user=request.user)
+        context['surveys'] = Survey.objects.filter(user=request.user).order_by('-created_at')
         return render(request, self.template_name, context)
 
 
@@ -114,6 +114,10 @@ class AddQuestionView(LoginRequiredMixin, View):
                         button_label=parameters_form.cleaned_data['button_label'],
                         image_url=parameters_form.cleaned_data['image_url'],
                         video_url=parameters_form.cleaned_data['video_url'],
+                        orientation=parameters_form.cleaned_data['orientation'],
+                        position_x=parameters_form.cleaned_data['position_x'],
+                        position_y=parameters_form.cleaned_data['position_y'],
+                        opacity=parameters_form.cleaned_data['opacity'],
                     )
                     logger.info('Created Welcome Screen %s', question.id)
                     return redirect(self.add_question_url, survey.id)
@@ -132,6 +136,10 @@ class AddQuestionView(LoginRequiredMixin, View):
                         show_social_media=parameters_form.cleaned_data['show_social_media'],
                         image_url=parameters_form.cleaned_data['image_url'],
                         video_url=parameters_form.cleaned_data['video_url'],
+                        orientation=parameters_form.cleaned_data['orientation'],
+                        position_x=parameters_form.cleaned_data['position_x'],
+                        position_y=parameters_form.cleaned_data['position_y'],
+                        opacity=parameters_form.cleaned_data['opacity'],
                     )
                     logger.info('Created Thank You Screen %s', question.id)
                     return redirect(self.add_question_url, survey.id)
@@ -151,6 +159,10 @@ class AddQuestionView(LoginRequiredMixin, View):
                         choices=request.POST.getlist('choice'),
                         image_url=parameters_form.cleaned_data['image_url'],
                         video_url=parameters_form.cleaned_data['video_url'],
+                        orientation=parameters_form.cleaned_data['orientation'],
+                        position_x=parameters_form.cleaned_data['position_x'],
+                        position_y=parameters_form.cleaned_data['position_y'],
+                        opacity=parameters_form.cleaned_data['opacity'],
                     )
                     logger.info('Created Multiple Choice %s', question.id)
                     return redirect(self.add_question_url, survey.id)
@@ -167,6 +179,10 @@ class AddQuestionView(LoginRequiredMixin, View):
                         default_country_code=parameters_form.cleaned_data['default_country_code'],
                         image_url=parameters_form.cleaned_data['image_url'],
                         video_url=parameters_form.cleaned_data['video_url'],
+                        orientation=parameters_form.cleaned_data['orientation'],
+                        position_x=parameters_form.cleaned_data['position_x'],
+                        position_y=parameters_form.cleaned_data['position_y'],
+                        opacity=parameters_form.cleaned_data['opacity'],
                     )
                     logger.info('Created Phone Number %s', question.id)
                     return redirect(self.add_question_url, survey.id)
@@ -184,6 +200,10 @@ class AddQuestionView(LoginRequiredMixin, View):
                         limit=parameters_form.cleaned_data['limit'],
                         image_url=parameters_form.cleaned_data['image_url'],
                         video_url=parameters_form.cleaned_data['video_url'],
+                        orientation=parameters_form.cleaned_data['orientation'],
+                        position_x=parameters_form.cleaned_data['position_x'],
+                        position_y=parameters_form.cleaned_data['position_y'],
+                        opacity=parameters_form.cleaned_data['opacity'],
                     )
                     logger.info('Created Short Text %s', question.id)
                     return redirect(self.add_question_url, survey.id)
@@ -201,6 +221,10 @@ class AddQuestionView(LoginRequiredMixin, View):
                         limit=parameters_form.cleaned_data['limit'],
                         image_url=parameters_form.cleaned_data['image_url'],
                         video_url=parameters_form.cleaned_data['video_url'],
+                        orientation=parameters_form.cleaned_data['orientation'],
+                        position_x=parameters_form.cleaned_data['position_x'],
+                        position_y=parameters_form.cleaned_data['position_y'],
+                        opacity=parameters_form.cleaned_data['opacity'],
                     )
                     logger.info('Created Long Text %s', question.id)
                     return redirect(self.add_question_url, survey.id)
@@ -218,6 +242,10 @@ class AddQuestionView(LoginRequiredMixin, View):
                         show_quotation_mark=parameters_form.cleaned_data['show_quotation_mark'],
                         image_url=parameters_form.cleaned_data['image_url'],
                         video_url=parameters_form.cleaned_data['video_url'],
+                        orientation=parameters_form.cleaned_data['orientation'],
+                        position_x=parameters_form.cleaned_data['position_x'],
+                        position_y=parameters_form.cleaned_data['position_y'],
+                        opacity=parameters_form.cleaned_data['opacity'],                        
                     )
                     logger.info('Created Statement %s', question.id)
                     return redirect(self.add_question_url, survey.id)
@@ -248,6 +276,10 @@ class AddQuestionView(LoginRequiredMixin, View):
                         choices=choices,
                         image_url=parameters_form.cleaned_data['image_url'],
                         video_url=parameters_form.cleaned_data['video_url'],
+                        orientation=parameters_form.cleaned_data['orientation'],
+                        position_x=parameters_form.cleaned_data['position_x'],
+                        position_y=parameters_form.cleaned_data['position_y'],
+                        opacity=parameters_form.cleaned_data['opacity'],
                     )
                     logger.info('Created Picture Choice %s', question.id)
                     return redirect(self.add_question_url, survey.id)
@@ -264,6 +296,10 @@ class AddQuestionView(LoginRequiredMixin, View):
                         required=question_form.cleaned_data['required'],
                         image_url=parameters_form.cleaned_data['image_url'],
                         video_url=parameters_form.cleaned_data['video_url'],
+                        orientation=parameters_form.cleaned_data['orientation'],
+                        position_x=parameters_form.cleaned_data['position_x'],
+                        position_y=parameters_form.cleaned_data['position_y'],
+                        opacity=parameters_form.cleaned_data['opacity'],
                     )
                     logger.info('Created Yes/No %s', question.id)
                     return redirect(self.add_question_url, survey.id)
@@ -279,6 +315,10 @@ class AddQuestionView(LoginRequiredMixin, View):
                         required=question_form.cleaned_data['required'],
                         image_url=parameters_form.cleaned_data['image_url'],
                         video_url=parameters_form.cleaned_data['video_url'],
+                        orientation=parameters_form.cleaned_data['orientation'],
+                        position_x=parameters_form.cleaned_data['position_x'],
+                        position_y=parameters_form.cleaned_data['position_y'],
+                        opacity=parameters_form.cleaned_data['opacity'],
                     )
                     logger.info('Created Email %s', question.id)
                     return redirect(self.add_question_url, survey.id)
@@ -300,6 +340,10 @@ class AddQuestionView(LoginRequiredMixin, View):
                         right_label=parameters_form.cleaned_data['right_label'],
                         image_url=parameters_form.cleaned_data['image_url'],
                         video_url=parameters_form.cleaned_data['video_url'],
+                        orientation=parameters_form.cleaned_data['orientation'],
+                        position_x=parameters_form.cleaned_data['position_x'],
+                        position_y=parameters_form.cleaned_data['position_y'],
+                        opacity=parameters_form.cleaned_data['opacity'],
                     )
                     logger.info('Created Opinion Scale %s', question.id)
                     return redirect(self.add_question_url, survey.id)
@@ -317,6 +361,10 @@ class AddQuestionView(LoginRequiredMixin, View):
                         shape=parameters_form.cleaned_data['shape'],
                         image_url=parameters_form.cleaned_data['image_url'],
                         video_url=parameters_form.cleaned_data['video_url'],
+                        orientation=parameters_form.cleaned_data['orientation'],
+                        position_x=parameters_form.cleaned_data['position_x'],
+                        position_y=parameters_form.cleaned_data['position_y'],
+                        opacity=parameters_form.cleaned_data['opacity'],
                     )
                     logger.info('Created Rating %s', question.id)
                     return redirect(self.add_question_url, survey.id)
@@ -334,6 +382,10 @@ class AddQuestionView(LoginRequiredMixin, View):
                         date_separator=parameters_form.cleaned_data['date_separator'],
                         image_url=parameters_form.cleaned_data['image_url'],
                         video_url=parameters_form.cleaned_data['video_url'],
+                        orientation=parameters_form.cleaned_data['orientation'],
+                        position_x=parameters_form.cleaned_data['position_x'],
+                        position_y=parameters_form.cleaned_data['position_y'],
+                        opacity=parameters_form.cleaned_data['opacity'],
                     )
                     logger.info('Created Date %s', question.id)
                     return redirect(self.add_question_url, survey.id)
@@ -353,6 +405,10 @@ class AddQuestionView(LoginRequiredMixin, View):
                         max_value=parameters_form.cleaned_data['max_value'],
                         image_url=parameters_form.cleaned_data['image_url'],
                         video_url=parameters_form.cleaned_data['video_url'],
+                        orientation=parameters_form.cleaned_data['orientation'],
+                        position_x=parameters_form.cleaned_data['position_x'],
+                        position_y=parameters_form.cleaned_data['position_y'],
+                        opacity=parameters_form.cleaned_data['opacity'],
                     )
                     logger.info('Created Number %s', question.id)
                     return redirect(self.add_question_url, survey.id)
@@ -371,6 +427,10 @@ class AddQuestionView(LoginRequiredMixin, View):
                         choices=request.POST.getlist('choice'),
                         image_url=parameters_form.cleaned_data['image_url'],
                         video_url=parameters_form.cleaned_data['video_url'],
+                        orientation=parameters_form.cleaned_data['orientation'],
+                        position_x=parameters_form.cleaned_data['position_x'],
+                        position_y=parameters_form.cleaned_data['position_y'],
+                        opacity=parameters_form.cleaned_data['opacity'],
                     )
                     logger.info('Created Dropdown %s', question.id)
                     return redirect(self.add_question_url, survey.id)
@@ -386,6 +446,10 @@ class AddQuestionView(LoginRequiredMixin, View):
                         required=question_form.cleaned_data['required'],
                         image_url=parameters_form.cleaned_data['image_url'],
                         video_url=parameters_form.cleaned_data['video_url'],
+                        orientation=parameters_form.cleaned_data['orientation'],
+                        position_x=parameters_form.cleaned_data['position_x'],
+                        position_y=parameters_form.cleaned_data['position_y'],
+                        opacity=parameters_form.cleaned_data['opacity'],
                     )
                     logger.info('Created Email %s', question.id)
                     return redirect(self.add_question_url, survey.id)
@@ -401,6 +465,10 @@ class AddQuestionView(LoginRequiredMixin, View):
                         required=question_form.cleaned_data['required'],
                         image_url=parameters_form.cleaned_data['image_url'],
                         video_url=parameters_form.cleaned_data['video_url'],
+                        orientation=parameters_form.cleaned_data['orientation'],
+                        position_x=parameters_form.cleaned_data['position_x'],
+                        position_y=parameters_form.cleaned_data['position_y'],
+                        opacity=parameters_form.cleaned_data['opacity'],
                     )
                     logger.info('Created File Upload %s', question.id)
                     return redirect(self.add_question_url, survey.id)
@@ -415,6 +483,10 @@ class AddQuestionView(LoginRequiredMixin, View):
                         required=question_form.cleaned_data['required'],
                         image_url=parameters_form.cleaned_data['image_url'],
                         video_url=parameters_form.cleaned_data['video_url'],
+                        orientation=parameters_form.cleaned_data['orientation'],
+                        position_x=parameters_form.cleaned_data['position_x'],
+                        position_y=parameters_form.cleaned_data['position_y'],
+                        opacity=parameters_form.cleaned_data['opacity'],                    
                     )
                     logger.info('Created Email %s', question.id)
                     return redirect(self.add_question_url, survey.id)

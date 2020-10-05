@@ -4,7 +4,7 @@ import secrets
 from datetime import datetime
 from django.contrib.auth import get_user_model
 from django.core.management.base import BaseCommand, CommandError
-from formsaurus.models import Survey, HiddenField, Question, RuleSet, BooleanCondition, RatingParameters, DateParameters
+from formsaurus.models import (Survey, HiddenField, Question, RuleSet, BooleanCondition, RatingParameters, DateParameters, QuestionParameter)
 
 User = get_user_model()
 
@@ -34,7 +34,10 @@ class Command(BaseCommand):
         # self.add_logic(survey)
         # self.add_simple(survey)
         # self.add_multiple_choice(survey)
-        self.add_one_of_each(survey)
+        # self.add_one_of_each(survey)
+        # self.add_one_of_each(survey, orientation=QuestionParameter.FLOAT)
+        # self.add_one_of_each(survey, orientation=QuestionParameter.SPLIT)
+        self.add_one_of_each(survey, orientation=QuestionParameter.BACKGROUND, opacity=20)
         # self.add_upload(survey)
         # self.add_multiple_choices(survey)
         # self.add_multiple_choices_with_others(survey)
@@ -90,13 +93,15 @@ class Command(BaseCommand):
         )
         print(f"Condition {condition.id}")
 
-    def add_one_of_each(self, survey):
+    def add_one_of_each(self, survey, orientation=QuestionParameter.STACK, opacity=None):
         # question, description=None, button_label='Start', image_url=None, video_url=None
         survey.add_welcome_screen(
             'Customer Survey',
             description='This is a survey',
             button_label="Let's Go",
-            image_url='https://images.unsplash.com/photo-1495443942462-81f29560f7e0?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1352&q=80'
+            image_url='https://images.unsplash.com/photo-1495443942462-81f29560f7e0?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1352&q=80',
+            orientation=orientation,
+            opacity=opacity,
         )
 
         # question,required=True,description=None,multiple_selection=False,randomize=False,other_option=False,choices=[],vertical_alignment=False,image_url=None,video_url=None):
@@ -108,6 +113,8 @@ class Command(BaseCommand):
             other_option=True,
             choices=['Blue', 'Brown', 'Green'],
             image_url='https://images.unsplash.com/photo-1533073526757-2c8ca1df9f1c?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1350&q=80',
+            orientation=orientation,
+            opacity=opacity,
         )
 
         # question, required=True, description=None, default_country_code=1,image_url=None,video_url=None):
@@ -117,6 +124,8 @@ class Command(BaseCommand):
             required=True,
             default_country_code=33,
             image_url='https://images.unsplash.com/photo-1520923642038-b4259acecbd7?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1306&q=80',
+            orientation=orientation,
+            opacity=opacity,
         )
 
         # question, required=True, description=None, limit_character=False, limit=None, image_url=None, video_url=None):
@@ -127,6 +136,8 @@ class Command(BaseCommand):
             limit_character=True,
             limit=32,
             image_url='https://images.unsplash.com/photo-1531502884512-547607eec96f?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1350&q=80',
+            orientation=orientation,
+            opacity=opacity,
         )
 
         # question, required=True, description=None, limit_character=False, limit=None, image_url=None, video_url=None):
@@ -137,6 +148,8 @@ class Command(BaseCommand):
             limit_character=True,
             limit=1024,
             image_url='https://images.unsplash.com/photo-1544531585-f14f463149ec?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1350&q=80',
+            orientation=orientation,
+            opacity=opacity,
         )
         #question, description=None, button_label='Next', show_quotation_mark=True, image_url=None, video_url=None):
         survey.add_statement(
@@ -145,6 +158,8 @@ class Command(BaseCommand):
             button_label='Yay Math!',
             show_quotation_mark=True,
             image_url='https://images.unsplash.com/photo-1542621334-a254cf47733d?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1350&q=80',
+            orientation=orientation,
+            opacity=opacity,
         )
 
         #    def add_picture_choice(self, question, required=False, description=None, multiple_selection=False, randomize=False, other_option=False, choices=[], show_labels=False, supersize=False, image_url=None, video_url=None):
@@ -166,7 +181,9 @@ class Command(BaseCommand):
             ],
             show_labels=True,
             supersize=True,
-            image_url=None,
+            image_url='https://images.unsplash.com/photo-1468849169681-0b89c0d8aeab?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=984&q=80',
+            orientation=orientation,
+            opacity=opacity,
         )
 
         # question, required=False, description=None, image_url=None, video_url=None):
@@ -175,6 +192,8 @@ class Command(BaseCommand):
             description="It's for science",
             required=True,
             image_url='https://images.unsplash.com/photo-1516382022989-cd771ab91fb1?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1267&q=80',
+            orientation=orientation,
+            opacity=opacity,
         )
         # question, required=False, description=None, image_url=None, video_url=None):
         survey.add_email(
@@ -182,6 +201,8 @@ class Command(BaseCommand):
             required=True,
             description='We promise not to spam',
             image_url='https://images.unsplash.com/photo-1528747045269-390fe33c19f2?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1350&q=80',
+            orientation=orientation,
+            opacity=opacity,
         )
 
         # question, required=False, description=None, start_at_one=True, number_of_steps=11, show_labels=False, left_label=None, center_label=None, right_label=None, image_url=None, video_url=None):
@@ -196,6 +217,8 @@ class Command(BaseCommand):
             center_label='Center',
             right_label='Right',
             image_url='https://images.unsplash.com/photo-1522148543752-8cdaa654a796?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1351&q=80',
+            orientation=orientation,
+            opacity=opacity,
         )
 
         #question, required=False, description=None, number_of_steps=5, shape='S', image_url=None, video_url=None):
@@ -206,6 +229,8 @@ class Command(BaseCommand):
             number_of_steps=6,
             shape=RatingParameters.STAR,
             image_url='https://images.unsplash.com/photo-1521967906867-14ec9d64bee8?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1350&q=80',
+            orientation=orientation,
+            opacity=opacity,
         )
 
         # question, required=False, description=None, date_format='A', date_separator='/', image_url=None, video_url=None):
@@ -216,6 +241,8 @@ class Command(BaseCommand):
             date_format=DateParameters.YYYYMMDD,
             date_separator= DateParameters.SLASH,
             image_url='https://images.unsplash.com/photo-1464347601390-25e2842a37f7?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1385&q=80',
+            orientation=orientation,
+            opacity=opacity,
         )
 
         # question, required=False, description=None, enable_min=False, min_value=None, enable_max=False, max_value=None, image_url=None, video_url=None):
@@ -228,7 +255,8 @@ class Command(BaseCommand):
             enable_max=True,
             max_value=10,
             image_url='https://images.unsplash.com/photo-1590753684039-6adc03c5d6dc?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1188&q=80',
-
+            orientation=orientation,
+            opacity=opacity,
         )
 
         # question, required=False, description=None, randomize=False, alphabetical=False, choices=[], image_url=None, video_url=None):
@@ -238,6 +266,8 @@ class Command(BaseCommand):
             description='Choices',
             choices=['Option 1', 'Option 2'],
             image_url='https://images.unsplash.com/photo-1502298411556-0b02524812cb?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1350&q=80',
+            orientation=orientation,
+            opacity=opacity,
         )
 
         # question, required=False, description=None, image_url=None, video_url=None):
@@ -246,6 +276,8 @@ class Command(BaseCommand):
             required=True,
             description='Our lawyers asked us',
             image_url='https://images.unsplash.com/photo-1575505586569-646b2ca898fc?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1205&q=80',
+            orientation=orientation,
+            opacity=opacity,
         )
 
         # question, required=False, description=None, image_url=None, video_url=None):
@@ -254,6 +286,18 @@ class Command(BaseCommand):
             required=True,
             description='So we can visit',
             image_url='https://images.unsplash.com/photo-1516383274235-5f42d6c6426d?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1353&q=80',
+            orientation=orientation,
+            opacity=opacity,
+        )
+
+        # question, required=False, description=None, image_url=None, video_url=None, orientation=None, position_x=None, position_y=None, opacity=None
+        survey.add_file_upload(
+            'Upload Something',
+            description='Show us your work',
+            required=True,
+            image_url='https://images.unsplash.com/photo-1589447388175-ac47d31be950?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1950&q=80',
+            orientation=orientation,
+            opacity=opacity,
         )
 
         # question, description=None, show_button=True, button_label='Done', button_link=None, show_social_media=True, image_url=None, video_url=None
@@ -264,5 +308,8 @@ class Command(BaseCommand):
             button_label='Hasta La Vista Baby!',
             button_link='https://poit.ch',
             show_social_media=True,
-            image_url='https://images.unsplash.com/photo-1530242269066-86e5a3a480ba?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1350&q=80')
+            image_url='https://images.unsplash.com/photo-1530242269066-86e5a3a480ba?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1350&q=80',
+            orientation=orientation,
+            opacity=opacity,
+        )
 
