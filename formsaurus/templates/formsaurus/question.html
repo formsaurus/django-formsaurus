@@ -127,8 +127,8 @@ $(function() {
         console.log('Toggle choice', choice)
         var choice_value = choice.is('button') ? choice.val() : choice.attr('data-value');
         var other = choice.hasClass('other')
-        console.log('Choice Value', choice_value)
-        console.log('Other', other)
+        console.log('\tChoice Value', choice_value)
+        console.log('\tOther', other)
 
 
         if (other) {
@@ -147,6 +147,18 @@ $(function() {
                     } else {
                         evt.preventDefault()
                         do_submit()
+                    }
+                })
+                input.keydown(function(evt) {
+                    var keycode = (evt.keyCode ? evt.keyCode : evt.which);
+                    console.log('Other ' + keycode)
+                    if (keycode == 27) {
+                        $(this).blur()
+                    }
+                })
+                input.blur(function(evt) {
+                    if ($(this).val() == "") {
+                        toggle_choice(choice)
                     }
                 })
                 var append = $('<div>').addClass('input-group-append').appendTo(group)
