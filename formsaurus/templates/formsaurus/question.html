@@ -64,6 +64,11 @@ function readFile(input) {
             $('#question-form')[0].reset()
             $('.preview-zone').empty().addClass('d-none')
             $('.dropzone-wrapper').removeClass('d-none')
+            var form = $('#question-form')
+            if (form.hasClass('question-required')) {
+                form.find('input[name="filled"]').val('')
+                $('.question-form-submit').addClass('disabled')
+            }
         })
         $('.preview-zone').removeClass('d-none').append(preview)
         $('.dropzone-wrapper').addClass('d-none')
@@ -302,6 +307,17 @@ $(function() {
     // Drag & Drop for file upload
     $('.dropzone').change(function() {
         readFile(this)
+        console.log('File Upload', $(this).val())
+        if (form.hasClass('question-required')) {
+            if ($(this).val() != "") {
+                form.find('input[name="filled"]').val(true)
+                $('.question-form-submit').removeClass('disabled')
+            } else {
+                form.find('input[name="filled"]').val('')
+                $('.question-form-submit').addClass('disabled')
+            }
+        }
+
     });
 
     $('.dropzone-wrapper').on('dragover', function(e) {
@@ -319,14 +335,14 @@ $(function() {
     $(':input.short-text, :input.email, :input.datepicker, :input.number, :input.website').keyup(function(evt) {
         console.log('short-text', $(this).val())
         if (form.hasClass('question-required')) {
-                if ($(this).val() != "") {
-                    form.find('input[name="filled"]').val(true)
-                    $('.question-form-submit').removeClass('disabled')
-                } else {
-                    form.find('input[name="filled"]').val('')
-                    $('.question-form-submit').addClass('disabled')
-                }
+            if ($(this).val() != "") {
+                form.find('input[name="filled"]').val(true)
+                $('.question-form-submit').removeClass('disabled')
+            } else {
+                form.find('input[name="filled"]').val('')
+                $('.question-form-submit').addClass('disabled')
             }
+        }
     })
 
     // Phone Number
