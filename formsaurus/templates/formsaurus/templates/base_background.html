@@ -2,7 +2,7 @@
 <main class="container">
     <div class="row">
         <div class="col">
-            <div class="vertical-center">
+            <div class="vertical-center pt-2">
                 <form method="POST" class="w-100 {% if question.required %}question-required{% endif %}"
                     action="{% url 'formsaurus:question' survey.id question.id submission.id %}" id="question-form"
                     {% if question.type == 'FU' %}enctype="multipart/form-data" {% endif %}>
@@ -21,7 +21,7 @@
                         {% endblock %}
                     </div>
                     <div class="mb-3">{% block input %}{% endblock %}</div>
-                    <div>
+                    <div class="mb-4">
                         {% block button %}
                         <button type="submit" class="question-form-submit btn btn-primary btn-wide {% if question.required %}disabled{% endif %}">Next</button>
                         <span class="ml-3 text-muted"><small>or press <span class="badge badge-light">⏎ Enter</span></small></span>
@@ -32,9 +32,14 @@
         </div> <!-- col -->
     </div> <!-- row -->
 </main> <!-- container -->
-<div style="position: absolute; z-index: -10; top: 0px; right: 0px; bottom: 0px; left: 0;">
+<div style="position: absolute; z-index: -10; top: 0px; left: 0px; width: 100%; height: 100%;">
     {% if question.parameters.image_url %}
-        <img src="{{ question.parameters.image_url }}" style="margin: 0 auto; width: 100%; height: 100%; object-fit: cover; object-position: {{ question.parameters.position_x}}% {{ question.parameters.position_y }}%; opacity: {{ question.parameters.opacity }}%;">
+        <div class="d-none d-sm-block" style="height: 100vh; width: 100vw;">
+            <img src="{{ question.parameters.image_url }}" style="margin: 0 auto; width: 100%; height: 100%; object-fit: cover; object-position: {{ question.parameters.position_x}}% {{ question.parameters.position_y }}%; opacity: {{ question.parameters.opacity }}%;">
+        </div>
+        <div class="d-block d-sm-none" style="height: 100%; width: 100vw;">
+            <img src="{{ question.parameters.image_url }}" style="margin: 0 auto; width: 100%; height: 100%; object-fit: cover; object-position: {{ question.parameters.position_x}}% {{ question.parameters.position_y }}%; opacity: {{ question.parameters.opacity }}%;">
+        </div>
     {% elif question.parameters.video_url %}
     {{ question.parameters.video_url|embed }}
     {% endif %}

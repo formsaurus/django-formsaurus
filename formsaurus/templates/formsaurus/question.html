@@ -261,6 +261,13 @@ $(function() {
         }
 
     })
+    form.find('textarea').keydown(function(evt) {
+        var keycode = (evt.keyCode ? evt.keyCode : evt.which);
+        console.log('Other ' + keycode)
+        if (keycode == 27) {
+            $(this).blur()
+        }
+    })
 
     // Use Pikaday for input[type="date"]
     var date = $('.datepicker')

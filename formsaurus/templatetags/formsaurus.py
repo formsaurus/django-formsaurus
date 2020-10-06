@@ -33,3 +33,7 @@ def embed(video_url):
 @register.filter
 def filename(path):
     return os.path.basename(path)
+
+@register.simple_tag
+def setvar(val=None):
+    return val

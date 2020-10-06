@@ -1,26 +1,33 @@
 {% extends question_base %}
-
+{% load formsaurus %}
 
 {% block input %}
+{% if question.parameters.supersize %}
+    {% setvar "29vw" as wh %}
+{% else %}
+    {% setvar "18vw" as wh %}
+{% endif %}
 <div class="clearfix mb-4">
     {% for choice in question.choices %}
-        <div class="mb-1 float-left mr-3" style="height: 185px;">
+        <div class="mb-4 float-left mr-3">
             {% if question.parameters.multiple_selection %}
-            <a href="#" data-keycode="{{ choice.keycode }}" data-letter="{{ choice.letter }}" class="btn btn-outline-primary choice {% if not choice.id %}other{% endif %}" data-value="{{ choice.id }}">
+                <a href="#" data-keycode="{{ choice.keycode }}" data-letter="{{ choice.letter }}" class="btn btn-outline-primary choice {% if not choice.id %}other{% endif %}" data-value="{{ choice.id }}">
             {% else %}
-            <button type="submit" data-keycode="{{ choice.keycode }}" data-letter="{{ choice.letter }}" class="btn btn-outline-primary choice {% if not choice.id %}other{% endif %}" name="answer" value="{{ choice.id }}">
+                <button type="submit" data-keycode="{{ choice.keycode }}" data-letter="{{ choice.letter }}" class="btn btn-outline-primary choice {% if not choice.id %}other{% endif %}" name="answer" value="{{ choice.id }}">
             {% endif %}
-                {% if choice.id %}
-                <div style="width: 200px; height: 150px; background-image: url({{ choice.image_url }}); background-size: 200px; background-repeat: no-repeat;"></div>
+            {% if choice.id %}
+                <div style="width: {{ wh }}; height: {{ wh }};">
+                    <img src="{{ choice.image_url }}" class="img-fluid" style="max-height: 100%; border: 1px solid #dee2e6;">
+                </div>
                 {% if question.parameters.show_labels %}
                     <p>{{ choice.letter }}. {{ choice.choice }}</p>
                 {% else %}
                     <p>{{ choice.letter }}</p>
                 {% endif %}
-                {% else %}
-                    <div style="width: 200px; height: 150px;" class="pt-5"><i class="fas fa-pencil" style="font-size: 48px;"></i></div>
-                    <p>{{ choice.letter }}. {{ choice.choice }}</p>                
-                {% endif %}
+            {% else %}
+                <div style="width: {{ wh }}; height: {{ wh }}; padding-top: 5vh;"><i class="fas fa-pencil" style="font-size: 5vh;"></i></div>
+                <p>{{ choice.letter }}. {{ choice.choice }}</p>                
+            {% endif %}
             {% if question.parameters.multiple_selection %}
             </a>        
             {% else %}
