@@ -20,7 +20,7 @@
                         <div class="dropdown-menu">
                             {% for type in types.items %}
                             <a class="dropdown-item"
-                                href="{% url 'formsaurus_manage:survey_add_question' survey.id type.0 %}">{{ type.1 }}</a>
+                                href="{% url 'formsaurus_manage:survey_add_question' survey.id type.0 %}">{{ type.1.name }}</a>
                             {% endfor %}
                         </div>
                     </div>
@@ -49,7 +49,10 @@
                             required value="{{ question.question }}" />
                         <label for="button_label"><small class="text-muted">Question</small></label>
                     </div>
+                </fieldset>
 
+                <!-- Common Parameters to all Question Types -->
+                <div class="common-question-parameters bd-callout">
                     <div>
                         <div class="custom-control custom-switch">
                             <input type="checkbox" class="custom-control-input" id="show-description-switch"
@@ -62,11 +65,8 @@
                                 value="{{ question.description }}" />
                         </div>
                     </div>
-                </fieldset>
 
-                <!-- Common Parameters to all Question Types -->
-                <div class="common-question-parameters bd-callout">
-                {% if type != 'WS' and type != 'TS' and type != 'S_' %}
+                    {% if type != 'WS' and type != 'TS' and type != 'S_' %}
                 <div class="custom-control custom-switch">
                     <input type="checkbox" class="custom-control-input" id="required_switch" name="required"
                         {% if question.required %}checked{% endif %}>
@@ -89,7 +89,7 @@
                             <input type="url" id="image_url" name="image_url" class="mb-2 title"
                                 placeholder="https://unsplash.com/" {% if question.parameters.image_url %}value="{{ question.parameters.image_url }}"{% endif %} />
                             <label for="button_label"><small class="text-muted">Image URL</small></label>
-                            {% if has_unsplash %}
+                            {% if has_unsplash or has_tenor %}
                             <small><a href="#" data-toggle="modal" data-target="#imageModal">Search Images</a></small>
                             {% endif %}
                         </div>
@@ -205,6 +205,7 @@
                     <div class="form-group">
                         {% if question %}
                             {% for choice in question.choices %}
+                                {% if choice.id %}
                                 <div class="input-group mb-3">
                                     <div class="input-group-prepend">
                                         <span class="input-group-text">{{ choice.letter }}.</span>
@@ -214,6 +215,7 @@
                                         <span class="input-group-text mc-choice-clear"><i class="fas fa-times"></i></span>
                                     </div>
                                 </div>
+                                {% endif %}
                             {% endfor %}
                         {% else %}
                             <div class="input-group mb-3">

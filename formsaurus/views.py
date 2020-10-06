@@ -8,11 +8,13 @@ from django.urls import reverse
 from django.utils import timezone
 from django.db.models import Count, Sum
 
-from formsaurus.models import (Survey, Question, Submission, FilledField, QuestionParameter)
+from formsaurus.models import (Question, Submission, FilledField, QuestionParameter)
 from formsaurus.serializer import Serializer
+from formsaurus.utils import get_survey_model
 
 logger = logging.getLogger('formsaurus')
 
+Survey = get_survey_model()
 
 class SurveyView(View):
     """This is the entry to a survey."""
@@ -23,7 +25,9 @@ class SurveyView(View):
         if not survey.published:
             if not request.user.is_authenticated or survey.user != request.user:
                 raise Http404
-
+        if not survey.answerable:
+            raise Http404
+        
         question = survey.first_question
         submission = Submission.objects.create(
             survey=survey,

@@ -10,9 +10,10 @@ from django.utils import timezone
 from django.db.models import Count, Sum
 from django.conf import settings
 
-from formsaurus.models import (Survey, Question, Submission, Choice, RuleSet, Condition,
+from formsaurus.models import (Question, Submission, Choice, RuleSet, Condition,
                                TextCondition, BooleanCondition, ChoiceCondition, BooleanCondition, DateCondition, NumberCondition)
 from formsaurus.serializer import Serializer
+from formsaurus.utils import get_survey_model
 from formsaurus.manage.forms import (SurveyForm, HiddenFieldForm, AddQuestionForm, WelcomeParametersForm, ThankYouParametersForm, MultipleChoiceParametersForm, PhoneNumberParametersForm, ShortTextParametersForm, LongTextParametersForm, StatementParametersForm, PictureChoiceParametersForm,
                               YesNoParametersForm, EmailParametersForm, OpinionScaleParametersForm, RatingParametersForm, DateParameters, NumberParametersForm, DropdownParametersForm, LegalParametersForm, FileUploadParametersForm, PaymentParametersForm, WebsiteParametersForm)
 from formsaurus.manage.unsplash import Unsplash
@@ -21,6 +22,7 @@ from formsaurus.manage.tenor import Tenor
 
 logger = logging.getLogger('formsaurus')
 
+Survey = get_survey_model()
 
 class ManageView(LoginRequiredMixin, View):
     success_url = 'formsaurus_manage:surveys'
@@ -35,7 +37,9 @@ class SurveysView(LoginRequiredMixin, View):
 
     def get(self, request):
         context = {}
-        context['surveys'] = Survey.objects.filter(user=request.user).order_by('-created_at')
+        context['surveys'] = []
+        for survey in Survey.objects.filter(user=request.user).order_by('-created_at'):
+            context['surveys'].append(Serializer.survey(survey))
         return render(request, self.template_name, context)
 
 
@@ -47,6 +51,7 @@ class SurveyWizardView(LoginRequiredMixin, View):
         if survey.user != request.user:
             raise Http404
         context = {}
+        # context['survey'] = Serializer.survey(survey)
         context['survey'] = survey
         if survey.published:
             # Stats about submissions
@@ -80,17 +85,15 @@ class AddQuestionView(LoginRequiredMixin, View):
         context = {}
         context['has_unsplash'] = hasattr(settings, 'UNSPLASH_ACCESS_KEY')
         context['has_pexels'] = hasattr(settings, 'PEXELS_API_KEY')
+        context['has_tenor'] = hasattr(settings, 'TENOR_API_KEY')
         context['survey'] = Serializer.survey(survey)
-        context['types'] = {}
-        for key, value in Question.TYPES:
-            if key == Question.PAYMENT:
-                continue
-            if has_ws and key == Question.WELCOME_SCREEN:
-                continue
-            context['types'][key] = value
-            if key == question_type:
-                context['type_name'] = value
+        # Allowed question types
+        question_types = survey.question_types
+        if has_ws:
+            question_types.pop(Question.WELCOME_SCREEN)
         context['type'] = question_type
+        context['type_name'] = question_types[question_type].name
+        context['types'] = question_types
 
         return render(request, self.template_name, context)
 
@@ -528,6 +531,8 @@ class EditQuestionView(LoginRequiredMixin, View):
         question_type = question.question_type
         context = {}
         context['has_unsplash'] = hasattr(settings, 'UNSPLASH_ACCESS_KEY')
+        context['has_pexels'] = hasattr(settings, 'PEXELS_API_KEY')
+        context['has_tenor'] = hasattr(settings, 'TENOR_API_KEY')
         context['survey'] = Serializer.survey(survey)
         context['types'] = {}
         for key, value in Question.TYPES:

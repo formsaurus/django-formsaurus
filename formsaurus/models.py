@@ -36,8 +36,13 @@ PRECISION = 3
 # SURVEY
 #
 
+class QuestionType:
+    def __init__(self, question_type, name, disabled=False):
+        self.type = question_type
+        self.name = name
+        self.disabled = disabled
 
-class Survey(BaseModel):
+class AbstractSurvey(BaseModel):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     name = models.CharField(max_length=1024)
     published = models.BooleanField(default=False)
@@ -47,11 +52,41 @@ class Survey(BaseModel):
     last_question = models.ForeignKey('Question', on_delete=models.SET_NULL,
                                       blank=True, null=True, default=None, related_name='last_question')
 
+    class Meta:
+        abstract = True
+
     def publish(self):
         Submission.objects.filter(survey=self, is_preview=True).delete()
         self.published = True
         self.published_at = timezone.now()
         self.save()
+
+    @property
+    def question_types(self):
+        """
+        Return the list of supported Question Types.
+        This can be easily overwritten to tailor which types
+        are allowed to be added.
+        """
+        types = {}
+        for key, value in Question.TYPES:
+            # Skip PAYMENT for now
+            if key == Question.PAYMENT:
+                continue
+            types[key] = QuestionType(
+                key,
+                value,
+                disabled=False,
+            )
+        return types
+
+    @property
+    def answerable(self):
+        """
+        This can be overwitten to limit when a survey can be
+        answered (maybe based no number of answers)
+        """
+        return True
 
     @property
     def submissions(self):
@@ -620,6 +655,8 @@ class Survey(BaseModel):
         question.save()
         self.save()
 
+class Survey(AbstractSurvey):
+    pass
 
 class HiddenField(BaseModel):
     survey = models.ForeignKey(Survey, on_delete=models.CASCADE)
