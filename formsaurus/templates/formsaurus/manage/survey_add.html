@@ -6,7 +6,11 @@
     <main class="container">
         <div class="row">
             <div class="col">
-                <h2>Create Form</h2>
+                {% if survey %}
+                    <h2>Edit Form &laquo;{{ survey.name }}&raquo;</h2>
+                {% else %}
+                    <h2>Create Form</h2>
+                {% endif %}
             </div>
         </div>
         <div class="row mt-5">
@@ -19,6 +23,11 @@
                     {% csrf_token %}
                     <input type="text" name="name" class="w-100 mb-2 title" placeholder="Customer Survey" autofocus required value="{{ survey.name }}"/>
                     <button type="submit" class="btn btn-primary btn-wide">{% if survey %}Save{% else %}Create{% endif %}</button>
+                    {% if survey %}
+                        <a href="{% url 'formsaurus_manage:survey_wizard' survey.id %}">Cancel</a>
+                    {% else %}
+                        <a href="{% url 'formsaurus_manage:surveys' %}">Cancel</a>
+                    {% endif %}
                 </form>
         </div>
     </main>

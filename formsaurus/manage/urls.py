@@ -8,6 +8,8 @@ urlpatterns = [
     path('manage/form/add', manage.SurveyAddView.as_view(), name='survey_add'),
     path('manage/form/create/<uuid:survey_id>',
          manage.SurveyWizardView.as_view(), name='survey_wizard'),
+    path('manage/form/edit/<uuid:survey_id>',
+         manage.SurveyEditView.as_view(), name='survey_edit'),
     path('manage/form/preview/<uuid:survey_id>',
          views.SurveyView.as_view(), name='survey_preview'),
     path('manage/form/publish/<uuid:survey_id>',

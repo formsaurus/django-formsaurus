@@ -5,7 +5,10 @@
 <div class="container">
     <div class="row">
         <div class="col">
-            <h1><a href="{% url 'formsaurus_manage:surveys' %}">&laquo;</a> {{ survey.name }}</h1>
+            <h1>
+                <a href="{% url 'formsaurus_manage:surveys' %}">&laquo;</a> {{ survey.name }}
+                <a href="{% url 'formsaurus_manage:survey_edit' survey.id %}" class="ml-2"><small><i class="fas fa-edit"></i></small></a>
+            </h1>
         </div>
         <div class="col-1 pt-4 mr-3">
             <div class="custom-control custom-switch">

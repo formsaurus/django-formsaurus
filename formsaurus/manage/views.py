@@ -80,7 +80,7 @@ class AddQuestionView(LoginRequiredMixin, View):
         context = {}
         context['has_unsplash'] = hasattr(settings, 'UNSPLASH_ACCESS_KEY')
         context['has_pexels'] = hasattr(settings, 'PEXELS_API_KEY')
-        context['survey'] = survey
+        context['survey'] = Serializer.survey(survey)
         context['types'] = {}
         for key, value in Question.TYPES:
             if key == Question.PAYMENT:
@@ -528,7 +528,7 @@ class EditQuestionView(LoginRequiredMixin, View):
         question_type = question.question_type
         context = {}
         context['has_unsplash'] = hasattr(settings, 'UNSPLASH_ACCESS_KEY')
-        context['survey'] = survey
+        context['survey'] = Serializer.survey(survey)
         context['types'] = {}
         for key, value in Question.TYPES:
             if key == Question.PAYMENT:
@@ -537,7 +537,7 @@ class EditQuestionView(LoginRequiredMixin, View):
             if key == question_type:
                 context['type_name'] = value
         context['type'] = question_type
-        context['question'] = question
+        context['question'] = Serializer.question(question)
 
         return render(request, self.template_name, context)
 
@@ -823,6 +823,35 @@ class SurveyAddView(LoginRequiredMixin, View):
             return redirect(self.success_url, survey.id)
         else:
             context = {}
+            context['form'] = form
+            return render(request, self.template_name, context)
+
+class SurveyEditView(LoginRequiredMixin, View):
+    template_name = 'formsaurus/manage/survey_add.html'
+    success_url = 'formsaurus_manage:survey_wizard'
+
+    def get(self, request, survey_id):
+        survey = get_object_or_404(Survey, pk=survey_id)
+        if survey.user != request.user:
+            raise Http404
+
+        context = {}
+        context['form'] = SurveyForm(instance=survey)
+        context['survey'] = Serializer.survey(survey)
+        return render(request, self.template_name, context)
+
+    def post(self, request, survey_id):
+        survey = get_object_or_404(Survey, pk=survey_id)
+        if survey.user != request.user:
+            raise Http404
+
+        form = SurveyForm(request.POST, instance=survey)
+        if form.is_valid():
+            survey = form.save()
+            return redirect(self.success_url, survey.id)
+        else:
+            context = {}
+            context['survey'] = Serializer.survey(survey)
             context['form'] = form
             return render(request, self.template_name, context)
 

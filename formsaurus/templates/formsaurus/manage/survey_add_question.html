@@ -5,10 +5,10 @@
 <div class="container">
     <div class="row">
         <div class="col">
-            <h1>
+            <h4>
                 <a href="{% url 'formsaurus_manage:survey_wizard' survey.id %}">&laquo;</a>
                 {% if question %}
-                    Edit <button type="button" class="btn btn-secondary btn-wide" disabled>{{ type_name }}</button> for
+                    Edit <button type="button" class="btn btn-secondary btn-wide" disabled>{{ type_name }}</button>
                 {% else %}
                     Add
                     {% if question %}
@@ -24,38 +24,48 @@
                             {% endfor %}
                         </div>
                     </div>
-                    to
+                    Question
                     {% endif %}        
                 {% endif %} 
-                &laquo;{{ survey.name }}&raquo;
-            </h1>
+            </h4>
+            <p class="m-0"><small class="text-muted">Survey: {{ survey.name }}</small></p>
         </div>
     </div>
 
-    <div class="row pt-5">
+    <div class="row">
         <div class="col">
             {% if question %}
                 <form method="POST" action="{% url 'formsaurus_manage:survey_edit_question' survey.id question.id %}">
                     <input type="hidden" name="question_type" value="{{ question.question_type }}">
             {% else %}
                 <form method="POST" action="{% url 'formsaurus_manage:survey_add_question' survey.id type %}">
-                <input type="hidden" name="question_type" value="{{ type }}">
+                    <input type="hidden" name="question_type" value="{{ type }}">
             {% endif %}
                 {% csrf_token %}
 
+                <fieldset class="bd-callout">
+                    <div class="form-group ">
+                        <input type="text" name="question" class="w-100 mb-2 title" placeholder="Question" autofocus
+                            required value="{{ question.question }}" />
+                        <label for="button_label"><small class="text-muted">Question</small></label>
+                    </div>
+
+                    <div>
+                        <div class="custom-control custom-switch">
+                            <input type="checkbox" class="custom-control-input" id="show-description-switch"
+                            {% if question.description %}checked{% endif %}>
+                            <label class="custom-control-label" for="show-description-switch">Description</label>
+                        </div>
+                        
+                        <div id="show-description-content" class="form-group {% if not question.description %}d-none{% endif %}">
+                            <input type="text" name="description" class="w-100 mb-2 title" placeholder="Description"
+                                value="{{ question.description }}" />
+                        </div>
+                    </div>
+                </fieldset>
+
                 <!-- Common Parameters to all Question Types -->
-                <div class="form-group">
-                    <input type="text" name="question" class="w-100 mb-2 title" placeholder="Question" autofocus
-                        required value="{{ question.question }}" />
-                    <label for="button_label"><small class="text-muted">Question</small></label>
-                </div>
-
-                <div class="form-group">
-                    <input type="text" name="description" class="w-100 mb-2 title" placeholder="..."
-                        value="{{ question.description }}" />
-                    <label for="button_label"><small class="text-muted">Description</small></label>
-                </div>
-
+                <div class="common-question-parameters bd-callout">
                 {% if type != 'WS' and type != 'TS' and type != 'S_' %}
                 <div class="custom-control custom-switch">
                     <input type="checkbox" class="custom-control-input" id="required_switch" name="required"
@@ -136,7 +146,9 @@
                         <input type="range" class="form-control-range" min="0" max="100" step="1" name="opacity" value="{% if question.parameters.opacity %}{{ question.parameters.opacity }}{% else %}100{% endif %}">
                     </div>
                 </fieldset>
-
+                </div>
+                <!-- QUESTION TYPE PARAMETERS -->
+                <fieldset class="bd-callout">
                 {% if type == 'WS' %}
                 <!-- Welcome Screen Parameters -->
                 <p class="mt-3 mb-1"><small class="text-muted mt-5">Welcome Screen</small></p>
@@ -173,7 +185,7 @@
                 </div>
                 {% elif type == 'MC' %}
                 <!-- Multiple Choice Parameters -->
-                <p class="mt-3 mb-1"><small class="text-muted">Multiple Choice</small></p>
+                <p class="mt-1 mb-3"><small class="text-muted text-upper"><strong>Multiple Choice</strong></small></p>
                 <div class="custom-control custom-switch">
                     <input type="checkbox" class="custom-control-input" id="multiple_selection_switch"
                         name="multiple_selection" {% if question.parameters.multiple_selection %}checked{% endif %}>
@@ -192,16 +204,30 @@
                 <div class="mt-4">
                     <div class="form-group">
                         {% if question %}
-                        {% for choice in question.choice_set.all %}
-                        <input type="text" name="choice" class="w-100 mb-2 title mc_choice" placeholder="Choice..."
-                            value="{{ choice.choice }}" />
-                        <label for="choice"><small class="text-muted">Choice</small></label>
-                        {% endfor %}
+                            {% for choice in question.choices %}
+                                <div class="input-group mb-3">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text">{{ choice.letter }}.</span>
+                                    </div>
+                                    <input type="text" data-letter="{{ choice.letter }}" class="form-control mc-choice" placeholder="Choice" value="{{ choice.choice }}">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text mc-choice-clear"><i class="fas fa-times"></i></span>
+                                    </div>
+                                </div>
+                            {% endfor %}
                         {% else %}
-                        <input type="text" name="choice" class="w-100 mb-2 title mc_choice" placeholder="Choice..." />
-                        <label for="choice"><small class="text-muted">Choice</small></label>
+                            <div class="input-group mb-3">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text">A.</span>
+                                </div>
+                                <input type="text" data-letter="A" class="form-control mc-choice" placeholder="Choice">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text mc-choice-clear"><i class="fas fa-times"></i></span>
+                                </div>
+                            </div>                        
                         {% endif %}
                     </div>
+                    <a href="#" class="mc-choice-add ml-1"><small><i class="fas fa-plus"></i> Add Choice</small></a>
                 </div>
                 {% elif type == 'PN' %}
                 <!-- Phone Number Parameters -->
@@ -286,7 +312,7 @@
                 </div>
                 <div class="mt-4">
                     {% if question %}
-                    {% for choice in question.choice_set.all %}
+                    {% for choice in question.choices %}
                     <div class="form-group">
                         <input type="url" name="choice" class="w-100 mb-2 title pc_choice"
                             placeholder="https://unsplash.com/..." value="{{ choice.image_url }}" />
@@ -465,10 +491,11 @@
                 <!-- TODO -->
                 {% elif type == 'W_' %}
                 {% endif %}
+                </fieldset>
 
-                <div class="form-group mt-5">
-                    <input type="submit" class="btn btn-primary" value="{% if question %}Save{% else %}Add{% endif %}">
-                    <a href="{% url 'formsaurus_manage:survey_wizard' survey.id %}" class="btn btn-secondary">Cancel</a>
+                <div class="form-group mt-3">
+                    <input type="submit" class="btn btn-primary btn-lg btn-wide" value="{% if question %}Save{% else %}Add{% endif %} Question">
+                    <a href="{% url 'formsaurus_manage:survey_wizard' survey.id %}" class="btn btn-secondary btn-lg">Cancel</a>
                 </div>
             </form>
         </div>
@@ -489,6 +516,16 @@
         })
     }
     $(function () {
+        // description
+        $('#show-description-switch').change(function(evt) {
+            if ($(this).prop('checked')) {
+                $('#show-description-content').removeClass('d-none')
+                $('#show-description-content').find('input[type="text"]').focus()
+            } else {
+                $('#show-description-content').addClass('d-none')
+                $('#show-description-content').find('input[type="text"]').val('')
+            }
+        })
         // image_url
         $('#show_image_switch').change(function (evt) {
             if ($(this).prop('checked')) {
@@ -533,7 +570,13 @@
             }
         })
         // MC
-        $('.mc_choice').enterKey(addChoice)
+        $('.mc-choice').enterKey(addChoice)
+        $('.mc-choice-clear').click(clearChoice)
+        $('.mc-choice-add').click(function(evt) {
+            evt.preventDefault()
+            addChoiceImpl($(this).parent().find('input[type="text"]').last())
+        })
+
         // ST
         $('#st_limit_character_switch').change(function (evt) {
             if ($(this).prop('checked')) {
@@ -722,20 +765,51 @@
             })
         })
     }
-    function addChoice(evt) {
-        d = $('<div/>').addClass('form-group')
-        i = $('<input/>').attr('type', 'text').attr('name', 'choice').addClass('w-100').addClass('mb-2').addClass('title').attr('placeholder', 'Choice..')
-        d.append(i)
-        i.enterKey(addChoice)
-        l = $('<label/>').attr('for', 'choice')
-        s = $('<small/>').addClass('text-muted').text('Choice')
-        l.append(s)
-        d.append(l)
 
-        $(this).parent().parent().append(d)
-        i.focus();
+    function addChoice(evt) {
         evt.preventDefault();
+        addChoiceImpl($(this))
+    }
+
+    function addChoiceImpl(origin) {
+        // Find the last letter
+        var last_letter = origin.parents('fieldset').find(':input[type="text"]').last().attr('data-letter')
+        console.log(last_letter)
+        var next_letter = String.fromCharCode(last_letter.charCodeAt(0)+1)
+
+        var container = $('<div>').addClass('input-group mb-3').appendTo(origin.parent().parent())
+        var prepend = $('<div>').addClass('input-group-prepend').appendTo(container)
+        $('<span>').addClass('input-group-text').text(next_letter + '.').appendTo(prepend)
+
+        var input = $('<input/>').attr('type', 'text').attr('name', 'choice').attr('data-letter', next_letter).addClass('form-control mc-choice').attr('placeholder', 'Choice..').appendTo(container)
+        input.enterKey(addChoice)
+        input.focus();
+
+        var append = $('<div>').addClass('input-group-append').appendTo(container)
+        var span = $('<span>').addClass('input-group-text').appendTo(append)
+        span.click(clearChoice)
+        $('<i>').addClass('fas fa-times').appendTo(span) 
         return false;
+    }
+
+    function clearChoice(evt) {
+        evt.preventDefault()
+        var input = $(this).parent().parent().find(':input')
+        if (input.val() == "") {
+            var container = input.parent().parent()
+            input.parent().remove()
+            // Re-letter everything!
+            $.each(container.find('input[type="text"]'), function(index, elt) {
+                var elt = $(elt)
+                var next_letter = String.fromCharCode('A'.charCodeAt(0)+index)
+                console.log(next_letter, elt)
+                elt.attr('data-letter', next_letter)
+                elt.parent().find('.input-group-prepend').find('.input-group-text').text(next_letter +'.')
+            })
+            return
+        }
+        input.val('')
+        console.log('clear', $(this))
     }
 
     function addPictureChoice(evt) {
