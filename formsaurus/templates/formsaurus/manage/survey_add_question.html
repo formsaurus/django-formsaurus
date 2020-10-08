@@ -149,44 +149,48 @@
                     </div>
                 </fieldset>
                 </div>
-                <!-- QUESTION TYPE PARAMETERS -->
-                <fieldset class="bd-callout">
+                <!-- QUESTION TYPE PARAMETERS -->                
                 {% if type == 'WS' %}
                 <!-- Welcome Screen Parameters -->
-                <p class="mt-3 mb-1"><small class="text-muted mt-5">Welcome Screen</small></p>
-                <div class="form-group">
-                    <input type="text" name="button_label" class="w-100 mb-2 title" placeholder="Go" required
-                        value="{%if question %}{{ question.parameters.button_label }}{% else %}Go{% endif %}" />
-                    <label for="button_label"><small class="text-muted">Button Label</small></label>
-                </div>
-                {% elif type == 'TS' %}
-                <!-- Thank You Screen Parameteres -->
-                <p class="mt-3 mb-1"><small class="text-muted mt-5">Thank You Screen</small></p>
-                <div class="custom-control custom-switch">
-                    <input type="checkbox" class="custom-control-input" id="ts_show_button_switch" name="show_button"
-                        {% if question.parameters.show_button %}checked{% endif %}>
-                    <label class="custom-control-label" for="ts_show_button_switch">Show Button</label>
-                </div>
-                <div {% if not question.parameters.show_button %}class="d-none" {% endif %} id="ts_show_button_content">
+                <fieldset class="bd-callout">
+                    <p class="mt-1 mb-3"><small class="text-muted text-upper"><strong>Welcome Screen</strong></small></p>
                     <div class="form-group">
-                        <input type="text" id="ts_button_label" name="button_label" class="w-100 mb-2 title"
-                            value="{% if question %}{{ question.parameters.button_label }}{% else %}Done{% endif %}"
-                            placeholder="Done" />
+                        <input type="text" name="button_label" class="w-100 mb-2 title" placeholder="Go" required
+                            value="{%if question %}{{ question.parameters.button_label }}{% else %}Go{% endif %}" />
                         <label for="button_label"><small class="text-muted">Button Label</small></label>
                     </div>
-                    <div class="form-group">
-                        <input type="url" id="ts_button_link" name="button_link" class="w-100 mb-2 title"
-                            placeholder="https://example.com" {% if question.parameters.show_button %}value="{{ question.parameters.button_link }}"{% endif %} />
-                        <label for="button_link"><small class="text-muted">Button Link</small></label>
+                </fieldset>
+                {% elif type == 'TS' %}
+                <!-- Thank You Screen Parameteres -->
+                <fieldset class="bd-callout">
+                    <p class="mt-1 mb-3"><small class="text-muted text-upper"><strong>Thank You Screen</strong></small></p>
+                    <div class="custom-control custom-switch">
+                        <input type="checkbox" class="custom-control-input" id="ts_show_button_switch" name="show_button"
+                            {% if question.parameters.show_button %}checked{% endif %}>
+                        <label class="custom-control-label" for="ts_show_button_switch">Show Button</label>
                     </div>
-                </div>
-                <div class="custom-control custom-switch">
-                    <input type="checkbox" class="custom-control-input" id="show_social_media_switch"
-                        name="show_social_media" {% if question.parameters.show_social_media %}checked{% endif %}>
-                    <label class="custom-control-label" for="show_social_media_switch">Show Social Media</label>
-                </div>
+                    <div {% if not question.parameters.show_button %}class="d-none" {% endif %} id="ts_show_button_content">
+                        <div class="form-group">
+                            <input type="text" id="ts_button_label" name="button_label" class="w-100 mb-2 title"
+                                value="{% if question %}{{ question.parameters.button_label }}{% else %}Done{% endif %}"
+                                placeholder="Done" />
+                            <label for="button_label"><small class="text-muted">Button Label</small></label>
+                        </div>
+                        <div class="form-group">
+                            <input type="url" id="ts_button_link" name="button_link" class="w-100 mb-2 title"
+                                placeholder="https://example.com" {% if question.parameters.show_button %}value="{{ question.parameters.button_link }}"{% endif %} />
+                            <label for="button_link"><small class="text-muted">Button Link</small></label>
+                        </div>
+                    </div>
+                    <div class="custom-control custom-switch">
+                        <input type="checkbox" class="custom-control-input" id="show_social_media_switch"
+                            name="show_social_media" {% if question.parameters.show_social_media %}checked{% endif %}>
+                        <label class="custom-control-label" for="show_social_media_switch">Show Social Media</label>
+                    </div>
+                </fieldset>
                 {% elif type == 'MC' %}
                 <!-- Multiple Choice Parameters -->
+                <fieldset class="bd-callout">
                 <p class="mt-1 mb-3"><small class="text-muted text-upper"><strong>Multiple Choice</strong></small></p>
                 <div class="custom-control custom-switch">
                     <input type="checkbox" class="custom-control-input" id="multiple_selection_switch"
@@ -233,18 +237,22 @@
                     </div>
                     <a href="#" class="mc-choice-add ml-1"><small><i class="fas fa-plus"></i> Add Choice</small></a>
                 </div>
+                </fieldset>
                 {% elif type == 'PN' %}
                 <!-- Phone Number Parameters -->
-                <p class="mt-3 mb-1"><small class="text-muted">Phone Number</small></p>
-                <div class="form-group">
-                    <input type="number" min="0" step="1" name="default_country_code" class="w-100 mb-2 title"
-                        value="{% if question %}{{ question.parameters.default_country_code }}{% else %}1{% endif %}"
-                        placeholder="1" required />
-                    <label for="default_country_code"><small class="text-muted">Default Country Code</small></label>
-                </div>
+                <fieldset class="bd-callout">
+                    <p class="mt-1 mb-3"><small class="text-muted text-upper"><strong>Phone Number</strong></small></p>
+                    <div class="form-group">
+                        <input type="number" min="0" step="1" name="default_country_code" class="w-100 mb-2 title"
+                            value="{% if question %}{{ question.parameters.default_country_code }}{% else %}1{% endif %}"
+                            placeholder="1" required />
+                        <label for="default_country_code"><small class="text-muted">Default Country Code</small></label>
+                    </div>
+                </fieldset>
                 {% elif type == 'ST' %}
                 <!-- Short Text Parameters -->
-                <p class="mt-3 mb-1"><small class="text-muted">Short Text</small></p>
+                <fieldset class="bd-callout">
+                <p class="mt-1 mb-3"><small class="text-muted text-upper"><strong>Short Text</strong></small></p>
                 <div class="custom-control custom-switch">
                     <input type="checkbox" name="limit_character" class="custom-control-input"
                         id="st_limit_character_switch" {% if question.parameters.limit_character %}checked{% endif %}>
@@ -257,9 +265,11 @@
                         id="st_limit" />
                     <label for="st_limit"><small class="text-muted">Limit</small></label>
                 </div>
+                </fieldset>
                 {% elif type == 'LT' %}
                 <!-- Long Text Parameters -->
-                <p class="mt-3 mb-1"><small class="text-muted">Long Text</small></p>
+                <fieldset class="bd-callout">
+                <p class="mt-1 mb-3"><small class="text-muted text-upper"><strong>Long Text</strong></small></p>
                 <div class="custom-control custom-switch">
                     <input type="checkbox" name="limit_character" class="custom-control-input"
                         id="lt_limit_character_switch" {% if question.parameters.limit_character %}checked{% endif %}>
@@ -272,9 +282,11 @@
                         placeholder="250" id="lt_limit" />
                     <label for="lt_limit"><small class="text-muted">Limit</small></label>
                 </div>
+            </fieldset>
                 {% elif type == 'S_' %}
                 <!-- Statement Parameters -->
-                <p class="mt-3 mb-1"><small class="text-muted">Statement</small></p>
+                <fieldset class="bd-callout">
+                <p class="mt-1 mb-3"><small class="text-muted text-upper"><strong>Statement</strong></small></p>
                 <div class="form-group">
                     <input type="text" name="button_label" class="w-100 mb-2 title"
                         value="{% if question %}{{ question.parameters.button_label }}{% else %}Next{% endif %}"
@@ -286,9 +298,11 @@
                         name="show_quotation_mark" {% if question.parameters.show_quotation_mark %}checked{% endif %}>
                     <label class="custom-control-label" for="s_show_quotation_mark_switch">Show Quotation Mark</label>
                 </div>
+            </fieldset>
                 {% elif type == 'PC' %}
                 <!-- Picture Choice Parameters -->
-                <p class="mt-3 mb-1"><small class="text-muted">Picture Choice</small></p>
+                <fieldset class="bd-callout">
+                <p class="mt-1 mb-3"><small class="text-muted text-upper"><strong>Picture Choice</strong></small></p>
                 <div class="custom-control custom-switch">
                     <input type="checkbox" class="custom-control-input" id="multiple_selection_switch"
                         name="multiple_selection" {% if question.parameters.multiple_selection %}checked{% endif %}>
@@ -349,12 +363,13 @@
                     {% endif %}
 
                 </div>
-
+            </fieldset>
                 {% elif type == 'YN' %}
                 {% elif type == 'E_' %}
                 {% elif type == 'OS' %}
                 <!-- Opinion Scale Parameters -->
-                <p class="mt-3 mb-1"><small class="text-muted">Opinion Scale</small></p>
+                <fieldset class="bd-callout">
+                <p class="mt-1 mb-3"><small class="text-muted text-upper"><strong>Opinion Scale</strong></small></p>
                 <div class="custom-control custom-switch">
                     <input type="checkbox" class="custom-control-input" id="os_start_at_one_switch" name="start_at_one"
                         {% if question.parameters.start_at_one %}checked{% endif %}>
@@ -388,9 +403,11 @@
                         <label for="right_label"><small class="text-muted">Right Label</small></label>
                     </div>
                 </div>
+            </fieldset>
                 {% elif type == 'R_' %}
                 <!-- Rating Parameters -->
-                <p class="mt-3 mb-1"><small class="text-muted">Rating</small></p>
+                <fieldset class="bd-callout">
+                <p class="mt-1 mb-3"><small class="text-muted text-upper"><strong>Rating</strong></small></p>
                 <div class="form-group">
                     <input type="number" min="1" step="1" name="number_of_steps" class="w-100 mb-2 title"
                         placeholder="5"
@@ -407,9 +424,11 @@
                     </select>
                     <label for="shape"><small class="text-muted">Shape</small></label>
                 </div>
+            </fieldset>
                 {% elif type == 'D_' %}
                 <!-- Date Parameters -->
-                <p class="mt-3 mb-1"><small class="text-muted">Date</small></p>
+                <fieldset class="bd-callout">
+                <p class="mt-1 mb-3"><small class="text-muted text-upper"><strong>Date</strong></small></p>
                 <div class="form-group">
                     <select class="custom-select" name="date_format">
                         <option {% if not question or question.parameters.date_format == 'A' %}selected{% endif %}
@@ -432,9 +451,11 @@
                     </select>
                     <label for="date_separator"><small class="text-muted">Date Separator</small></label>
                 </div>
+            </fieldset>
                 {% elif type == 'N_' %}
                 <!-- Number Parameters -->
-                <p class="mt-3 mb-1"><small class="text-muted">Number</small></p>
+                <fieldset class="bd-callout">
+                <p class="mt-1 mb-3"><small class="text-muted text-upper"><strong>Number</strong></small></p>
                 <div class="custom-control custom-switch">
                     <input type="checkbox" class="custom-control-input" id="n_enable_min_switch" name="enable_min"
                         {% if question.parameters.enable_min %}checked{% endif %}>
@@ -457,9 +478,11 @@
                         value="{{ question.parameters.max_value }}" />
                     <label for="max_value"><small class="text-muted">Maximum Value</small></label>
                 </div>
+            </fieldset>
                 {% elif type == 'DD' %}
                 <!-- Dropdown Parameters -->
-                <p class="mt-3 mb-1"><small class="text-muted">Dropdown</small></p>
+                <fieldset class="bd-callout">
+                <p class="mt-1 mb-3"><small class="text-muted text-upper"><strong>Dropdown</strong></small></p>
                 <div class="custom-control custom-switch">
                     <input type="checkbox" class="custom-control-input" id="dd_randomize" name="randomize"
                         {% if question.parameters.alphabetical %}disabled{% endif %}
@@ -488,15 +511,13 @@
                     </div>
                     {% endif %}
                 </div>
+                </fieldset>
                 {% elif type == 'L_' %}
                 {% elif type == 'FU' %}
                 {% elif type == 'P_' %}
-                <small class="text-muted">Payment</small>
-                <!-- TODO -->
                 {% elif type == 'W_' %}
                 {% endif %}
-                </fieldset>
-
+ 
                 <div class="form-group mt-3">
                     <input type="submit" class="btn btn-primary btn-lg btn-wide" value="{% if question %}Save{% else %}Add{% endif %} Question">
                     <a href="{% url 'formsaurus_manage:survey_wizard' survey.id %}" class="btn btn-secondary btn-lg">Cancel</a>

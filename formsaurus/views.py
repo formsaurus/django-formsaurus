@@ -19,6 +19,7 @@ Survey = get_survey_model()
 class SurveyView(View):
     """This is the entry to a survey."""
     question_url = 'formsaurus:question'
+    completed_url = 'formsaurus:completed'
 
     def get(self, request, survey_id):
         survey = get_object_or_404(Survey, pk=survey_id)
@@ -27,7 +28,7 @@ class SurveyView(View):
                 raise Http404
         if not survey.answerable:
             raise Http404
-        
+
         question = survey.first_question
         submission = Submission.objects.create(
             survey=survey,
@@ -41,6 +42,8 @@ class SurveyView(View):
                 field=field,
                 value=value,
             )
+        if question is None:
+            return redirect(self.completed_url, survey.id, submission.id)
         return redirect(self.question_url, survey.id, question.id, submission.id)
 
 
