@@ -76,34 +76,36 @@
 
 
                 <!-- Image -->
-                <div class="row">
-                    <div class="col">
-                        <div class="custom-control custom-switch">
-                            <input type="checkbox" class="custom-control-input" id="show_image_switch"
-                                {% if question.parameters.image_url %}checked{% endif %}>
-                            <label class="custom-control-label" for="show_image_switch">Show Image</label>
+                <div class="custom-control custom-switch">
+                    <input type="checkbox" class="custom-control-input" id="show-image-switch"
+                        {% if question.parameters.image_url %}checked{% endif %}>
+                    <label class="custom-control-label" for="show-image-switch">Show Image</label>
+                </div>
+
+                <div class="form-group mt-3 {% if not question.parameters.image_url %}d-none{% endif %}" id="show-image-content">                            
+                    <div class="input-group input-group-lg">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text">
+                                {% if question.parameters.image_url %}
+                                    <a href="#" data-toggle="modal" data-target="#imageModal"><img class="img-fluid" style="height:26px" src="{{ question.parameters.image_url }}"/></a>
+                                    <a href="#" data-target="clearImage"><i class="ml-3 pt-1 fas fa-times"></i></a>
+                                {% else %}
+                                    <i class="pt-1 far fa-image"></i>
+                                    {% if has_unsplash or has_tenor %}
+                                        <a href="#" data-toggle="modal" data-target="#imageModal" class="ml-2"><small><i class="fas fa-plus"></i></small></a>
+                                    {% endif %}
+                                {% endif %}
+                            </span>
                         </div>
-        
-                        <div class="form-group {% if not question.parameters.image_url %}d-none{% endif %}"
-                            id="show_image_content">
-                            <input type="url" id="image_url" name="image_url" class="mb-2 title"
-                                placeholder="https://unsplash.com/" {% if question.parameters.image_url %}value="{{ question.parameters.image_url }}"{% endif %} />
-                            <label for="button_label"><small class="text-muted">Image URL</small></label>
-                            {% if has_unsplash or has_tenor %}
-                            <small><a href="#" data-toggle="modal" data-target="#imageModal">Search Images</a></small>
-                            {% endif %}
-                        </div>
-                    </div>
-                    <div class="col-2 {% if not question.parameters.image_url %}d-none{% endif %}" id="image_preview">
-                        <img class="img-fluid img-thumbnail" {% if question.parameters.image_url %}src="{{ question.parameters.image_url }}"{% endif %}/>
+                        <input type="url" id="image-url" name="image_url" class="form-control" placeholder="https://unsplash.com/" {% if question.parameters.image_url %}value="{{ question.parameters.image_url }}"{% endif %}>
                     </div>
                 </div>
 
                 <!-- Video -->
                 <div class="custom-control custom-switch">
-                    <input type="checkbox" class="custom-control-input" id="show_video_switch"
+                    <input type="checkbox" class="custom-control-input" id="show-video-switch"
                         {% if question.parameters.video_url %}checked{% endif %}>
-                    <label class="custom-control-label" for="show_video_switch">Show Video</label>
+                    <label class="custom-control-label" for="show-video-switch">Show Video</label>
                 </div>
 
                 <div class="form-group {% if not question.parameters.video_url %}d-none{% endif %}"
@@ -517,7 +519,193 @@
             }
         })
     }
+
+    class ImageSelector {
+        constructor(element, searcher) {
+            var obj = this
+
+            this.element = element
+            this.searcher = searcher
+            this.input = element.find('input[type="url"]').first()
+            this.previewContainer = element.find('.input-group-text').last()
+            this.modalClicker = element.find('a[data-target="#imageModal"]')
+            this.clearClicker = element.find('a[data-target="clearImage"]')
+            this.showingModal = false
+            this.modalClicker.click(function(evt) {
+                evt.preventDefault()
+                obj.onShowModal()
+            })
+            this.clearClicker.click(function(evt) {
+                evt.preventDefault()
+                obj.onClear()
+            })
+            $('#imageModal').on('hidden.bs.modal', function(evt) {
+                console.log('Hiding modal', obj)
+                obj.showingModal = false
+                obj.searcher.deactivate(obj)
+            })
+
+            this.input.change(function(evt) {
+                console.log('URL changed' + obj.input.val())
+            })
+            console.log('Configured Image Selector')
+            console.log('\tInput', this.input)
+            console.log('\tPreview Container', this.previewContainer)
+            console.log('\tModal Clicker', this.modalClicker)
+            console.log('\tClear Clicker', this.clearClicker)
+        }
+
+        get url() {
+            return this.input.val()
+        }
+
+        set url(url) {
+            console.log('set url(' + url + ')')
+            this.input.val(url)
+            if (url == "") {
+                this.previewContainer.empty()
+                this.buildEmpty()
+            } else {
+                this.previewContainer.empty()
+                this.buildPreview()
+            }
+        }
+
+        onShowModal() {
+            this.showingModal = true
+            this.searcher.activate(this)
+        }
+
+        onClear() {
+            console.log('Clear clicked')
+            this.url = ''
+        }
+
+        buildPreview() {
+            var obj = this
+            this.modalClicker = $('<a>').attr('href', '#').attr('data-toggle', 'modal').attr('data-target', '#imageModal').appendTo(this.previewContainer)
+            $('<img>').addClass('img-fluid').attr('style', 'height: 26px').attr('src', this.url).appendTo(this.modalClicker)
+            this.modalClicker.click(function(evt) {
+                evt.preventDefault()
+                obj.onShowModal()
+            })
+            this.clearClicker = $('<a>').attr('href', '#').attr('data-target', 'clearImage').appendTo(this.previewContainer)
+            this.clearClicker.click(function(evt) {
+                evt.preventDefault()
+                obj.onClear()
+            })
+            $('<i>').addClass('ml-3 pt-1 fas fa-times').appendTo(this.clearClicker)
+        }
+
+        buildEmpty() {
+            var obj = this
+            $('<i>').addClass('pt-1 far fa-image').appendTo(this.previewContainer)
+            this.clearClicker = null
+            this.modalClicker = $('<a>').attr('href', '#').addClass('ml-2').attr('data-toggle', 'modal').attr('data-target', '#imageModal').appendTo(this.previewContainer)
+            this.modalClicker.click(function(evt) {
+                evt.preventDefault()
+                obj.onShowModal()
+            })
+            $('<i>').addClass('fas fa-plus').appendTo($('<small>').appendTo(this.modalClicker))
+        }
+    }
+
+    class ImageSearcher {
+        constructor() {
+            var obj = this
+            $('#image_search_query').enterKey(function(evt) {
+                var backend = $('#image_search_tabs').find('a.active').attr('data-backend')
+                obj.searchImages($(this).val(), 1, 9, backend)
+            })
+            $('#image_search_query_button').click(function(evt) {
+                var backend = $('#image_search_tabs').find('a.active').attr('data-backend')
+                obj.searchImages($('#image_search_query').val(), 1, 9, backend)
+            })
+            $('#image_search_tabs').find('a').click(function(evt) {
+                $('#image_search_tabs').find('a').removeClass('active')
+                $(this).addClass('active')
+                obj.clear()
+            })
+            $('#imageModal').on('shown.bs.modal', function(evt) {
+                $('#image_search_query').focus()
+            })
+
+        }
+
+        searchImages(term, page, per_page, backend) {
+            console.log('Search ' + term + ' on ' + backend + ' Page:' + page + ' Per Page: ' + per_page)
+            this.clear()
+            var url = "{% url 'formsaurus_manage:unsplash_search' %}?per_page=" + per_page + "&page=" + page + "&q=" + term
+            if (backend == 'tenor') {
+                url = "{% url 'formsaurus_manage:tenor_search' %}?per_page=" + per_page + "&q=" + term
+            }
+            var obj = this
+            console.log(url)
+            $.get(url, function (data) {
+                console.log(data)
+                if (data.total_pages > 0) {
+                    $('#image_search_paging').removeClass('d-none')
+                    $('#image_search_prev').click(function (evt) {
+                        if (page > 1) {
+                            obj.searchImages(term, page - 1, per_page, backend)
+                        }
+                    })
+                    $('#image_search_next').click(function (evt) {
+                        if (page < data.total_pages - 1) {
+                            obj.searchImages(term, page + 1, per_page, backend)
+                        }
+                    })
+                }
+                data.results.forEach(function (result) {
+                    var bg_url, target_url
+                    if (backend == 'tenor') {
+                        bg_url = result.media[0].gif.url
+                        target_url = result.media[0].gif.url
+                    } else {
+                        bg_url = result.urls.small
+                        target_url = result.urls.raw
+                    }
+                    var img = $('<div/>').addClass('img-thumbnail m-1').attr('style', 'width: 240px; height: 150px; background-image: url("' + bg_url + '"); background-position: center; background-repeat: no-repeat; background-size: cover;')
+                    var a = $('<a/>').attr('href', '#').attr('data-url', target_url)
+                    a.click(function (evt) {
+                        obj.selectImage($(this).attr('data-url'))
+                        $('#imageModal').modal('hide')
+                    })
+                    a.append(img)
+                    $('#image_search_results').append(a)
+                })
+            })
+        }
+
+        activate(selector) {
+            this.selector = selector
+        }
+
+        deactivate(selector) {
+            if (this.selector == selector) {
+                this.selector = null
+            }
+        }
+
+        clear() {
+            $('#image_search_results').empty()
+            $('#image_search_paging').addClass('d-none')
+            $('#image_search_prev').off()
+            $('#image_search_next').off()
+        }
+
+        selectImage(url) {
+            console.log('Selected image ' + url)
+            if (this.selector) {
+                this.selector.url = url
+            }
+        }
+    }
+
     $(function () {
+        var imgsrch = new ImageSearcher()
+        var imgslctr = new ImageSelector($('#show-image-content'), imgsrch)
+
         // description
         $('#show-description-switch').change(function(evt) {
             if ($(this).prop('checked')) {
@@ -529,32 +717,27 @@
             }
         })
         // image_url
-        $('#show_image_switch').change(function (evt) {
+        $('#show-image-switch').change(function (evt) {
             if ($(this).prop('checked')) {
-                $('#show_image_content').removeClass('d-none');
-                $('#show_video_switch').prop('disabled', true)
-                $('#image_preview').removeClass('d-none')
+                $('#show-image-content').removeClass('d-none');
+                $('#show-video-switch').prop('disabled', true)
                 $('#media-positioning').removeClass('d-none')
+                $('#image-url').focus()
             } else {
-                $('#show_image_content').addClass('d-none');
-                $('#show_video_switch').prop('disabled', false)
-                $('#image_preview').addClass('d-none')
+                $('#show-image-content').addClass('d-none');
+                $('#show-video-switch').prop('disabled', false)
                 $('#media-positioning').addClass('d-none')
             }
         })
-        $('#image_url').change(function(evt) {
-            img = $('#image_preview').find('img')
-            img.attr('src', $(this).val())
-        })
         // video_url
-        $('#show_video_switch').change(function (evt) {
+        $('#show-video-switch').change(function (evt) {
             if ($(this).prop('checked')) {
                 $('#show_video_content').removeClass('d-none');
-                $('#show_image_switch').prop('disabled', true)
+                $('#show-image-switch').prop('disabled', true)
                 $('#media-positioning').removeClass('d-none')
             } else {
                 $('#show_video_content').addClass('d-none');
-                $('#show_image_switch').prop('disabled', false)
+                $('#show-image-switch').prop('disabled', false)
                 $('#media-positioning').addClass('d-none')
             }
         })
@@ -653,87 +836,12 @@
         })
     })
 
-    var modalOrigin = null;
     $(function () {
-        $('a[data-target="#imageModal"]').click(function(evt) {
-            modalOrigin = $(this)
-        })
-        function on_image_selected(url) {
-            var target = modalOrigin.parent().parent().find('input[type="url"]')
-            console.log('Selected Image ' + url, target)
-            target.val(url)
-            $('#image_preview').find('img').attr('src', url)
-        }
-        // image_search
-        $('#image_search_query').enterKey(function(evt) {
-            backend = $('#image_search_tabs').find('a.active').attr('data-backend')
-            search_images($(this).val(), 1, 9, backend, on_image_selected)
-        })
-        $('#image_search_query_button').click(function(evt) {
-            backend = $('#image_search_tabs').find('a.active').attr('data-backend')
-            search_images($('#image_search_query').val(), 1, 9, backend, on_image_selected)
-        })
-        $('#image_search_tabs').find('a').click(function(evt) {
-            $('#image_search_tabs').find('a').removeClass('active')
-            $(this).addClass('active')
-            clear_image_search()
-        })
         // video_search
         $('#video_search_query').enterKey(function(evt) {
             search_videos($(this).val(), 1, 9)
         })
-    })
-
-    function clear_image_search() {
-        $('#image_search_results').empty()
-        $('#image_search_paging').addClass('d-none')
-        $('#image_search_prev').off()
-        $('#image_search_next').off()
-    }
-
-    function search_images(term, page, per_page, backend, callback) {
-        clear_image_search()
-        url = "{% url 'formsaurus_manage:unsplash_search' %}?per_page=" + per_page + "&page=" + page + "&q=" + term
-        if (backend == 'tenor') {
-            url = "{% url 'formsaurus_manage:tenor_search' %}?per_page=" + per_page + "&q=" + term
-        }
-        console.log(url)
-        $.get(url, function (data) {
-            console.log(data)
-            if (data.total_pages > 0) {
-                $('#image_search_paging').removeClass('d-none')
-                $('#image_search_prev').click(function (evt) {
-                    if (page > 1) {
-                        search_images(term, page - 1, per_page, backend, callback)
-                    }
-                })
-                $('#image_search_next').click(function (evt) {
-                    if (page < data.total_pages - 1) {
-                        search_images(term, page + 1, per_page, backend, callback)
-                    }
-                })
-            }
-            data.results.forEach(function (result) {
-                if (backend == 'tenor') {
-                    bg_url = result.media[0].gif.url
-                    target_url = result.media[0].gif.url
-                } else {
-                    bg_url = result.urls.small
-                    target_url = result.urls.raw
-                }
-                img = $('<div/>').addClass('img-thumbnail m-1').attr('style', 'width: 240px; height: 150px; background-image: url("' + bg_url + '"); background-position: center; background-repeat: no-repeat; background-size: cover;')
-                a = $('<a/>').attr('href', '#').attr('data-url', target_url)
-                a.click(function (evt) {
-                    $('#imageModal').modal('hide')
-                    if (callback) {
-                        callback($(this).attr('data-url'))
-                    }
-                })
-                a.append(img)
-                $('#image_search_results').append(a)
-            })
-        })
-    }
+    })  
 
     function search_videos(term, page, per_page) {
         $('#video_search_results').empty()

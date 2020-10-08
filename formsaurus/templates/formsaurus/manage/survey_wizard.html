@@ -78,8 +78,8 @@
                             <td>
                                 {% if question.question_type != 'WS' and question.question_type != 'TS' and question.question_type != 'S_' %}
                                 <div class="custom-control custom-switch">
-                                    <input type="checkbox" class="custom-control-input" disabled id="show_image_switch" {% if question.required %}checked{% endif %}>
-                                    <label class="custom-control-label" for="show_image_switch"></label>
+                                    <input type="checkbox" class="custom-control-input" disabled id="show-image-switch" {% if question.required %}checked{% endif %}>
+                                    <label class="custom-control-label" for="show-image-switch"></label>
                                 </div>                
                                 {% endif %}
                             </td>
