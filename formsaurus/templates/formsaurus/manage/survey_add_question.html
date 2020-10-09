@@ -90,9 +90,11 @@
                                     <a href="#" data-toggle="modal" data-target="#imageModal"><img class="img-fluid" style="height:26px" src="{{ question.parameters.image_url }}"/></a>
                                     <a href="#" data-target="clearImage"><i class="ml-3 pt-1 fas fa-times"></i></a>
                                 {% else %}
-                                    <i class="pt-1 far fa-image"></i>
                                     {% if has_unsplash or has_tenor %}
-                                        <a href="#" data-toggle="modal" data-target="#imageModal" class="ml-2"><small><i class="fas fa-plus"></i></small></a>
+                                        <a href="#" data-toggle="modal" data-target="#imageModal" style="text-decoration: none!important;">
+                                            <i class="pt-1 far fa-image mr-2"></i>
+                                            <small><i class="fas fa-plus"></i></small>
+                                        </a>
                                     {% endif %}
                                 {% endif %}
                             </span>
@@ -621,13 +623,13 @@
 
         buildEmpty() {
             var obj = this
-            $('<i>').addClass('pt-1 far fa-image').appendTo(this.previewContainer)
             this.clearClicker = null
-            this.modalClicker = $('<a>').attr('href', '#').addClass('ml-2').attr('data-toggle', 'modal').attr('data-target', '#imageModal').appendTo(this.previewContainer)
+            this.modalClicker = $('<a>').attr('href', '#').attr('data-toggle', 'modal').attr('data-target', '#imageModal').attr('style', 'text-decoration: none!important;').appendTo(this.previewContainer)
             this.modalClicker.click(function(evt) {
                 evt.preventDefault()
                 obj.onShowModal()
             })
+            $('<i>').addClass('far fa-image mr-2').appendTo(this.modalClicker)
             $('<i>').addClass('fas fa-plus').appendTo($('<small>').appendTo(this.modalClicker))
         }
     }
