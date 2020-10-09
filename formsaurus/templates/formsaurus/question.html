@@ -354,13 +354,7 @@ $(function() {
 
     // Phone Number
     $.each($(':input[type="tel"]'), function(index, input) {
-        var countryData = window.intlTelInputGlobals.getCountryData();
-        var initial = null;
-        $.each(countryData, function(index, country) {
-            if (country.dialCode == $(input).attr('data-code')) {
-                initial = country.iso2
-            }
-        })
+        var initial = $(input).attr('data-code');
         $(input).keyup(function(evt) {
             if (form.hasClass('question-required')) {
                 if ($(input).val() != "") {

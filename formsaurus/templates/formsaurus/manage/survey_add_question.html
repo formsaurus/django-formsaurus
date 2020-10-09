@@ -1,5 +1,5 @@
 {% extends 'formsaurus/skeleton.html' %}
-
+{% load static %}
 {% block content %}
 {% include 'formsaurus/manage/navbar.html' %}
 <div class="container">
@@ -242,10 +242,9 @@
                 <!-- Phone Number Parameters -->
                 <fieldset class="bd-callout">
                     <p class="mt-1 mb-3"><small class="text-muted text-upper"><strong>Phone Number</strong></small></p>
+                    <input type="hidden" name="default_country_code" value="{% if question %}{{ question.parameters.default_country_code }}{% endif %}"/>
+                    <div id="country-code"></div>
                     <div class="form-group">
-                        <input type="number" min="0" step="1" name="default_country_code" class="w-100 mb-2 title"
-                            value="{% if question %}{{ question.parameters.default_country_code }}{% else %}1{% endif %}"
-                            placeholder="1" required />
                         <label for="default_country_code"><small class="text-muted">Default Country Code</small></label>
                     </div>
                 </fieldset>
@@ -531,6 +530,8 @@
 {% endblock %}
 
 {% block javascript %}
+<script src="{% static 'intl-tel-input/js/intlTelInput-jquery.min.js' %}"></script>
+
 <script>
     $.fn.enterKey = function (callback) {
         $(this).keypress(function (evt) {
@@ -723,6 +724,70 @@
         }
     }
 
+    class CountryCode {
+        constructor(container) {
+            var obj = this
+            this.container = container
+            this.input = $('input[name="default_country_code"]')
+            if (this.input.val() != "") {
+                this.countryCode = this.input.val().toLowerCase()
+                console.log('Using previous code ' + this.countryCode)
+                this._buildDropdown().appendTo(this.container)
+            } else {
+                console.log('Looking up country')
+                $.get('https://ipinfo.io', function() {}, "jsonp").always(function(resp) {
+                    console.log('GEOIP', resp)
+                    obj.countryCode = ((resp && resp.country) ? resp.country : "").toLowerCase();
+                    console.log('Country ' + obj.countryCode)
+                    obj._buildDropdown().appendTo(obj.container)
+                });
+            }
+        }
+
+        _buildDropdown() {
+            var obj = this
+            var countryData = window.intlTelInputGlobals.getCountryData();
+            var initialCountry = countryData[0]
+            $.each(countryData, function(index, country) {
+                if (country.iso2 == obj.countryCode) {
+                    initialCountry = country
+                }
+            })
+            console.log('initial Country ' + this.countryCode, initialCountry)
+            
+            var group = $('<div>').addClass('btn-group')
+            this.current = $('<button>').attr('type', 'button').addClass('btn btn-light dropdown-toggle').attr('data-toggle', 'dropdown').attr('aria-haspopup', true).attr('aria-expanded', false).appendTo(group)
+            this._countryLine(initialCountry, this.current)
+            
+            
+            var dropdown = $('<div>').addClass('dropdown-menu').attr('style', 'max-height: 200px; overflow-y: scroll;').appendTo(group)
+            
+            console.log(countryData)
+            $.each(countryData, function(index, country) {
+                var atag = $('<a>').addClass('dropdown-item').attr('href', '#').appendTo(dropdown)
+                obj._countryLine(country, atag)
+                atag.click(function(evt) {
+                    evt.preventDefault()
+                    obj.selectCountry(country)
+                })
+            })
+            return group
+        }
+
+        _countryLine(country, container) {
+            var box = $('<div>').addClass('mr-2').attr('style', 'display: inline-block').appendTo(container)
+            $('<div>').addClass('iti__flag iti__' + country.iso2).appendTo(box)
+            $('<span>').text(country.name + ' +' + country.dialCode ).appendTo(container)
+        }
+
+        selectCountry(country) {
+            console.log('Selected', country)
+            this.current.empty()
+            this._countryLine(country, this.current)
+            this.input.val(country.iso2)
+        }
+    }
+
     $(function () {
         var imgsrch = new ImageSearcher()
         var imgslctr = new ImageSelector($('#show-image-content'), imgsrch)
@@ -855,6 +920,10 @@
             }
 
         })
+        // PN
+        if ($('#country-code').length == 1) {
+            new CountryCode($('#country-code'))
+        }
     })
 
     $(function () {

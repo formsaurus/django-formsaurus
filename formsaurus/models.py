@@ -862,7 +862,7 @@ class MultipleChoiceParameters(MultipleAnswer):
 
 
 class PhoneNumberParameters(QuestionParameter):
-    default_country_code = models.PositiveIntegerField()
+    default_country_code = models.CharField(max_length=2)
 
 
 class ShortTextParameters(QuestionParameter):
