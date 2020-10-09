@@ -193,52 +193,52 @@
                 {% elif type == 'MC' %}
                 <!-- Multiple Choice Parameters -->
                 <fieldset class="bd-callout">
-                <p class="mt-1 mb-3"><small class="text-muted text-upper"><strong>Multiple Choice</strong></small></p>
-                <div class="custom-control custom-switch">
-                    <input type="checkbox" class="custom-control-input" id="multiple_selection_switch"
-                        name="multiple_selection" {% if question.parameters.multiple_selection %}checked{% endif %}>
-                    <label class="custom-control-label" for="multiple_selection_switch">Multiple Selection</label>
-                </div>
-                <div class="custom-control custom-switch">
-                    <input type="checkbox" class="custom-control-input" id="randomize_switch" name="randomize"
-                        {% if question.parameters.randomize %}checked{% endif %}>
-                    <label class="custom-control-label" for="randomize_switch">Randomize</label>
-                </div>
-                <div class="custom-control custom-switch">
-                    <input type="checkbox" class="custom-control-input" id="other_option_switch" name="other_option"
-                        {% if question.parameters.other_option %}checked{% endif %}>
-                    <label class="custom-control-label" for="other_option_switch">Other Option</label>
-                </div>
-                <div class="mt-4">
-                    <div class="form-group">
-                        {% if question %}
-                            {% for choice in question.choices %}
-                                {% if choice.id %}
+                    <p class="mt-1 mb-3"><small class="text-muted text-upper"><strong>Multiple Choice</strong></small></p>
+                    <div class="custom-control custom-switch">
+                        <input type="checkbox" class="custom-control-input" id="multiple_selection_switch"
+                            name="multiple_selection" {% if question.parameters.multiple_selection %}checked{% endif %}>
+                        <label class="custom-control-label" for="multiple_selection_switch">Multiple Selection</label>
+                    </div>
+                    <div class="custom-control custom-switch">
+                        <input type="checkbox" class="custom-control-input" id="randomize_switch" name="randomize"
+                            {% if question.parameters.randomize %}checked{% endif %}>
+                        <label class="custom-control-label" for="randomize_switch">Randomize</label>
+                    </div>
+                    <div class="custom-control custom-switch">
+                        <input type="checkbox" class="custom-control-input" id="other_option_switch" name="other_option"
+                            {% if question.parameters.other_option %}checked{% endif %}>
+                        <label class="custom-control-label" for="other_option_switch">Other Option</label>
+                    </div>
+                    <div class="mt-4">
+                        <div class="form-group">
+                            {% if question %}
+                                {% for choice in question.choices %}
+                                    {% if choice.id %}
+                                    <div class="input-group mb-3">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text">{{ choice.letter }}.</span>
+                                        </div>
+                                        <input type="text" data-letter="{{ choice.letter }}" class="form-control mc-choice" placeholder="Choice" value="{{ choice.choice }}">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text mc-choice-clear"><i class="fas fa-times"></i></span>
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                {% endfor %}
+                            {% else %}
                                 <div class="input-group mb-3">
                                     <div class="input-group-prepend">
-                                        <span class="input-group-text">{{ choice.letter }}.</span>
+                                        <span class="input-group-text">A.</span>
                                     </div>
-                                    <input type="text" data-letter="{{ choice.letter }}" class="form-control mc-choice" placeholder="Choice" value="{{ choice.choice }}">
+                                    <input type="text" data-letter="A" class="form-control mc-choice" placeholder="Choice">
                                     <div class="input-group-prepend">
                                         <span class="input-group-text mc-choice-clear"><i class="fas fa-times"></i></span>
                                     </div>
-                                </div>
-                                {% endif %}
-                            {% endfor %}
-                        {% else %}
-                            <div class="input-group mb-3">
-                                <div class="input-group-prepend">
-                                    <span class="input-group-text">A.</span>
-                                </div>
-                                <input type="text" data-letter="A" class="form-control mc-choice" placeholder="Choice">
-                                <div class="input-group-prepend">
-                                    <span class="input-group-text mc-choice-clear"><i class="fas fa-times"></i></span>
-                                </div>
-                            </div>                        
-                        {% endif %}
+                                </div>                        
+                            {% endif %}
+                        </div>
+                        <a href="#" class="mc-choice-add ml-1"><small><i class="fas fa-plus"></i> Add Choice</small></a>
                     </div>
-                    <a href="#" class="mc-choice-add ml-1"><small><i class="fas fa-plus"></i> Add Choice</small></a>
-                </div>
                 </fieldset>
                 {% elif type == 'PN' %}
                 <!-- Phone Number Parameters -->
@@ -483,35 +483,47 @@
                 {% elif type == 'DD' %}
                 <!-- Dropdown Parameters -->
                 <fieldset class="bd-callout">
-                <p class="mt-1 mb-3"><small class="text-muted text-upper"><strong>Dropdown</strong></small></p>
-                <div class="custom-control custom-switch">
-                    <input type="checkbox" class="custom-control-input" id="dd_randomize" name="randomize"
-                        {% if question.parameters.alphabetical %}disabled{% endif %}
-                        {% if question.parameters.randomize %}checked{% endif %}>
-                    <label class="custom-control-label" for="dd_randomize">Randomize</label>
-                </div>
-                <div class="custom-control custom-switch">
-                    <input type="checkbox" class="custom-control-input" id="dd_alphabetical" name="alphabetical"
-                        {% if question.parameters.randomize %}disabled{% endif %}
-                        {% if question.parameters.alphabetical %}checked{% endif %}>
-                    <label class="custom-control-label" for="dd_alphabetical">Alphabetical</label>
-                </div>
-                <div class="mt-4">
-                    {% if question %}
-                    {% for choice in question.choice_set.all %}
-                    <div class="form-group">
-                        <input type="text" name="choice" class="w-100 mb-2 title dd_choice" placeholder="Choice..."
-                            value="{{ choice.choice }}" />
-                        <label for="choice"><small class="text-muted">Choice</small></label>
+                    <p class="mt-1 mb-3"><small class="text-muted text-upper"><strong>Dropdown</strong></small></p>
+                    <div class="custom-control custom-switch">
+                        <input type="checkbox" class="custom-control-input" id="dd_randomize" name="randomize"
+                            {% if question.parameters.alphabetical %}disabled{% endif %}
+                            {% if question.parameters.randomize %}checked{% endif %}>
+                        <label class="custom-control-label" for="dd_randomize">Randomize</label>
                     </div>
-                    {% endfor %}
-                    {% else %}
-                    <div class="form-group">
-                        <input type="text" name="choice" class="w-100 mb-2 title dd_choice" placeholder="Choice..." />
-                        <label for="choice"><small class="text-muted">Choice</small></label>
+                    <div class="custom-control custom-switch">
+                        <input type="checkbox" class="custom-control-input" id="dd_alphabetical" name="alphabetical"
+                            {% if question.parameters.randomize %}disabled{% endif %}
+                            {% if question.parameters.alphabetical %}checked{% endif %}>
+                        <label class="custom-control-label" for="dd_alphabetical">Alphabetical</label>
                     </div>
-                    {% endif %}
-                </div>
+                    <div class="mt-4">
+                        <div class="form-group">
+                            {% if question %}
+                                {% for choice in question.choice_set.all %}
+                                    <div class="input-group mb-3">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text">{{ choice.letter }}.</span>
+                                        </div>
+                                        <input type="text" data-letter="{{ choice.letter }}" class="form-control mc-choice" placeholder="Choice" value="{{ choice.choice }}">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text mc-choice-clear"><i class="fas fa-times"></i></span>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                            {% else %}
+                            <div class="input-group mb-3">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text">A.</span>
+                                </div>
+                                <input type="text" data-letter="A" class="form-control mc-choice" placeholder="Choice">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text mc-choice-clear"><i class="fas fa-times"></i></span>
+                                </div>
+                            </div>                        
+                            {% endif %}
+                        </div>
+                        <a href="#" class="mc-choice-add ml-1"><small><i class="fas fa-plus"></i> Add Choice</small></a>
+                    </div>
                 </fieldset>
                 {% elif type == 'L_' %}
                 {% elif type == 'FU' %}
