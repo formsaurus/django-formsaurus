@@ -438,7 +438,7 @@ class AbstractSurvey(BaseModel):
         self.append_question(question)
         return question
 
-    def add_rating(self, question, required=False, description=None, number_of_steps=5, shape='S', image_url=None, video_url=None, orientation=None, position_x=None, position_y=None, opacity=None):
+    def add_rating(self, question, required=False, description=None, number_of_steps=5, shape='ST', image_url=None, video_url=None, orientation=None, position_x=None, position_y=None, opacity=None):
         question = Question.objects.create(
             survey=self,
             question=question,
@@ -1267,17 +1267,17 @@ class Submission(BaseModel):
             return None, None
         elif question.question_type == Question.THANK_YOU_SCREEN:
             return None, None
-        elif question.question_type == Question.MULTIPLE_CHOICE:            
+        elif question.question_type == Question.MULTIPLE_CHOICE:
             choices = []
             for choice_id in post_data.getlist('answer'):
                 if not is_empty(choice_id):
                     choices.append(choice_id)
             logger.debug(f'<Question:{question}> {choices}')
-            
+
             if question.required and len(choices) == 0:
                 logger.info(f'<Question:{question}> MissingRequiredAnswer()')
                 return None, MissingRequiredAnswer()
-            
+
             parameters = question.parameters
             if choices is not None and not parameters.multiple_selection and len(choices) > 1:
                 logger.info(f'<Question:{question}> OutOfRangeAnswer()')
@@ -1289,7 +1289,7 @@ class Submission(BaseModel):
                     submission=self,
                 )
                 answer.save()
-            
+
             # Clear choices first
             answer.choices.clear()
             # Add each choice
@@ -1304,7 +1304,7 @@ class Submission(BaseModel):
                         if not parameters.other_option:
                             logger.info(f'<Question:{question}> OutOfRangeAnswer() Other detected when not allowed')
                             return OutOfRangeAnswer()
-                        logger.debug(f"<Question:{question}> Other '{choice_id}'")                            
+                        logger.debug(f"<Question:{question}> Other '{choice_id}'")
                         answer.other = choice_id
                         answer.save()
 
@@ -1397,7 +1397,7 @@ class Submission(BaseModel):
                         if not parameters.other_option:
                             logger.info(f'<Question:{question}> OutOfRangeAnswer() Other detected when not allowed')
                             return OutOfRangeAnswer()
-                        logger.debug(f"<Question:{question}> Other '{choice_id}'")                            
+                        logger.debug(f"<Question:{question}> Other '{choice_id}'")
                         answer.other = choice_id
                         answer.save()
 
@@ -1541,7 +1541,7 @@ class Submission(BaseModel):
             if len(choices) > 1:
                 return None, OutOfRangeAnswer()
 
-            if answer is None:            
+            if answer is None:
                 answer = DropdownAnswer(
                     question=question,
                     submission=self
@@ -1568,7 +1568,7 @@ class Submission(BaseModel):
                 y = False
             if y is None and question.required:
                 return None, MissingRequiredAnswer()
-            
+
             if answer is None:
                 answer = LegalAnswer(
                     question=question,
