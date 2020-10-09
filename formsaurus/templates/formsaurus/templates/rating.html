@@ -1,13 +1,9 @@
 {% extends question_base %}
-
+{% load formsaurus %}
 {% block input %}
 {% for choice in question.choices %}
 <button type="submit" value="{{ forloop.counter }}" name="answer" class="text-center btn btn-outline-primary opinion">
-    {% if question.parameters.shape == 'S_' %}
-    <i class="fas fa-star"></i>
-    {% elif question.parameters.shape == 'T_' %}
-    <i class="fas fa-thumbs-up"></i>
-    {% endif %}
+    {{ question_shape|shape_fontawesome }}
 </button>
 {% endfor %}
 {% endblock %}

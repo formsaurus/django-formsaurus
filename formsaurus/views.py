@@ -67,6 +67,9 @@ class QuestionView(View):
         context['question'] = Serializer.question(question)
         context['submission'] = Serializer.submission(
             submission) if submission is not None else None
+        if question.question_type == Question.RATING and question.parameters.shape is not None:
+            context['question_shape'] = survey.rating_shapes[question.parameters.shape]
+
         return context
 
     def get(self, request, survey_id, question_id, submission_id):

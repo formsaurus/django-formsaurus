@@ -1,5 +1,6 @@
 {% extends 'formsaurus/skeleton.html' %}
 {% load static %}
+{% load formsaurus %}
 {% block content %}
 {% include 'formsaurus/manage/navbar.html' %}
 <div class="container">
@@ -416,13 +417,24 @@
                         required />
                     <label for="number_of_steps"><small class="text-muted">Number of Steps</small></label>
                 </div>
-                <div class="form-group">
-                    <select class="custom-select" name="shape">
-                        <option {% if not question or question.parameters.shape == 'S_' %}selected{% endif %}
-                            value="S_"><i class="fas fa-star"></i> Star</option>
-                        <option {% if question.parameters.shape == 'T_' %}selected{% endif %} value="T_"><i
-                                class="fas fa-thumbs-up"></i> Thumbs Up</option>
-                    </select>
+                <div class="form-group" id="rating-shapes">
+                    <input type="hidden" name="shape" {% if question.parameters.shape %}value="{{ question.parameters.shape }}"{% endif %}>
+                    <div>
+                        <div class="btn-group">
+                            <button type="button" class="btn btn-light dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                {% if question.parameters.shape %}
+                                    {{ question_shape|shape_fontawesome }} {{ question_shape.name }}
+                                {% else %}
+                                    {{ shapes.ST|shape_fontawesome }} {{ shapes.ST.name }}
+                                {% endif %}
+                            </button>
+                            <div class="dropdown-menu">
+                                {% for shape in shapes.items %}
+                                    <a href="#" class="dropdown-item" data-value="{{ shape.0 }}">{{ shape.1|shape_fontawesome }} {{ shape.1.name }}</a>                                
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
                     <label for="shape"><small class="text-muted">Shape</small></label>
                 </div>
             </fieldset>
@@ -802,10 +814,35 @@
         }
     }
 
+    class Shapes {
+        constructor(container) {
+            var obj = this
+            this.menu = container.find('.dropdown-menu')
+            this.button = container.find('button[data-toggle="dropdown"]')
+            this.input = container.find('input[name="shape"]')
+            console.log('Shapes initialized')
+            console.log('\tMenu: ', this.menu)
+            console.log('\tButton: ', this.button)
+            console.log('\tInput: ', this.input)
+            $.each(this.menu.find('.dropdown-item'), function(index, element) {
+                var element = $(element)
+                element.click(function(evt) {
+                    console.log('Selected ' + $(this).attr('data-value'))
+                    evt.preventDefault()
+                    obj.button.empty()
+                    // console.log($(this).html())
+                    obj.button.html($(this).html())
+                    // obj.button.html($(this).html)
+                    obj.input.val($(this).attr('data-value'))
+                })
+            })
+        }
+    }
+
     $(function () {
         var imgsrch = new ImageSearcher()
         var imgslctr = new ImageSelector($('#show-image-content'), imgsrch)
-
+        var shps = new Shapes($('#rating-shapes'))
         // description
         $('#show-description-switch').change(function(evt) {
             if ($(this).prop('checked')) {

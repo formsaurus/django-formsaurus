@@ -95,6 +95,8 @@ class AddQuestionView(LoginRequiredMixin, View):
         context['type_name'] = question_types[question_type].name
         context['types'] = question_types
 
+        context['shapes'] = survey.rating_shapes
+
         return render(request, self.template_name, context)
 
     def post(self, request, survey_id, question_type):
@@ -530,19 +532,22 @@ class EditQuestionView(LoginRequiredMixin, View):
             question_type=Question.WELCOME_SCREEN).count() > 0
         question_type = question.question_type
         context = {}
+
         context['has_unsplash'] = hasattr(settings, 'UNSPLASH_ACCESS_KEY')
         context['has_pexels'] = hasattr(settings, 'PEXELS_API_KEY')
         context['has_tenor'] = hasattr(settings, 'TENOR_API_KEY')
         context['survey'] = Serializer.survey(survey)
-        context['types'] = {}
-        for key, value in Question.TYPES:
-            if key == Question.PAYMENT:
-                continue
-            context['types'][key] = value
-            if key == question_type:
-                context['type_name'] = value
+        # Allowed question types
+        question_types = survey.question_types
+        if has_ws:
+            question_types.pop(Question.WELCOME_SCREEN)
         context['type'] = question_type
+        context['type_name'] = question_types[question_type].name
+        context['types'] = question_types
+        context['shapes'] = survey.rating_shapes
         context['question'] = Serializer.question(question)
+        if question.question_type == Question.RATING and question.parameters.shape is not None:
+            context['question_shape'] = survey.rating_shapes[question.parameters.shape]
 
         return render(request, self.template_name, context)
 

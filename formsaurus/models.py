@@ -42,6 +42,12 @@ class QuestionType:
         self.name = name
         self.disabled = disabled
 
+class Shape:
+    def __init__(self, shape_type, name, disabled=False):
+        self.shape = shape_type
+        self.name = name
+        self.disabled = disabled
+
 class AbstractSurvey(BaseModel):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     name = models.CharField(max_length=1024)
@@ -87,6 +93,21 @@ class AbstractSurvey(BaseModel):
         answered (maybe based no number of answers)
         """
         return True
+
+    @property
+    def rating_shapes(self):
+        """
+        Return the list of supported rating shapes.
+        """
+        shapes = {}
+        for key, value in RatingParameters.SHAPES:
+            shapes[key] = Shape(
+                key,
+                value,
+                disabled=False,
+            )
+        return shapes
+
 
     @property
     def submissions(self):
@@ -906,12 +927,42 @@ class OpinionScaleParameters(QuestionParameter):
 
 
 class RatingParameters(QuestionParameter):
-    STAR = 'S_'
-    THUMB = 'T_'
+    STARS = 'ST'
+    HEARTS = 'HE'
+    USERS = 'US'
+    THUMBS = 'TU'
+    CROWNS = 'CR'
+    CATS = 'CA'
+    DOGS = 'DO'
+    CIRCLES = 'CI'
+    FLAGS = 'FL'
+    DROPLETS = 'DR'
+    TICKS = 'TI'
+    LIGHTBULBS = 'LI'
+    TROPHIES = 'TR'
+    CLOUDS = 'CL'
+    THUNDERBOLTS = 'TH'
+    PENCILS = 'PE'
+    SKULLS = 'SK'
 
     SHAPES = [
-        (STAR, 'Stars'),
-        (THUMB, 'Thumbs'),
+        (STARS, 'Stars'),
+        (HEARTS, 'Hearts'),
+        (USERS, 'Users'),
+        (THUMBS, 'Thumbs'),
+        (CROWNS, 'Crowns'),
+        (CATS, 'Cats'),
+        (DOGS, 'Dogs'),
+        (CIRCLES, 'Circles'),
+        (FLAGS, 'Flags'),
+        (DROPLETS, 'Droplets'),
+        (TICKS, 'Ticks'),
+        (LIGHTBULBS, 'Lightbulbs'),
+        (TROPHIES, 'Trophies'),
+        (CLOUDS, 'Clouds'),
+        (THUNDERBOLTS, 'Thunderbolts'),
+        (PENCILS, 'Pencils'),
+        (SKULLS, 'Skulls'),
     ]
     number_of_steps = models.PositiveSmallIntegerField()
     shape = models.CharField(max_length=2, choices=SHAPES)
