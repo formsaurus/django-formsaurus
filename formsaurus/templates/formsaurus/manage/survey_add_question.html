@@ -26,8 +26,8 @@
                         </div>
                     </div>
                     Question
-                    {% endif %}        
-                {% endif %} 
+                    {% endif %}
+                {% endif %}
             </h4>
             <p class="m-0"><small class="text-muted">Survey: {{ survey.name }}</small></p>
         </div>
@@ -37,7 +37,7 @@
         <div class="col">
             {% if question %}
                 <form method="POST" action="{% url 'formsaurus_manage:survey_edit_question' survey.id question.id %}">
-                    <input type="hidden" name="question_type" value="{{ question.question_type }}">
+                    <input type="hidden" name="question_type" value="{{ question.type }}">
             {% else %}
                 <form method="POST" action="{% url 'formsaurus_manage:survey_add_question' survey.id type %}">
                     <input type="hidden" name="question_type" value="{{ type }}">
@@ -60,7 +60,7 @@
                             {% if question.description %}checked{% endif %}>
                             <label class="custom-control-label" for="show-description-switch">Description</label>
                         </div>
-                        
+
                         <div id="show-description-content" class="form-group {% if not question.description %}d-none{% endif %}">
                             <input type="text" name="description" class="w-100 mb-2 title" placeholder="Description"
                                 value="{{ question.description }}" />
@@ -83,7 +83,7 @@
                     <label class="custom-control-label" for="show-image-switch">Show Image</label>
                 </div>
 
-                <div class="form-group mt-3 {% if not question.parameters.image_url %}d-none{% endif %}" id="show-image-content">                            
+                <div class="form-group mt-3 {% if not question.parameters.image_url %}d-none{% endif %}" id="show-image-content">
                     <div class="input-group input-group-lg">
                         <div class="input-group-prepend">
                             <span class="input-group-text">
@@ -137,7 +137,7 @@
                             <div class="form-group">
                                 <label><small class="text-muted">X Position</small></label>
                                 <input type="range" class="form-control-range" min="0" max="100" step="1" name="position_x" value="{{ question.parameters.position_x }}">
-                            </div>          
+                            </div>
                         </div>
                         <div class="col-6">
                             <div class="form-group">
@@ -152,7 +152,7 @@
                     </div>
                 </fieldset>
                 </div>
-                <!-- QUESTION TYPE PARAMETERS -->                
+                <!-- QUESTION TYPE PARAMETERS -->
                 {% if type == 'WS' %}
                 <!-- Welcome Screen Parameters -->
                 <fieldset class="bd-callout">
@@ -235,7 +235,7 @@
                                     <div class="input-group-prepend">
                                         <span class="input-group-text mc-choice-clear"><i class="fas fa-times"></i></span>
                                     </div>
-                                </div>                        
+                                </div>
                             {% endif %}
                         </div>
                         <a href="#" class="mc-choice-add ml-1"><small><i class="fas fa-plus"></i> Add Choice</small></a>
@@ -331,39 +331,55 @@
                     <label class="custom-control-label" for="pc_supersize_switch">Supersize</label>
                 </div>
                 <div class="mt-4">
-                    {% if question %}
-                    {% for choice in question.choices %}
-                    <div class="form-group">
-                        <input type="url" name="choice" class="w-100 mb-2 title pc_choice"
-                            placeholder="https://unsplash.com/..." value="{{ choice.image_url }}" />
-                        <label for="choice"><small class="text-muted">Choice</small></label>
-                        {% if has_unsplash %}
-                        <small><a href="#" data-toggle="modal" data-target="#imageModal">Search Images</a></small>
-                        {% endif %}
-
-                        <input type="text" name="label" class="w-100 mb-2 title pc_label" placeholder="Kitten"
-                            value="{{ choice.choice }}" />
-                        {% if has_unsplash %}
-                            <small><a href="#" data-toggle="modal" data-target="#imageModal">Search Images</a></small>
-                        {% endif %}
-
-                        <label for="label"><small class="text-muted">Label</small></label>
-                    </div>
-                    {% endfor %}
-                    {% else %}
-                    <div class="form-group">
-                        <input type="url" name="choice" class="w-100 mb-2 title pc_choice"
-                            placeholder="https://unsplash.com/..." />
-                        <label for="choice"><small class="text-muted">Choice</small></label>
-                        {% if has_unsplash %}
-                        <small><a href="#" data-toggle="modal" data-target="#imageModal">Search Images</a></small>
-                        {% endif %}
-
-                        <input type="text" name="label" class="w-100 mb-2 title pc_label" placeholder="Kitten" />
-                        <label for="label"><small class="text-muted">Label</small></label>
-                    </div>
-                    {% endif %}
-
+                    <fieldset id="picture-choices">
+                        <div>
+                            {% if question %}
+                                {% for choice in question.choices %}
+                                    <div class="form-group mt-3">
+                                        <input type="hidden" name="choice" value="{{ choice.image_url }}">
+                                        <div class="input-group input-group-lg">
+                                            <div class="input-group-prepend">
+                                                <span class="input-group-text">
+                                                    {% if choice.image_url %}
+                                                        <a href="#" data-toggle="modal" data-target="#imageModal"><img class="img-fluid" style="height:26px" src="{{ choice.image_url }}"/></a>
+                                                        <a href="#" data-target="clearImage"><i class="ml-3 pt-1 fas fa-times"></i></a>
+                                                    {% else %}
+                                                        <a href="#" data-toggle="modal" data-target="#imageModal" style="text-decoration: none!important;">
+                                                            <i class="pt-1 far fa-image mr-2"></i>
+                                                            <small><i class="fas fa-plus"></i></small>
+                                                        </a>
+                                                    {% endif %}
+                                                </span>
+                                            </div>
+                                            <input type="text" name="label" class="form-control pc-label" placeholder="Choice" value="{{ choice.choice }}">
+                                            <div class="input-group-prepend">
+                                                <span class="input-group-text pc-choice-clear"><i class="fas fa-times"></i></span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            {% else %}
+                                <div class="form-group mt-3">
+                                    <input type="hidden" name="choice">
+                                    <div class="input-group input-group-lg">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text">
+                                                <a href="#" data-toggle="modal" data-target="#imageModal" style="text-decoration: none!important;">
+                                                    <i class="pt-1 far fa-image mr-2"></i>
+                                                    <small><i class="fas fa-plus"></i></small>
+                                                </a>
+                                            </span>
+                                        </div>
+                                        <input type="text" name="label" class="form-control pc-label" placeholder="Choice">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text pc-choice-clear"><i class="fas fa-times"></i></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <a href="#" class="pc-choice-add ml-1"><small><i class="fas fa-plus"></i> Add Choice</small></a>
+                    </fieldset>
                 </div>
             </fieldset>
                 {% elif type == 'YN' %}
@@ -430,7 +446,7 @@
                             </button>
                             <div class="dropdown-menu">
                                 {% for shape in shapes.items %}
-                                    <a href="#" class="dropdown-item" data-value="{{ shape.0 }}">{{ shape.1|shape_fontawesome }} {{ shape.1.name }}</a>                                
+                                    <a href="#" class="dropdown-item" data-value="{{ shape.0 }}">{{ shape.1|shape_fontawesome }} {{ shape.1.name }}</a>
                                 {% endfor %}
                             </div>
                         </div>
@@ -531,7 +547,7 @@
                                 <div class="input-group-prepend">
                                     <span class="input-group-text mc-choice-clear"><i class="fas fa-times"></i></span>
                                 </div>
-                            </div>                        
+                            </div>
                             {% endif %}
                         </div>
                         <a href="#" class="mc-choice-add ml-1"><small><i class="fas fa-plus"></i> Add Choice</small></a>
@@ -542,7 +558,7 @@
                 {% elif type == 'P_' %}
                 {% elif type == 'W_' %}
                 {% endif %}
- 
+
                 <div class="form-group mt-3">
                     <input type="submit" class="btn btn-primary btn-lg btn-wide" value="{% if question %}Save{% else %}Add{% endif %} Question">
                     <a href="{% url 'formsaurus_manage:survey_wizard' survey.id %}" class="btn btn-secondary btn-lg">Cancel</a>
@@ -574,8 +590,13 @@
 
             this.element = element
             this.searcher = searcher
-            this.input = element.find('input[type="url"]').first()
-            this.previewContainer = element.find('.input-group-text').last()
+            this.input = null
+            if (element.find('input[type="url"]').length == 1) {
+                this.input = element.find('input[type="url"]').first()
+            } else {
+                this.input = element.find('input[type="hidden"]').first()
+            }
+            this.previewContainer = element.find('.input-group-text').first()
             this.modalClicker = element.find('a[data-target="#imageModal"]')
             this.clearClicker = element.find('a[data-target="clearImage"]')
             this.showingModal = false
@@ -588,9 +609,11 @@
                 obj.onClear()
             })
             $('#imageModal').on('hidden.bs.modal', function(evt) {
-                console.log('Hiding modal', obj)
-                obj.showingModal = false
-                obj.searcher.deactivate(obj)
+                if (obj.showingModal) {
+                    console.log('Hiding modal', obj)
+                    obj.showingModal = false
+                    obj.searcher.deactivate(obj)
+                }
             })
 
             this.input.change(function(evt) {
@@ -780,14 +803,14 @@
                 }
             })
             console.log('initial Country ' + this.countryCode, initialCountry)
-            
+
             var group = $('<div>').addClass('btn-group')
             this.current = $('<button>').attr('type', 'button').addClass('btn btn-light dropdown-toggle').attr('data-toggle', 'dropdown').attr('aria-haspopup', true).attr('aria-expanded', false).appendTo(group)
             this._countryLine(initialCountry, this.current)
-            
-            
+
+
             var dropdown = $('<div>').addClass('dropdown-menu').attr('style', 'max-height: 200px; overflow-y: scroll;').appendTo(group)
-            
+
             console.log(countryData)
             $.each(countryData, function(index, country) {
                 var atag = $('<a>').addClass('dropdown-item').attr('href', '#').appendTo(dropdown)
@@ -838,11 +861,18 @@
             })
         }
     }
-
+    var imgsrch
     $(function () {
-        var imgsrch = new ImageSearcher()
+        imgsrch = new ImageSearcher()
         var imgslctr = new ImageSelector($('#show-image-content'), imgsrch)
         var shps = new Shapes($('#rating-shapes'))
+
+        // Picture Choices
+        $.each($('#picture-choices').find('div.form-group'), function(index, element) {
+            var element = $(element)
+            new ImageSelector(element, imgsrch)
+        })
+
         // description
         $('#show-description-switch').change(function(evt) {
             if ($(this).prop('checked')) {
@@ -920,7 +950,9 @@
             }
         })
         // PC
-        $('.pc_label').enterKey(addPictureChoice)
+        $('.pc-label').enterKey(addPictureChoice)
+        $('.pc-choice-add').click(addPictureChoice)
+        $('.pc-choice-clear').click(clearPictureChoice)
         // OS
         $('#os_show_labels_switch').change(function (evt) {
             if ($(this).prop('checked')) {
@@ -982,7 +1014,7 @@
         $('#video_search_query').enterKey(function(evt) {
             search_videos($(this).val(), 1, 9)
         })
-    })  
+    })
 
     function search_videos(term, page, per_page) {
         $('#video_search_results').empty()
@@ -1039,7 +1071,7 @@
         var append = $('<div>').addClass('input-group-append').appendTo(container)
         var span = $('<span>').addClass('input-group-text').appendTo(append)
         span.click(clearChoice)
-        $('<i>').addClass('fas fa-times').appendTo(span) 
+        $('<i>').addClass('fas fa-times').appendTo(span)
         return false;
     }
 
@@ -1064,33 +1096,24 @@
     }
 
     function addPictureChoice(evt) {
-        var d = $('<div/>').addClass('form-group')
-        // Choice
-        var i1 = $('<input/>').attr('type', 'url').attr('name', 'choice').addClass('w-100').addClass('mb-2').addClass('title').addClass('pc_choice').attr('placeholder', 'https://unsplash.com/..')
-        d.append(i1)
-        var l = $('<label/>').attr('for', 'choice')
-        var s = $('<small/>').addClass('text-muted').text('Choice ')
-        l.append(s)
-        d.append(l)
-        s = $('<small/>').appendTo(d)
-        $('<a/>').attr('href', '#').attr('data-toggle', 'modal').attr('data-target', '#imageModal').text('Search Images').appendTo(s).click(function(evt) {
-            evt.preventDefault()
-            modalOrigin = $(this)
-        })
-
-        // Label
-        i2 = $('<input/>').attr('type', 'text').attr('name', 'label').addClass('w-100').addClass('mb-2').addClass('title').addClass('pc_label').attr('placeholder', 'Puppy')
-        d.append(i2)
-        i2.enterKey(addPictureChoice)
-        l = $('<label/>').attr('for', 'choice')
-        s = $('<small/>').addClass('text-muted').text('Choice')
-        l.append(s)
-        d.append(l)
-
-        $(this).parent().parent().append(d)
-        i1.focus();
-        evt.preventDefault();
+        evt.preventDefault()
+        var cloned = $('#picture-choices').find('.form-group').first().clone().appendTo($('#picture-choices').children().first())
+        cloned.find('input[name="label"]').val('').focus().enterKey(addPictureChoice)
+        var selector = new ImageSelector(cloned, imgsrch)
+        selector.url = ''
+        cloned.find('.pc-choice-clear').click(clearPictureChoice)
         return false;
+    }
+
+    function clearPictureChoice(evt) {
+        evt.preventDefault()
+        var group = $(this).parents('.form-group')
+        var input = group.find('input[name="label"]')
+        if (input.val() == "") {
+            group.remove()
+        } else {
+            input.val('')
+        }
     }
 </script>
 
