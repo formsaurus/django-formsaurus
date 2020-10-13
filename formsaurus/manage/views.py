@@ -7,7 +7,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic.base import View
 from django.urls import reverse
 from django.utils import timezone
-from django.db.models import Count, Sum
+from django.db.models import Count, Sum, Case, When, Value, IntegerField
 from django.conf import settings
 
 from formsaurus.models import (Question, Submission, Choice, RuleSet, Condition,
@@ -57,7 +57,13 @@ class SurveyWizardView(LoginRequiredMixin, View):
             # Stats about submissions
             context['submissions'] = {}
             row = Submission.objects.filter(survey=survey, is_preview=False).aggregate(
-                count=Count('id'), sum=Sum('completed'))
+                count=Count('id'),
+                sum=Sum(Case(
+                    When(completed=True, then=1),
+                    default=Value(0),
+                    output_field=IntegerField()
+                ))
+            )
             completed = 1 if row['sum'] is True else 0 if row['sum'] is None or row['sum'] is False else row['sum']
             context['submissions']['count'] = row['count']
             context['submissions']['completed'] = completed
@@ -250,7 +256,7 @@ class AddQuestionView(LoginRequiredMixin, View):
                         orientation=parameters_form.cleaned_data['orientation'],
                         position_x=parameters_form.cleaned_data['position_x'],
                         position_y=parameters_form.cleaned_data['position_y'],
-                        opacity=parameters_form.cleaned_data['opacity'],                        
+                        opacity=parameters_form.cleaned_data['opacity'],
                     )
                     logger.info('Created Statement %s', question.id)
                     return redirect(self.add_question_url, survey.id)
@@ -491,7 +497,7 @@ class AddQuestionView(LoginRequiredMixin, View):
                         orientation=parameters_form.cleaned_data['orientation'],
                         position_x=parameters_form.cleaned_data['position_x'],
                         position_y=parameters_form.cleaned_data['position_y'],
-                        opacity=parameters_form.cleaned_data['opacity'],                    
+                        opacity=parameters_form.cleaned_data['opacity'],
                     )
                     logger.info('Created Email %s', question.id)
                     return redirect(self.add_question_url, survey.id)
