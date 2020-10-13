@@ -599,11 +599,14 @@ class EditQuestionView(LoginRequiredMixin, View):
                 if parameters_form.is_valid():
                     parameters_form.save()
                     question.choice_set.all().delete()
+                    position = 0
                     for choice in request.POST.getlist('choice'):
                         Choice.objects.create(
                             question=question,
                             choice=choice,
+                            position=position,
                         )
+                        position = position+1
 
                     return redirect(self.edit_question_url, survey.id)
                 else:
@@ -653,12 +656,15 @@ class EditQuestionView(LoginRequiredMixin, View):
                     question.choice_set.all().delete()
                     images = request.POST.getlist('choice')
                     labels = request.POST.getlist('label')
+                    position = 0
                     for index in range(len(images)):
                         Choice.objects.create(
                             question=question,
                             image_url=images[index],
                             choice=labels[index],
+                            position=position,
                         )
+                        position = position + 1
 
                     return redirect(self.edit_question_url, survey.id)
                 else:
@@ -725,12 +731,15 @@ class EditQuestionView(LoginRequiredMixin, View):
                 if parameters_form.is_valid():
                     parameters_form.save()
                     question.choice_set.all().delete()
+                    position = 0
                     for choice in request.POST.getlist('choice'):
                         if choice != "":
                             Choice.objects.create(
                                 question=question,
                                 choice=choice,
+                                position=position
                             )
+                            position = position + 1
                     return redirect(self.edit_question_url, survey.id)
                 else:
                     logger.warning(

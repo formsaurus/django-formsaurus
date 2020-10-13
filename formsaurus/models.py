@@ -244,11 +244,14 @@ class AbstractSurvey(BaseModel):
             position_y=position_y,
             opacity=opacity,
         )
+        position = 0
         for choice in choices:
             Choice.objects.create(
                 question=question,
                 choice=choice,
+                position=position,
             )
+            position = position + 1
         self.append_question(question)
         return question
 
@@ -362,12 +365,15 @@ class AbstractSurvey(BaseModel):
             opacity=opacity,
         )
 
+        position = 0
         for choice in choices:
             Choice.objects.create(
                 question=question,
                 choice=choice['label'],
                 image_url=choice['image_url'],
+                position=position,
             )
+            position=position+1
         self.append_question(question)
         return question
 
@@ -525,11 +531,14 @@ class AbstractSurvey(BaseModel):
             position_y=position_y,
             opacity=opacity,
         )
+        position = 0
         for choice in choices:
             Choice.objects.create(
                 question=question,
                 choice=choice,
+                position=position,
             )
+            position = position + 1
         self.append_question(question)
         return question
 
@@ -1045,6 +1054,7 @@ class Choice(BaseModel):
     choice = models.CharField(max_length=1024)
     question = models.ForeignKey(Question, on_delete=models.CASCADE)
     image_url = models.URLField(blank=True, null=True, default=None)
+    position = models.PositiveIntegerField(default=0)
 
     def __str__(self):
         return f'{self.short_id}: "{self.choice}"'

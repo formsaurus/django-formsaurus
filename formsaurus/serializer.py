@@ -229,7 +229,7 @@ class Serializer:
             result['choices'] = []
             index = 0
             choices = []
-            for choice in question.choice_set.all():
+            for choice in question.choice_set.order_by('position').all():
                 choices.append(choice)
             if 'randomize' in result['parameters'] and result['parameters']['randomize']:
                 random.shuffle(choices)
@@ -237,7 +237,9 @@ class Serializer:
                 choices.append(ObjectDict({
                     'id': '',
                     'choice': 'Other',
+                    'position': len(choices),
                 }))
+
             for choice in choices:
                 result['choices'].append(Serializer.choice(choice, index))
                 index = index + 1
@@ -261,6 +263,7 @@ class Serializer:
             'id': str(choice.id),
             'choice': choice.choice,
             'image_url': choice.image_url,
+            'position': choice.position,
         }
         if index is not None:
             result['keycode'] = 97+index
