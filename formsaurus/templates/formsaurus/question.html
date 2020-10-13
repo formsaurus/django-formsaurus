@@ -54,7 +54,7 @@ function readFile(input) {
         var preview = $('<div>')
         if (input.files[0].type.startsWith('image')) {
             $('<img width="200" src="' + e.target.result + '" />').appendTo(preview)
-                
+
         } else {
             $('<i class="far fa-file"></i>').appendTo(preview)
         }
@@ -91,7 +91,7 @@ $.fn.enterKey = function (fnc) {
 
 $(function() {
     var form = $('#question-form')
-    
+
     function do_submit() {
         // Make sure all required fields are filled up
         var completed = true
@@ -107,12 +107,8 @@ $(function() {
         if (completed) {
             form.submit()
         }
-        // if (completed && confirm('Submit')) {
-        //     form.submit()
-        // }
     }
 
-    // Global enter submits (FIXME probably not working on text area)
     $(document).enterKey(function(evt) {
         console.log('Global Enter', evt)
         if ($(evt.target).is(':input')) {
@@ -134,7 +130,6 @@ $(function() {
         var other = choice.hasClass('other')
         console.log('\tChoice Value', choice_value)
         console.log('\tOther', other)
-
 
         if (other) {
             if (choice.hasClass('d-none')) {
@@ -211,6 +206,9 @@ $(function() {
         console.log('choice clicked, toggle', $(this))
         evt.preventDefault()
         toggle_choice($(this))
+        // To make sure 'Enter' works for the form, make sure the button/link is not focused
+        // after being clicked.
+        $(this).blur()
     })
 
     // Opinion
@@ -237,7 +235,7 @@ $(function() {
     $(document).keypress(function(evt) {
         var keycode = (evt.keyCode ? evt.keyCode : evt.which)
         console.log('Keypress ' + keycode, evt)
-        
+
         if (keycode in choice_keymap && evt.target == document.body) {
             console.log('Keypress -> choice toggle', choice_keymap[keycode])
             evt.preventDefault()
@@ -288,7 +286,7 @@ $(function() {
                             $('.question-form-submit').addClass('disabled')
                         }
                     }
-                }   
+                }
             });
     }
 
