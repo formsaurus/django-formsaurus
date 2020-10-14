@@ -10,12 +10,9 @@
 <div class="clearfix mb-4">
     {% for choice in question.choices %}
         <div class="mb-4 float-left mr-3">
-            {% if question.parameters.multiple_selection %}
-                <a href="#" data-keycode="{{ choice.keycode }}" data-letter="{{ choice.letter }}" class="btn btn-outline-primary choice {% if not choice.id %}other{% endif %}" data-value="{{ choice.id }}">
-            {% else %}
-                <button type="submit" data-keycode="{{ choice.keycode }}" data-letter="{{ choice.letter }}" class="btn btn-outline-primary choice {% if not choice.id %}other{% endif %}" name="answer" value="{{ choice.id }}">
-            {% endif %}
+            <div data-keycode="{{ choice.keycode }}" data-letter="{{ choice.letter }}" class="choice choice-unselected {% if not choice.id %}other{% endif %} {% if question.parameters.multiple_selection %}multiple{% endif %}" data-value="{{ choice.id }}">
             {% if choice.id %}
+                <!-- Picture Choice {{ choice.choice }} -->
                 <div style="width: {{ wh }}; height: {{ wh }};">
                     <img src="{{ choice.image_url }}" class="img-fluid" style="max-height: 100%; border: 1px solid #dee2e6;">
                 </div>
@@ -25,15 +22,11 @@
                     <p>{{ choice.letter }}</p>
                 {% endif %}
             {% else %}
+                <!-- Picture Choice Other -->
                 <div style="width: {{ wh }}; height: {{ wh }}; padding-top: 5vh;"><i class="fas fa-pencil" style="font-size: 5vh;"></i></div>
-                <p>{{ choice.letter }}. {{ choice.choice }}</p>                
+                <p>{{ choice.letter }}. {{ choice.choice }}</p>
             {% endif %}
-            {% if question.parameters.multiple_selection %}
-            </a>        
-            {% else %}
-            </button>
-            {% endif %}
-
+            </div>
         </div>
     {% endfor %}
 </div>

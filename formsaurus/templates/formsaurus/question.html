@@ -126,7 +126,7 @@ $(function() {
 
     function toggle_choice(choice) {
         console.log('Toggle choice', choice)
-        var choice_value = choice.is('button') ? choice.val() : choice.attr('data-value');
+        var choice_value = choice.attr('data-value');
         var other = choice.hasClass('other')
         console.log('\tChoice Value', choice_value)
         console.log('\tOther', other)
@@ -136,12 +136,14 @@ $(function() {
                 choice.removeClass('d-none')
                 choice.next().remove()
             } else {
+                // Create input[type="text"] prepend letter, append clear
                 var group = $('<div>').addClass('input-group').appendTo(choice.parent())
                 var prepend = $('<div>').addClass('input-group-prepend').appendTo(group)
                 $('<span>').addClass('input-group-text').text(choice.attr('data-letter')+'. ').appendTo(prepend)
-                var input = $('<input>').attr('type', 'text').attr('name', 'answer').addClass('form-control btn-outline-primary').appendTo(group)
+                var input = $('<input>').attr('type', 'text').attr('name', 'answer').addClass('form-control').appendTo(group)
+                // When pressing enter, either submit when single selection or blur field
                 input.enterKey(function(evt) {
-                    if (!choice.is('button')) {
+                    if (!choice.hasClass('multiple')) {
                         evt.preventDefault()
                         input.blur()
                     } else {
@@ -149,6 +151,7 @@ $(function() {
                         do_submit()
                     }
                 })
+                // Monitor for Esc on input field
                 input.keydown(function(evt) {
                     var keycode = (evt.keyCode ? evt.keyCode : evt.which);
                     console.log('Other ' + keycode)
@@ -156,39 +159,50 @@ $(function() {
                         $(this).blur()
                     }
                 })
+                // If losing focus without value, show button again
                 input.blur(function(evt) {
                     if ($(this).val() == "") {
                         toggle_choice(choice)
                     }
                 })
+                // Append; clear button
                 var append = $('<div>').addClass('input-group-append').appendTo(group)
-                var button = $('<button>').addClass('btn btn-outline-primary').appendTo(append)
+                var button = $('<button>').addClass('btn btn-outline-secondary').appendTo(append)
                 button.click(function(evt) {
                     console.log('Other button clicked, toggle choice', choice)
                     evt.preventDefault()
                     toggle_choice(choice)
                 })
                 $('<i>').addClass('fas fa-times').appendTo(button)
+                // Hide 'Other' button
                 choice.addClass('d-none')
+                // Give focus to input
                 input.focus()
             }
         }
-        if (choice.hasClass('btn-outline-primary')) {
-            choice.addClass('btn-primary').removeClass('btn-outline-primary')
+        if (choice.hasClass('choice-unselected')) {
+            choice.addClass('choice-selected').removeClass('choice-unselected')
         } else {
-            choice.removeClass('btn-primary').addClass('btn-outline-primary')
+            choice.removeClass('choice-selected').addClass('choice-unselected')
         }
 
         // Multiple selection, need to handle the input
-        if (choice.hasClass('btn-primary')) {
+        if (choice.hasClass('choice-selected')) {
             $('<input>').attr('name', 'answer').attr('type', 'hidden').val(choice_value).appendTo(choice.parent())
         } else {
             choice.next().remove()
         }
         if (form.hasClass('question-required')) {
-            if (form.find('input[name="answer"]').length > 0) {
-                form.find('input[name="filled"]').val(true)
-                $('.question-form-submit').removeClass('disabled')
+            var answers = form.find('input[name="answer"]')
+            if (answers.length > 0) {
+                console.log('Answers', answers)
+                if (answers.length == 1 && $(answers[0]).val() == '') {
+                    form.find('input[name="filled"]').val('')
+                    $('.question-form-submit').addClass('disabled')
+                } else {
+                    form.find('input[name="filled"]').val(true)
+                    $('.question-form-submit').removeClass('disabled')
+                }
             } else {
                 form.find('input[name="filled"]').val('')
                 $('.question-form-submit').addClass('disabled')

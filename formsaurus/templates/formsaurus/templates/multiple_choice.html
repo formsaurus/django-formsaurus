@@ -6,11 +6,7 @@
 {% endif %}
     {% for choice in question.choices %}
         <div class="mb-1">
-            {% if question.parameters.multiple_selection %}
-                <a href="#" data-value="{{ choice.id }}" data-keycode="{{ choice.keycode }}" data-letter="{{ choice.letter }}" class="text-left btn btn-outline-primary choice btn-wide {% if not choice.id %}other{% endif %}">{{ choice.letter }}. {{ choice.choice }}</a>
-            {% else %}
-                <button type="submit" name="answer" value="{{choice.id}}" data-keycode="{{ choice.keycode }}" data-letter="{{ choice.letter }}" class="text-left btn btn-outline-primary choice btn-wide {% if not choice.id %}other{% endif %}">{{ choice.letter }}. {{ choice.choice }}</button>
-            {% endif %}
+            <div data-value="{{ choice.id }}" data-keycode="{{ choice.keycode }}" data-letter="{{ choice.letter }}" class="text-left choice choice-unselected btn-wide {% if not choice.id %}other{% endif %} {% if question.parameters.multiple_selection %}multiple{% endif %}">{{ choice.letter }}. {{ choice.choice }}</div>
         </div>
     {% endfor %}
 {% endblock %}
