@@ -8,7 +8,7 @@
                 <div class="mb-4">
                     {% block header %}
                         {% if question.parameters.image_url %}
-                            <img src="{{ question.parameters.image_url }}" class="img-fluid mb-4" style="max-height: 30vh;">
+                            <img src="{{ question.parameters.image_url }}" class="img-fluid mb-4" style="max-height: 30vh; object-fit: cover; object-position: {{ question.parameters.position_x}}% {{ question.parameters.position_y }}%; opacity: {{ question.parameters.opacity }}%;">
                         {% elif question.parameters.video_url %}
                             {{ question.parameters.video_url|embed }}
                         {% endif %}
