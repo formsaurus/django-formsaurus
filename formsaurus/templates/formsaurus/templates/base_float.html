@@ -1,8 +1,8 @@
 {% load formsaurus %}
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-6">
-            <div class="vertical-center">
+<div class="container-fluid pt-2">
+    <div class="row no-gutters">
+        <div class="col-md-6 order-2 order-md-1">
+            <div class="vertical-md-center">
                 <form method="POST" class="w-100 p-5 {% if question.required %}question-required{% endif %}" action="{% url 'formsaurus:question' survey.id question.id submission.id %}" id="question-form" {% if question.type == 'FU' %}enctype="multipart/form-data"{% endif %}>
                     {% csrf_token %}
                     <div class="mb-4">
@@ -30,10 +30,10 @@
                 </form>
             </div>
         </div>
-        <div class="col-6">
-            <div class="vertical-center">
+        <div class="col-md-6 order-1 order-md-2">
+            <div class="vertical-md-center pr-5">
                 {% if question.parameters.image_url %}
-                    <img src="{{ question.parameters.image_url }}" class="img-fluid" style="max-width: 40vw;">
+                    <img src="{{ question.parameters.image_url }}" class="img-fluid mx-auto">
                 {% elif question.parameters.video_url %}
                     {{ question.parameters.video_url|embed }}
                 {% endif %}

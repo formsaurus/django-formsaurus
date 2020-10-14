@@ -25,6 +25,18 @@
         display: flex;
         align-items: center;
     }
+
+    @media (min-width: 768px) {
+        .vertical-md-center {
+            min-height: 100%;  /* Fallback for browsers do NOT support vh unit */
+            min-height: 100vh; /* These two lines are counted as one :-)       */
+
+            display: flex;
+            align-items: center;
+        }
+    }
+
+
     input.choice, button.choice {
         min-width: 150px;
         max-width: 100%;
