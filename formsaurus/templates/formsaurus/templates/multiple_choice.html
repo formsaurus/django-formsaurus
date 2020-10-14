@@ -6,7 +6,7 @@
 {% endif %}
     {% for choice in question.choices %}
         <div class="mb-1">
-            <div data-value="{{ choice.id }}" data-keycode="{{ choice.keycode }}" data-letter="{{ choice.letter }}" class="text-left choice choice-unselected btn-wide {% if not choice.id %}other{% endif %} {% if question.parameters.multiple_selection %}multiple{% endif %}">{{ choice.letter }}. {{ choice.choice }}</div>
+            <div data-value="{{ choice.id }}" data-keycode="{{ choice.keycode }}" data-letter="{{ choice.letter }}" class="text-left choice choice-unselected btn-wide {% if not choice.id %}other{% endif %} {% if question.parameters.multiple_selection %}multiple{% else %}single-choice{% endif %}">{{ choice.letter }}. {{ choice.choice }}</div>
         </div>
     {% endfor %}
 {% endblock %}

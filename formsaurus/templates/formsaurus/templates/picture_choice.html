@@ -10,7 +10,7 @@
 <div class="clearfix mb-4">
     {% for choice in question.choices %}
         <div class="mb-4 float-left mr-3">
-            <div data-keycode="{{ choice.keycode }}" data-letter="{{ choice.letter }}" class="choice choice-unselected {% if not choice.id %}other{% endif %} {% if question.parameters.multiple_selection %}multiple{% endif %}" data-value="{{ choice.id }}">
+            <div data-keycode="{{ choice.keycode }}" data-letter="{{ choice.letter }}" class="choice choice-unselected {% if not choice.id %}other{% endif %} {% if question.parameters.multiple_selection %}multiple{% else %}single-choice{% endif %}" data-value="{{ choice.id }}">
             {% if choice.id %}
                 <!-- Picture Choice {{ choice.choice }} -->
                 <div style="width: {{ wh }}; height: {{ wh }};">

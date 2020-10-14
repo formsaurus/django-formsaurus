@@ -210,7 +210,7 @@ $(function() {
         }
 
         // button is used for single selection
-        if (choice.is('button') && choice_value != undefined && choice_value != '') {
+        if (choice.hasClass('single-choice') && choice_value != undefined && choice_value != '') {
             form.find('input[name="filled"]').val(true)
             do_submit()
         }
