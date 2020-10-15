@@ -42,6 +42,9 @@ class QuestionType:
         self.name = name
         self.disabled = disabled
 
+    def __str__(self):
+        return f'{self.type} {self.name} {self.disabled}'
+
 class Shape:
     def __init__(self, shape_type, name, disabled=False):
         self.shape = shape_type
@@ -107,6 +110,13 @@ class AbstractSurvey(BaseModel):
                 disabled=False,
             )
         return shapes
+
+    @property
+    def logic_enabled(self):
+        """
+        Returns whether logic jumps are enabled.
+        """
+        return True
 
 
     @property
@@ -720,7 +730,6 @@ class Question(BaseModel):
 
     TYPES = [
         (WELCOME_SCREEN, 'Welcome Screen'),
-        (THANK_YOU_SCREEN, 'Thank You Screen'),
         (MULTIPLE_CHOICE, 'Multiple Choice'),
         (PHONE_NUMBER, 'Phone Number'),
         (SHORT_TEXT, 'Short Text'),
@@ -738,6 +747,7 @@ class Question(BaseModel):
         (FILE_UPLOAD, 'File Upload'),
         (PAYMENT, 'Payment'),
         (WEBSITE, 'Website'),
+        (THANK_YOU_SCREEN, 'Thank You Screen'),
     ]
     survey = models.ForeignKey(Survey, on_delete=models.CASCADE)
     question = models.TextField()

@@ -2,7 +2,7 @@
 {% load static %}
 {% load formsaurus %}
 {% block content %}
-{% include 'formsaurus/manage/navbar.html' %}
+{% include navbar_template_name %}
 <div class="container">
     <div class="row">
         <div class="col">
@@ -13,18 +13,18 @@
                 {% else %}
                     Add
                     {% if question %}
-                    <button type="button" class="btn btn-secondary btn-wide" disabled>{{ type_name }}</button>
+                        <button type="button" class="btn btn-secondary btn-wide" disabled>{{ type_name }}</button>
                     {% else %}
-                    <div class="btn-group">
-                        <button type="button" class="btn btn-secondary btn-wide dropdown-toggle" data-toggle="dropdown"
-                            aria-haspopup="true" aria-expanded="false">{{ type_name }}</button>
-                        <div class="dropdown-menu">
-                            {% for type in types.items %}
-                            <a class="dropdown-item"
-                                href="{% url 'formsaurus_manage:survey_add_question' survey.id type.0 %}">{{ type.1.name }}</a>
-                            {% endfor %}
+                        <div class="btn-group">
+                            <button type="button" class="btn btn-secondary btn-wide dropdown-toggle" data-toggle="dropdown"
+                                aria-haspopup="true" aria-expanded="false">{{ type_name }}</button>
+                            <div class="dropdown-menu">
+                                {% for type in types.items %}
+                                <a class="dropdown-item {% if type.1.disabled %}disabled{% endif %}"
+                                    href="{% url 'formsaurus_manage:survey_add_question' survey.id type.0 %}" >{{ type.1.name }}</a>
+                                {% endfor %}
+                            </div>
                         </div>
-                    </div>
                     Question
                     {% endif %}
                 {% endif %}
@@ -91,7 +91,7 @@
                                     <a href="#" data-toggle="modal" data-target="#imageModal"><img class="img-fluid" style="height:26px" src="{{ question.parameters.image_url }}"/></a>
                                     <a href="#" data-target="clearImage"><i class="ml-3 pt-1 fas fa-times"></i></a>
                                 {% else %}
-                                    {% if has_unsplash or has_tenor %}
+                                    {% if survey.has_unsplash or survey.has_tenor %}
                                         <a href="#" data-toggle="modal" data-target="#imageModal" style="text-decoration: none!important;">
                                             <i class="pt-1 far fa-image mr-2"></i>
                                             <small><i class="fas fa-plus"></i></small>

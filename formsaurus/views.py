@@ -20,6 +20,7 @@ class SurveyView(View):
     """This is the entry to a survey."""
     question_url = 'formsaurus:question'
     completed_url = 'formsaurus:completed'
+    closed_url = 'formsaurus:closed'
 
     def get(self, request, survey_id):
         survey = get_object_or_404(Survey, pk=survey_id)
@@ -27,7 +28,7 @@ class SurveyView(View):
             if not request.user.is_authenticated or survey.user != request.user:
                 raise Http404
         if not survey.answerable:
-            raise Http404
+            return redirect(self.closed_url, survey.id)
 
         question = survey.first_question
         submission = Submission.objects.create(
@@ -79,10 +80,10 @@ class QuestionView(View):
                 raise Http404
 
         question = get_object_or_404(Question, pk=question_id)
-        if question.survey != survey:
+        if question.survey_id != survey_id:
             raise Http404
         submission = get_object_or_404(Submission, pk=submission_id)
-        if submission.survey != survey:
+        if submission.survey_id != survey_id:
             raise Http404
         context = self.context(question, survey, submission)
         return render(request, self.template_name, context=context)
@@ -91,11 +92,11 @@ class QuestionView(View):
         survey = get_object_or_404(Survey, pk=survey_id)
 
         question = get_object_or_404(Question, pk=question_id)
-        if question.survey != survey:
+        if question.survey_id != survey_id:
             raise Http404
 
         submission = get_object_or_404(Submission, pk=submission_id)
-        if submission.survey != survey:
+        if submission.survey_id != survey_id:
             raise Http404
 
         answer, error = submission.record_answer(
@@ -138,6 +139,22 @@ class CompletedView(View):
         context = {}
         context['survey'] = Serializer.survey(survey)
         context['submission'] = Serializer.submission(submission)
+        context['site_url'] = reverse(
+            self.site_url) if self.site_url is not None else None
+        context['register_url'] = reverse(
+            self.register_url) if self.register_url is not None else None
+        return render(request, self.template_name, context=context)
+
+
+class ClosedView(View):
+    template_name = 'formsaurus/closed.html'
+    site_url = None
+    register_url = None
+
+    def get(self, request, survey_id):
+        survey = get_object_or_404(Survey, pk=survey_id)
+        context = {}
+        context['survey'] = Serializer.survey(survey)
         context['site_url'] = reverse(
             self.site_url) if self.site_url is not None else None
         context['register_url'] = reverse(

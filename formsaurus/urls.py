@@ -8,4 +8,7 @@ urlpatterns = [
          views.QuestionView.as_view(), name='question'),
     path('form/completed/<uuid:survey_id>/<uuid:submission_id>',
          views.CompletedView.as_view(), name='completed'),
+    path('form/closed/<uuid:survey_id>',
+         views.ClosedView.as_view(), name='closed'),
+
 ]

@@ -1,7 +1,7 @@
 {% extends 'formsaurus/skeleton.html' %}
 {% load formsaurus %}
 {% block content %}
-{% include 'formsaurus/manage/navbar.html' %}
+{% include navbar_template_name %}
 <div class="container">
     <div class="row">
         <div class="col">
@@ -11,7 +11,7 @@
             <div class="custom-control custom-switch">
                 <input type="checkbox" class="custom-control-input" id="publish_switch" {% if survey.published %}checked disabled{% endif %}>
                 <label class="custom-control-label" for="publish_switch">Published</label>
-            </div>                
+            </div>
 
         </div>
     </div>
@@ -20,7 +20,7 @@
         <div class="col">
             {% if survey.submissions %}
             <h2>Answers</h2>
-            
+
             <table class="table">
                 <thead>
                     <tr>
@@ -29,15 +29,15 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {% for submission in survey.submissions %} 
+                    {% for submission in survey.submissions %}
                     <tr>
                         <td>
                             <div class="custom-control custom-switch">
                                 <input type="checkbox" class="custom-control-input" disabled id="completed_{{ submission.id }}" {% if submission.completed %}checked{% endif %}>
                                 <label class="custom-control-label" for="completed_{{ submission.id }}"></label>
-                            </div>                
+                            </div>
                         </td>
-                        
+
                         <td><a href="{% url 'formsaurus_manage:submission' survey.id submission.id %}">{{ submission.completed_at }}</a></td>
                     </tr>
                     {% endfor %}

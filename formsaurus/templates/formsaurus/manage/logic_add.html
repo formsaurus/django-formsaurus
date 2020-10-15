@@ -1,7 +1,7 @@
 {% extends 'formsaurus/skeleton.html' %}
 
 {% block content %}
-{% include 'formsaurus/manage/navbar.html' %}
+{% include navbar_template_name %}
 <div class="container">
     <div class="row">
         <div class="col">
@@ -20,7 +20,7 @@
                     {% include 'formsaurus/manage/fragments/logic_group.html' with logic_group_id="group" %}
                 {% endfor %}
             </div>
-           
+
             <button class="btn btn-secondary" id="add_jump"><i class="fas fa-plus"></i> Add Logic Jump</button>
 
             <!-- DEFAULT -->
@@ -205,7 +205,7 @@ function init_block(block) {
 function build_logic() {
     var groups = []
     var container = $('#logic_group_container')
-   
+
     $.each(container.find('.logic-group'), function(index, group) {
         var subcontainer = $(group).find('.block_container')
         var group = {
@@ -276,7 +276,7 @@ $(function() {
         if (confirm('Are you sure?')) {
             $.ajax({
                 type: 'POST',
-                url: '{% url "formsaurus_manage:question_logic" survey.id question.id %}', 
+                url: '{% url "formsaurus_manage:question_logic" survey.id question.id %}',
                 headers: {'X-CSRFTOKEN': csrftoken},
                 data: JSON.stringify(logic),
                 contentType: 'application/json',
@@ -324,13 +324,13 @@ $(function() {
     $('#add_jump').click(function(evt) {
         count++;
         var group = $('#logic_group_tmpl').clone().attr('id', 'group'+count).removeClass('d-none').appendTo('#logic_group_container')
-        
+
         group.find('.remove-group').click(function(evt) {
             evt.preventDefault()
             group.remove()
             compute_default_label()
         })
-        
+
         var block = group.find('.logic-block')
         var logic_block_tmpl = block.clone()
         init_block(block)

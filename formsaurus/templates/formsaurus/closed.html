@@ -1,0 +1,21 @@
+{% extends "formsaurus/skeleton.html" %}
+
+{% block content %}
+<div class="vertical-center">
+    <main class="container">
+        <div class="row">
+            <div class="col">
+                <h1 class="display-3">Survey is Closed</h1>
+                <p class="lead">Create your own forms on formsaurus.com.</p>
+                <p><a href="{% url 'formsaurus_manage:manage' %}'" class="btn btn-primary btn-lg btn-wide">Get Started</a></p>
+
+                {% if submission.is_preview %}
+                    <p class="m-0">
+                        <a href="{% url 'formsaurus_manage:survey_wizard' survey.id %}" class="text-muted">&laquo; Back to Edit Survey</a>
+                    </p>
+                {% endif %}
+            </div>
+        </div>
+    </main>
+</div>
+{% endblock %}

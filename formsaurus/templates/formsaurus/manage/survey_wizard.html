@@ -1,7 +1,7 @@
 {% extends 'formsaurus/skeleton.html' %}
 {% load formsaurus %}
 {% block content %}
-{% include 'formsaurus/manage/navbar.html' %}
+{% include navbar_template_name %}
 <div class="container">
     <div class="row">
         <div class="col">
@@ -21,7 +21,7 @@
     {% if survey.published %}
         <div class="row">
             <div class="col">
-                <p class="text-muted"> 
+                <p class="text-muted">
                     <a href="{% url 'formsaurus:survey' survey.id %}" target="_blank">{{ request.scheme }}://{{ request.META.HTTP_HOST }}{% url 'formsaurus:survey' survey.id %}</a>
                 </p>
             </div>
@@ -44,11 +44,11 @@
         </div>
         {% endif %}
         <div class="col">
-            {% if survey.hiddenfield_set.all %}
+            {% if survey.hidden_fields %}
             <h2>Fields</h2>
             <table class="table">
                 <tbody>
-                    {% for field in survey.hiddenfield_set.all %}
+                    {% for field in survey.hidden_fields %}
                     <tr><td>{{ field.name }}</td></tr>
                     {% endfor %}
                 </tbody>
@@ -57,7 +57,7 @@
                 <p class="text-muted">No hidden fields in this form.</p>
             {% endif %}
 
-            {% if survey.question_set.all %}
+            {% if survey.questions %}
             <h2>Questions</h2>
             <table class="table">
                 <thead>
@@ -73,14 +73,14 @@
                     {% for question in survey.questions %}
                         <tr>
                             <td class="text-muted">{{ forloop.counter }}</td>
-                            <td class="text-muted">{{ question.question_type|question_type_name }}</td>
+                            <td class="text-muted">{{ question.type|question_type_name }}</td>
                             <td>{{ question.question }}</td>
                             <td>
-                                {% if question.question_type != 'WS' and question.question_type != 'TS' and question.question_type != 'S_' %}
+                                {% if question.type != 'WS' and question.type != 'TS' and question.type != 'S_' %}
                                 <div class="custom-control custom-switch">
                                     <input type="checkbox" class="custom-control-input" disabled id="show-image-switch" {% if question.required %}checked{% endif %}>
                                     <label class="custom-control-label" for="show-image-switch"></label>
-                                </div>                
+                                </div>
                                 {% endif %}
                             </td>
                             <td>
@@ -94,8 +94,12 @@
                                             <a class="dropdown-item text-danger" href="{% url 'formsaurus_manage:delete_question' survey.id question.id %}" onclick="return confirm('Are you sure you want to delete {{ question.question }}?');">Delete</a>
                                             <a class="dropdown-item" href="{% url 'formsaurus_manage:question_up' survey.id question.id %}">Move Up</a>
                                             <a class="dropdown-item" href="{% url 'formsaurus_manage:question_down' survey.id question.id %}">Move Down</a>
-                                            {% if question.question_type != 'WS' and question.question_type != 'TS' and question.question_type != 'S_' %}
-                                            <a class="dropdown-item" href="{% url 'formsaurus_manage:question_logic' survey.id question.id %}">Edit Logic</a>
+                                            {% if question.type != 'WS' and question.type != 'TS' and question.type != 'S_' %}
+                                                {% if survey.logic_enabled %}
+                                                    <a class="dropdown-item" href="{% url 'formsaurus_manage:question_logic' survey.id question.id %}">Edit Logic</a>
+                                                {% else %}
+                                                    <span class="dropdown-item">Edit Logic</span>
+                                                {% endif %}
                                             {% endif %}
                                         </div>
                                     </div>
@@ -105,10 +109,14 @@
                                     <a href="{% url 'formsaurus_manage:delete_question' survey.id question.id %}" onclick="return confirm('Are you sure you want to delete {{ question.question }}?');"><i class="fas fa-trash"></i></a>
                                     <a href="{% url 'formsaurus_manage:question_up' survey.id question.id %}"><i class="fas fa-angle-up"></i></a>
                                     <a href="{% url 'formsaurus_manage:question_down' survey.id question.id %}"><i class="fas fa-angle-down"></i></a>
-                                    {% if question.question_type != 'WS' and question.question_type != 'TS' and question.question_type != 'S_' %}
-                                    <a href="{% url 'formsaurus_manage:question_logic' survey.id question.id %}"><i class="fas fa-code-branch"></i></a>
+                                    {% if question.type != 'WS' and question.type != 'TS' and question.type != 'S_' %}
+                                        {% if survey.logic_enabled %}
+                                            <a href="{% url 'formsaurus_manage:question_logic' survey.id question.id %}"><i class="fas fa-code-branch"></i></a>
+                                        {% else %}
+                                            <i class="fas fa-code-branch text-muted"></i>
+                                        {% endif %}
                                     {% endif %}
-                                </div>  
+                                </div>
                                 {% endif %}
                             </td>
                         </tr>

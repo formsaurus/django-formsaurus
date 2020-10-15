@@ -1,9 +1,11 @@
 from django import forms
-from formsaurus.models import (Question, Survey, WelcomeParameters, ThankYouParameters,
+from formsaurus.models import (Question, WelcomeParameters, ThankYouParameters,
                                MultipleChoiceParameters, PhoneNumberParameters, ShortTextParameters, LongTextParameters, StatementParameters,
                                PictureChoiceParameters, YesNoParameters, EmailParameters, OpinionScaleParameters, RatingParameters, DateParameters,
                                NumberParameters, DropdownParameters, LegalParameters, FileUploadParameters, PaymentParameters, WebsiteParameters, HiddenField)
+from formsaurus.utils import get_survey_model
 
+Survey = get_survey_model()
 
 class SurveyForm(forms.ModelForm):
     class Meta:

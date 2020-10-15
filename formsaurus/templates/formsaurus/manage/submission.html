@@ -1,7 +1,7 @@
 {% extends 'formsaurus/skeleton.html' %}
 {% load formsaurus %}
 {% block content %}
-{% include 'formsaurus/manage/navbar.html' %}
+{% include navbar_template_name %}
 <div class="container">
     <div class="row">
         <div class="col">
@@ -11,7 +11,7 @@
             <div class="custom-control custom-switch">
                 <input type="checkbox" class="custom-control-input" id="publish_switch" {% if survey.published %}checked disabled{% endif %}>
                 <label class="custom-control-label" for="publish_switch">Published</label>
-            </div>                
+            </div>
 
         </div>
     </div>
@@ -33,7 +33,7 @@
                     <td>{{ field.value }}</td>
                 </tr>
                 {% endfor %}
-            </table>            
+            </table>
         </div>
     </div>
     {% endif %}
@@ -42,7 +42,7 @@
             <h3>Answers</h3>
             <table class="table">
                 <tbody>
-                    {% for answer in submission.answers %} 
+                    {% for answer in submission.answers %}
                     <tr>
                         <td>{{ forloop.counter }}</td>
                         <td>{{ answer.question.question }}</td>

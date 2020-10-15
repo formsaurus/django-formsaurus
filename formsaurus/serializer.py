@@ -1,5 +1,6 @@
 import random
 
+from django.conf import settings
 from formsaurus.models import (
     Question, Condition, TextCondition, NumberCondition, ChoiceCondition, BooleanCondition, DateCondition)
 
@@ -21,6 +22,10 @@ class Serializer:
             'id': str(survey.id),
             'name': survey.name,
             'published': survey.published,
+            'logic_enabled': survey.logic_enabled,
+            'has_unsplash': hasattr(settings, 'UNSPLASH_ACCESS_KEY'),
+            'has_pexels': hasattr(settings, 'PEXELS_API_KEY'),
+            'has_tenor': hasattr(settings, 'TENOR_API_KEY'),
         }
 
     @classmethod
@@ -354,3 +359,11 @@ class Serializer:
         hashmap['match'] = condition.match
         hashmap['pattern'] = condition.date
         return hashmap
+
+
+    @classmethod
+    def hidden_field(cls, field):
+        return {
+            'id': str(field.id),
+            'name': field.name,
+        }

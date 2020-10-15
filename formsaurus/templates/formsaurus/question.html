@@ -195,14 +195,8 @@ $(function() {
         if (form.hasClass('question-required')) {
             var answers = form.find('input[name="answer"]')
             if (answers.length > 0) {
-                console.log('Answers', answers)
-                if (answers.length == 1 && $(answers[0]).val() == '') {
-                    form.find('input[name="filled"]').val('')
-                    $('.question-form-submit').addClass('disabled')
-                } else {
-                    form.find('input[name="filled"]').val(true)
-                    $('.question-form-submit').removeClass('disabled')
-                }
+                form.find('input[name="filled"]').val(true)
+                $('.question-form-submit').removeClass('disabled')
             } else {
                 form.find('input[name="filled"]').val('')
                 $('.question-form-submit').addClass('disabled')

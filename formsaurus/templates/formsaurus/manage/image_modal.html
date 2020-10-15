@@ -12,12 +12,12 @@
                     <div class="row mb-4">
                         <div class="col">
                             <ul class="nav nav-tabs" id="image_search_tabs">
-                                {% if has_unsplash %}
+                                {% if survey.has_unsplash %}
                                 <li class="nav-item">
                                   <a class="nav-link active" href="#" data-backend="unsplash">Unsplash</a>
                                 </li>
                                 {% endif %}
-                                {% if has_tenor %}
+                                {% if survey.has_tenor %}
                                 <li class="nav-item">
                                   <a class="nav-link" href="#" data-backend="tenor">Tenor GIF</a>
                                 </li>

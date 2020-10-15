@@ -24,6 +24,20 @@ logger = logging.getLogger('formsaurus')
 
 Survey = get_survey_model()
 
+class ManageBaseView(LoginRequiredMixin, View):
+    navbar_template_name = 'formsaurus/manage/navbar.html'
+
+    def context_data(self):
+        navbar_template_name = self.navbar_template_name
+        if hasattr(settings, 'FORMSAURUS_NAVBAR_TEMPLATE_NAME'):
+            navbar_template_name = settings.FORMSAURUS_NAVBAR_TEMPLATE_NAME
+        return {
+            'navbar_template_name': navbar_template_name,
+        }
+
+    class Meta:
+        abstract = True
+
 class ManageView(LoginRequiredMixin, View):
     success_url = 'formsaurus_manage:surveys'
 
@@ -31,28 +45,33 @@ class ManageView(LoginRequiredMixin, View):
         return redirect(self.success_url)
 
 
-class SurveysView(LoginRequiredMixin, View):
+class SurveysView(ManageBaseView):
     """List all forms own by authorized user."""
     template_name = 'formsaurus/manage/surveys.html'
 
     def get(self, request):
-        context = {}
+        context = self.context_data()
         context['surveys'] = []
         for survey in Survey.objects.filter(user=request.user).order_by('-created_at'):
             context['surveys'].append(Serializer.survey(survey))
         return render(request, self.template_name, context)
 
 
-class SurveyWizardView(LoginRequiredMixin, View):
+class SurveyWizardView(ManageBaseView):
     template_name = 'formsaurus/manage/survey_wizard.html'
 
     def get(self, request, survey_id):
         survey = get_object_or_404(Survey, pk=survey_id)
         if survey.user != request.user:
             raise Http404
-        context = {}
-        # context['survey'] = Serializer.survey(survey)
-        context['survey'] = survey
+        context = self.context_data()
+        context['survey'] = Serializer.survey(survey)
+        context['survey']['hidden_fields'] = []
+        for field in survey.hiddenfield_set.all():
+            context['survey']['hidden_fields'].append(Serializer.hidden_field(field))
+        context['survey']['questions'] = []
+        for question in survey.questions:
+            context['survey']['questions'].append(Serializer.question(question))
         if survey.published:
             # Stats about submissions
             context['submissions'] = {}
@@ -74,7 +93,7 @@ class SurveyWizardView(LoginRequiredMixin, View):
         return render(request, self.template_name, context)
 
 
-class AddQuestionView(LoginRequiredMixin, View):
+class AddQuestionView(ManageBaseView):
     template_name = 'formsaurus/manage/survey_add_question.html'
     add_question_url = 'formsaurus_manage:survey_add_question'
 
@@ -88,10 +107,7 @@ class AddQuestionView(LoginRequiredMixin, View):
             question_type=Question.WELCOME_SCREEN).count() > 0
         default_type = Question.WELCOME_SCREEN if not has_ws else Question.YES_NO
         question_type = question_type if question_type is not None else default_type
-        context = {}
-        context['has_unsplash'] = hasattr(settings, 'UNSPLASH_ACCESS_KEY')
-        context['has_pexels'] = hasattr(settings, 'PEXELS_API_KEY')
-        context['has_tenor'] = hasattr(settings, 'TENOR_API_KEY')
+        context = self.context_data()
         context['survey'] = Serializer.survey(survey)
         # Allowed question types
         question_types = survey.question_types
@@ -512,14 +528,14 @@ class AddQuestionView(LoginRequiredMixin, View):
             logger.warning('Failed to create question %s',
                            question_form.errors)
         # TODO need to handle any potential issues while adding a question to a form.
-        context = {}
+        context = self.context_data()
         context['form'] = question_form
         context['parameters'] = parameters_form
         raise Http404
         # return render(request, self.template_name, context)
 
 
-class EditQuestionView(LoginRequiredMixin, View):
+class EditQuestionView(ManageBaseView):
     template_name = 'formsaurus/manage/survey_add_question.html'
     edit_question_url = 'formsaurus_manage:survey_wizard'
 
@@ -528,7 +544,7 @@ class EditQuestionView(LoginRequiredMixin, View):
         if survey.user != request.user:
             raise Http404
         question = get_object_or_404(Question, pk=question_id)
-        if question.survey != survey:
+        if question.survey_id != survey_id:
             raise Http404
         if survey.published:
             raise Http404
@@ -537,11 +553,8 @@ class EditQuestionView(LoginRequiredMixin, View):
         has_ws = survey.question_set.filter(
             question_type=Question.WELCOME_SCREEN).count() > 0
         question_type = question.question_type
-        context = {}
 
-        context['has_unsplash'] = hasattr(settings, 'UNSPLASH_ACCESS_KEY')
-        context['has_pexels'] = hasattr(settings, 'PEXELS_API_KEY')
-        context['has_tenor'] = hasattr(settings, 'TENOR_API_KEY')
+        context = self.context_data()
         context['survey'] = Serializer.survey(survey)
         # Allowed question types
         question_types = survey.question_types
@@ -562,7 +575,7 @@ class EditQuestionView(LoginRequiredMixin, View):
         if survey.user != request.user:
             raise Http404
         question = get_object_or_404(Question, pk=question_id)
-        if question.survey != survey:
+        if question.survey_id != survey_id:
             raise Http404
         if survey.published:
             raise Http404
@@ -790,7 +803,7 @@ class DeleteQuestionView(LoginRequiredMixin, View):
         if survey.user != request.user:
             raise Http404
         question = get_object_or_404(Question, pk=question_id)
-        if question.survey != survey:
+        if question.survey_id != survey_id:
             raise Http404
         if survey.published:
             raise Http404
@@ -806,7 +819,7 @@ class QuestionUpView(LoginRequiredMixin, View):
         if survey.user != request.user:
             raise Http404
         question = get_object_or_404(Question, pk=question_id)
-        if question.survey != survey:
+        if question.survey_id != survey_id:
             raise Http404
         if survey.published:
             raise Http404
@@ -822,7 +835,7 @@ class QuestionDownView(LoginRequiredMixin, View):
         if survey.user != request.user:
             raise Http404
         question = get_object_or_404(Question, pk=question_id)
-        if question.survey != survey:
+        if question.survey_id != survey_id:
             raise Http404
         if survey.published:
             raise Http404
@@ -830,12 +843,12 @@ class QuestionDownView(LoginRequiredMixin, View):
         return redirect(self.success_url, survey.id)
 
 
-class SurveyAddView(LoginRequiredMixin, View):
+class SurveyAddView(ManageBaseView):
     template_name = 'formsaurus/manage/survey_add.html'
     success_url = 'formsaurus_manage:survey_wizard'
 
     def get(self, request):
-        context = {}
+        context = self.context_data()
         context['form'] = SurveyForm()
         return render(request, self.template_name, context)
 
@@ -847,11 +860,11 @@ class SurveyAddView(LoginRequiredMixin, View):
             survey.save()
             return redirect(self.success_url, survey.id)
         else:
-            context = {}
+            context = self.context_data()
             context['form'] = form
             return render(request, self.template_name, context)
 
-class SurveyEditView(LoginRequiredMixin, View):
+class SurveyEditView(ManageBaseView):
     template_name = 'formsaurus/manage/survey_add.html'
     success_url = 'formsaurus_manage:survey_wizard'
 
@@ -860,7 +873,7 @@ class SurveyEditView(LoginRequiredMixin, View):
         if survey.user != request.user:
             raise Http404
 
-        context = {}
+        context = self.context_data()
         context['form'] = SurveyForm(instance=survey)
         context['survey'] = Serializer.survey(survey)
         return render(request, self.template_name, context)
@@ -875,7 +888,7 @@ class SurveyEditView(LoginRequiredMixin, View):
             survey = form.save()
             return redirect(self.success_url, survey.id)
         else:
-            context = {}
+            context = self.context_data()
             context['survey'] = Serializer.survey(survey)
             context['form'] = form
             return render(request, self.template_name, context)
@@ -904,7 +917,7 @@ class DeleteSurveyView(LoginRequiredMixin, View):
         return redirect(self.success_url)
 
 
-class HiddenFieldView(LoginRequiredMixin, View):
+class HiddenFieldView(ManageBaseView):
     template_name = 'formsaurus/manage/survey_add_hidden_field.html'
     success_url = 'formsaurus_manage:survey_wizard'
 
@@ -912,7 +925,7 @@ class HiddenFieldView(LoginRequiredMixin, View):
         survey = get_object_or_404(Survey, pk=survey_id)
         if survey.user != request.user:
             raise Http404
-        context = {}
+        context = self.context_data()
         context['survey'] = survey
         context['form'] = HiddenFieldForm()
         return render(request, self.template_name, context)
@@ -927,25 +940,25 @@ class HiddenFieldView(LoginRequiredMixin, View):
             field.survey = survey
             field.save()
             return redirect(self.success_url, survey.id)
-        context = {}
+        context = self.context_data()
         context['survey'] = survey
         context['form'] = form
         return render(request, self.template_name, context)
 
 
-class SubmissionsView(LoginRequiredMixin, View):
+class SubmissionsView(ManageBaseView):
     template_name = 'formsaurus/manage/submissions.html'
 
     def get(self, request, survey_id):
         survey = get_object_or_404(Survey, pk=survey_id)
         if survey.user != request.user:
             raise Http404
-        context = {}
+        context = self.context_data()
         context['survey'] = survey
         return render(request, self.template_name, context)
 
 
-class SubmissionView(LoginRequiredMixin, View):
+class SubmissionView(ManageBaseView):
     template_name = 'formsaurus/manage/submission.html'
 
     def get(self, request, survey_id, submission_id):
@@ -956,13 +969,13 @@ class SubmissionView(LoginRequiredMixin, View):
         if submission.survey != survey:
             raise Http404
 
-        context = {}
+        context = self.context_data()
         context['survey'] = survey
         context['submission'] = submission
         return render(request, self.template_name, context)
 
 
-class LogicView(LoginRequiredMixin, View):
+class LogicView(ManageBaseView):
     template_name = 'formsaurus/manage/logic_add.html'
 
     def get(self, request, survey_id, question_id):
@@ -972,7 +985,7 @@ class LogicView(LoginRequiredMixin, View):
         if survey.published:
             raise Http404
         question = get_object_or_404(Question, pk=question_id)
-        if question.survey != survey:
+        if question.survey_id != survey_id:
             raise Http404
 
         questions = []
@@ -988,7 +1001,7 @@ class LogicView(LoginRequiredMixin, View):
                     previous_questions.append(Serializer.question(q))
                     found = True
 
-        context = {}
+        context = self.context_data()
         context['survey'] = Serializer.survey(survey)
         context['question'] = Serializer.question(question)
         context['question']['rules'] = []
@@ -1010,7 +1023,7 @@ class LogicView(LoginRequiredMixin, View):
         if survey.published:
             raise Http404
         question = get_object_or_404(Question, pk=question_id)
-        if question.survey != survey:
+        if question.survey_id != survey_id:
             raise Http404
 
         if question.question_type in [Question.WELCOME_SCREEN, Question.THANK_YOU_SCREEN, Question.STATEMENT]:
