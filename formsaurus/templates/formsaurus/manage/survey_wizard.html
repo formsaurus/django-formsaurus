@@ -15,9 +15,19 @@
                 <input type="checkbox" class="custom-control-input" id="publish_switch" {% if survey.published %}checked disabled{% endif %}>
                 <label class="custom-control-label" for="publish_switch">{% if survey.published %}Published{% else %}Draft{% endif %}</label>
             </div>
-
         </div>
     </div>
+
+    {% if messages %}
+        <div class="row mt-2">
+            <div class="col">
+                {% for message in messages %}
+                    <p class="alert {% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}alert-danger{% elif message.level == DEFAULT_MESSAGE_LEVELS.WARNING %}alert-warning{% elif message.level == DEFAULT_MESSAGE_LEVELS.SUCCESS %}alert-success{% else %}alert-info{% endif %}">{{ message }}</p>
+                {% endfor %}
+            </div>
+        </div>
+    {% endif %}
+
     {% if survey.published %}
         <div class="row">
             <div class="col">
@@ -40,6 +50,9 @@
                 <div class="col-8 mb-2"><a href="{% url 'formsaurus_manage:survey_add_question' survey.id %}" class="btn btn-primary btn-wide {% if survey.published %}disabled{% endif %}">Add Question</a></div>
                 <div class="col-8 mb-2"><a href="{% url 'formsaurus_manage:survey_preview' survey.id %}" class="btn btn-secondary btn-wide {% if survey.published %}disabled{% endif %}" target="_blank">Preview <i class="fas fa-external-link"></i></a></div>
                 <div class="col-8 mb-2"><a href="{% url 'formsaurus_manage:survey_delete' survey.id %} " onclick="return confirm('Are you sure you want to delete form {{ survey.name }}?');" class="btn btn-danger btn-wide {% if survey.published %}disabled{% endif %}">Delete</a></div>
+                {% if survey.wizard_actions_template_name %}
+                    {% include survey.wizard_actions_template_name %}
+                {% endif %}
             </div>
         </div>
         {% endif %}

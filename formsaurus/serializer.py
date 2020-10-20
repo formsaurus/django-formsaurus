@@ -18,15 +18,7 @@ class ObjectDict(object):
 class Serializer:
     @classmethod
     def survey(cls, survey):
-        return {
-            'id': str(survey.id),
-            'name': survey.name,
-            'published': survey.published,
-            'logic_enabled': survey.logic_enabled,
-            'has_unsplash': hasattr(settings, 'UNSPLASH_ACCESS_KEY'),
-            'has_pexels': hasattr(settings, 'PEXELS_API_KEY'),
-            'has_tenor': hasattr(settings, 'TENOR_API_KEY'),
-        }
+        return survey.to_dict()
 
     @classmethod
     def submission(cls, submission):

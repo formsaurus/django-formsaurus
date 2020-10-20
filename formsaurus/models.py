@@ -4,8 +4,9 @@ import uuid
 from dateutil import parser
 from decimal import Decimal
 from django import forms
-from django.db import models
+from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.db import models
 from django.utils.timezone import make_aware
 from django.utils import timezone
 from phonenumber_field.modelfields import PhoneNumberField
@@ -118,6 +119,21 @@ class AbstractSurvey(BaseModel):
         """
         return True
 
+    @property
+    def wizard_actions_template_name(self):
+        return None
+
+    def to_dict(self):
+        return {
+            'id': str(self.id),
+            'name': self.name,
+            'published': self.published,
+            'logic_enabled': self.logic_enabled,
+            'has_unsplash': hasattr(settings, 'UNSPLASH_ACCESS_KEY'),
+            'has_pexels': hasattr(settings, 'PEXELS_API_KEY'),
+            'has_tenor': hasattr(settings, 'TENOR_API_KEY'),
+            'wizard_actions_template_name': self.wizard_actions_template_name,
+        }
 
     @property
     def submissions(self):
@@ -131,7 +147,7 @@ class AbstractSurvey(BaseModel):
         for question in questions:
             cache[question.id] = question
         results = []
-        current = cache[self.first_question_id]
+        current = cache[self.first_question_id] if self.first_question_id is not None else None
         while current is not None:
             results.append(current)
             current = cache[current.next_question_id] if current.next_question_id is not None else None

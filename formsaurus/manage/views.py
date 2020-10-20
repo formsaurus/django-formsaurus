@@ -27,7 +27,7 @@ Survey = get_survey_model()
 class ManageBaseView(LoginRequiredMixin, View):
     navbar_template_name = 'formsaurus/manage/navbar.html'
 
-    def context_data(self):
+    def context_data(self, **kwargs):
         navbar_template_name = self.navbar_template_name
         if hasattr(settings, 'FORMSAURUS_NAVBAR_TEMPLATE_NAME'):
             navbar_template_name = settings.FORMSAURUS_NAVBAR_TEMPLATE_NAME
@@ -60,11 +60,8 @@ class SurveysView(ManageBaseView):
 class SurveyWizardView(ManageBaseView):
     template_name = 'formsaurus/manage/survey_wizard.html'
 
-    def get(self, request, survey_id):
-        survey = get_object_or_404(Survey, pk=survey_id)
-        if survey.user != request.user:
-            raise Http404
-        context = self.context_data()
+    def context_data(self, survey, **kwargs):
+        context = super(SurveyWizardView, self).context_data(**kwargs)
         context['survey'] = Serializer.survey(survey)
         context['survey']['hidden_fields'] = []
         for field in survey.hiddenfield_set.all():
@@ -88,8 +85,13 @@ class SurveyWizardView(ManageBaseView):
             context['submissions']['completed'] = completed
             context['submissions']['ratio'] = completed / \
                 row['count'] * 100 if row['count'] > 0 else 0
+        return context
 
-            pass
+    def get(self, request, survey_id):
+        survey = get_object_or_404(Survey, pk=survey_id)
+        if survey.user != request.user:
+            raise Http404
+        context = self.context_data(survey=survey)
         return render(request, self.template_name, context)
 
 
