@@ -61,6 +61,7 @@ class AbstractSurvey(BaseModel):
         'Question', on_delete=models.SET_NULL, blank=True, null=True, default=None, related_name='first_question')
     last_question = models.ForeignKey('Question', on_delete=models.SET_NULL,
                                       blank=True, null=True, default=None, related_name='last_question')
+    show_branding = models.BooleanField(default=True)
 
     class Meta:
         abstract = True
@@ -123,16 +124,28 @@ class AbstractSurvey(BaseModel):
     def wizard_actions_template_name(self):
         return None
 
+    @property
+    def can_disable_branding(self):
+        return True
+
+    @property
+    def branding_template_name(self):
+        return None
+
     def to_dict(self):
         return {
             'id': str(self.id),
             'name': self.name,
             'published': self.published,
+            'answerable': self.answerable,
             'logic_enabled': self.logic_enabled,
             'has_unsplash': hasattr(settings, 'UNSPLASH_ACCESS_KEY'),
             'has_pexels': hasattr(settings, 'PEXELS_API_KEY'),
             'has_tenor': hasattr(settings, 'TENOR_API_KEY'),
             'wizard_actions_template_name': self.wizard_actions_template_name,
+            'show_branding': self.show_branding,
+            'can_disable_branding': self.can_disable_branding,
+            'branding_template_name': self.branding_template_name,
         }
 
     @property

@@ -14,6 +14,8 @@ urlpatterns = [
          views.SurveyView.as_view(), name='survey_preview'),
     path('manage/form/publish/<uuid:survey_id>',
          manage.PublishSurveyView.as_view(), name='survey_publish'),
+    path('manage/form/create/<uuid:survey_id>/show_branding/toggle',
+          manage.ToggleShowBrandingView.as_view(), name='toggle_show_branding'),
     path('manage/form/create/<uuid:survey_id>/add',
          manage.AddQuestionView.as_view(), name='survey_add_question'),
     path('manage/form/create/<uuid:survey_id>/add/<slug:question_type>',

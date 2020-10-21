@@ -39,6 +39,9 @@
     {% elif question.type == 'FU' %}
         {% include 'formsaurus/templates/file_upload.html' %}
     {% endif %}
+{% if survey.branding_template_name and survey.show_branding %}
+{% include survey.branding_template_name %}
+{% endif %}
 {% endblock %}
 
 {% block javascript %}

@@ -10,6 +10,12 @@
                 <a href="{% url 'formsaurus_manage:survey_edit' survey.id %}" class="ml-2"><small><i class="fas fa-edit"></i></small></a>
             </h4>
         </div>
+        <div class="col-sm-2 pt-1">
+            <div class="custom-control custom-switch">
+                <input type="checkbox" class="custom-control-input" data-url="{% url 'formsaurus_manage:toggle_show_branding' survey.id %}" id="show-branding" {% if survey.show_branding %}checked{% endif %} {% if not survey.can_disable_branding %}disabled{% endif %}>
+                <label class="custom-control-label" for="show-branding">Show Branding</label>
+            </div>
+        </div>
         <div class="col-sm-1 pt-1 mr-3">
             <div class="custom-control custom-switch">
                 <input type="checkbox" class="custom-control-input" id="publish_switch" {% if survey.published %}checked disabled{% endif %}>
@@ -145,12 +151,29 @@
 {% endblock %}
 
 {% block javascript %}
+{% csrf_token %}
+<script type="text/javascript">
+    var csrftoken = jQuery("[name=csrfmiddlewaretoken]").val();
+</script>
 <script>
 $(function() {
     $('#publish_switch').change(function(evt) {
         if ($(this).prop('checked')) {
             window.location.href = "{% url 'formsaurus_manage:survey_publish' survey.id %}"
         }
+    })
+    $('#show-branding').change(function(evt) {
+        evt.preventDefault()
+        var element = $(this)
+        $.ajax({
+            type: 'POST',
+            url: element.attr('data-url'),
+            headers: {'X-CSRFTOKEN': csrftoken},
+            success: function(data) {
+                console.log('Success', data)
+                element.checked = data.show_branding
+            },
+        })
     })
 })
 </script>

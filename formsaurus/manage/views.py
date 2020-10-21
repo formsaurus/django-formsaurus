@@ -906,6 +906,15 @@ class PublishSurveyView(LoginRequiredMixin, View):
         survey.publish()
         return redirect(self.success_url, survey.id)
 
+class ToggleShowBrandingView(LoginRequiredMixin, View):
+    def post(self, request, survey_id):
+        survey = get_object_or_404(Survey, pk=survey_id)
+        if survey.user != request.user:
+            raise Http404
+        if survey.can_disable_branding:
+            survey.show_branding = not survey.show_branding
+            survey.save()
+        return JsonResponse(survey.to_dict())
 
 class DeleteSurveyView(LoginRequiredMixin, View):
     success_url = 'formsaurus_manage:surveys'
