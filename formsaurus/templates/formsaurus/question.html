@@ -1,6 +1,6 @@
 {% extends "formsaurus/skeleton.html" %}
 {% load static %}
-
+{% block title %}{{ survey.name }} - {{ question.question }} {% if survey.show_branding %} - {{ block.super }}{% endif %}{% endblock %}
 {% block content %}
     {% if question.type == 'WS' %}
         {% include 'formsaurus/templates/welcome_screen.html' %}
