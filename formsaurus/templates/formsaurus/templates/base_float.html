@@ -34,8 +34,8 @@
             <div class="vertical-md-center pr-5">
                 {% if question.parameters.image_url %}
                     <img src="{{ question.parameters.image_url }}" class="img-fluid mx-auto" style="object-fit: cover; object-position: {{ question.parameters.position_x}}% {{ question.parameters.position_y }}%; opacity: {{ question.parameters.opacity }}%;">
-                {% elif question.parameters.video_url %}
-                    {{ question.parameters.video_url|embed }}
+                {% elif question.parameters.video %}
+                    {% include 'formsaurus/video.html' with style="max-height: 30vh;" %}
                 {% endif %}
             </div>
         </div>

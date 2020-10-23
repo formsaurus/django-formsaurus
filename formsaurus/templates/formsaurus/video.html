@@ -1,0 +1,43 @@
+<!-- VIDEO -->
+{% if question.parameters.video.source == 'youtube' %}
+    <div id="player"></div>
+    <script>
+        var tag = document.createElement('script')
+        tag.src = 'https://www.youtube.com/iframe_api'
+        var firstScriptTag = document.getElementsByTagName('script')[0];
+        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+        var player;
+        function onYouTubeIframeAPIReady() {
+            player = new YT.Player('player', {
+            width: '1280',
+            height: '720',
+            videoId: '{{ question.parameters.video.video_id }}',
+            playerVars: {
+                'autoplay': 1,
+                'controls': 0,
+                'disablekb': 1,
+                'fs': 0,
+                'loop': 1,
+                'modestbranding': 1,
+
+            },
+            events: {
+                'onReady': onPlayerReady,
+                'onStateChange': onPlayerStateChange
+            }
+            });
+        }
+        function onPlayerReady(event) {
+            event.target.f.style = "{{ style }}; object-fit: cover; object-position: {{ question.parameters.position_x}}% {{ question.parameters.position_y }}%; opacity: {{ question.parameters.opacity }}%;"
+            event.target.f.allowfullscreen="0"
+            event.target.mute()
+        }
+        function onPlayerStateChange(event) {
+        }
+    </script>
+{% else %}
+    <video autoplay="autoplay" loop="true" muted style="{{ style }}; object-fit: cover; object-position: {{ question.parameters.position_x}}% {{ question.parameters.position_y }}%; opacity: {{ question.parameters.opacity }}%;">
+        <source src="{{ question.parameters.video.url }}" type="video/mp4">
+    </video>
+{% endif %}

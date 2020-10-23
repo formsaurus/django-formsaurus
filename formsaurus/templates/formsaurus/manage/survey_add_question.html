@@ -107,22 +107,22 @@
                 <!-- Video -->
                 <div class="custom-control custom-switch">
                     <input type="checkbox" class="custom-control-input" id="show-video-switch"
-                        {% if question.parameters.video_url %}checked{% endif %}>
+                        {% if question.parameters.video %}checked{% endif %}>
                     <label class="custom-control-label" for="show-video-switch">Show Video</label>
                 </div>
 
-                <div class="form-group {% if not question.parameters.video_url %}d-none{% endif %}"
+                <div class="form-group {% if not question.parameters.video %}d-none{% endif %}"
                     id="show_video_content">
                     <input type="url" name="video_url" id="video_url" class="w-100 mb-2 title" placeholder="https://youtube.com/"
-                        {% if question.parameters.video_url %}value="{{ question.parameters.video_url }}"{% endif %} />
+                        {% if question.parameters.video %}value="{{ question.parameters.video.url }}"{% endif %} />
                     <label for="button_label"><small class="text-muted">Video URL</small></label>
-                    {% if has_pexels %}
+                    {% if survey.has_pexels %}
                     <small><a href="#" data-toggle="modal" data-target="#videoModal">Search Videos</a></small>
                     {% endif %}
                 </div>
 
                 <!-- Image/Video Positioning -->
-                <fieldset class="p-3 img-thumbnail mt-2 bg-light {% if not question.parameters.video_url and not question.parameters.image_url %}d-none{% endif %}" id="media-positioning">
+                <fieldset class="p-3 img-thumbnail mt-2 bg-light {% if not question.parameters.video and not question.parameters.image_url %}d-none{% endif %}" id="media-positioning">
                     <div class="form-group">
                         <label><small class="text-muted">Image Positioning</small></label>
                         <select class="custom-select" name="orientation">

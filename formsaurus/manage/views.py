@@ -560,8 +560,6 @@ class EditQuestionView(ManageBaseView):
         context['survey'] = Serializer.survey(survey)
         # Allowed question types
         question_types = survey.question_types
-        if has_ws:
-            question_types.pop(Question.WELCOME_SCREEN)
         context['type'] = question_type
         context['type_name'] = question_types[question_type].name
         context['types'] = question_types
@@ -569,6 +567,8 @@ class EditQuestionView(ManageBaseView):
         context['question'] = Serializer.question(question)
         if question.question_type == Question.RATING and question.parameters.shape is not None:
             context['question_shape'] = survey.rating_shapes[question.parameters.shape]
+        if has_ws:
+            question_types.pop(Question.WELCOME_SCREEN)
 
         return render(request, self.template_name, context)
 

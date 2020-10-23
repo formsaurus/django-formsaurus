@@ -40,7 +40,7 @@
         <div class="d-block d-sm-none" style="height: 100%; width: 100vw;">
             <img src="{{ question.parameters.image_url }}" style="margin: 0 auto; width: 100%; height: 100%; object-fit: cover; object-position: {{ question.parameters.position_x}}% {{ question.parameters.position_y }}%; opacity: {{ question.parameters.opacity }}%;">
         </div>
-    {% elif question.parameters.video_url %}
-    {{ question.parameters.video_url|embed }}
+    {% elif question.parameters.video %}
+        {% include 'formsaurus/video.html' with style="margin: 0 auto; width: 100%; height: 100%;" %}
     {% endif %}
 </div>

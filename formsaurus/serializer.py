@@ -1,6 +1,7 @@
 import random
 
 from django.conf import settings
+from urllib.parse import urlparse
 from formsaurus.models import (
     Question, Condition, TextCondition, NumberCondition, ChoiceCondition, BooleanCondition, DateCondition)
 
@@ -33,7 +34,23 @@ class Serializer:
         if parameters.image_url is not None:
             result['image_url'] = parameters.image_url
         if parameters.video_url is not None:
-            result['video_url'] = parameters.video_url
+            result['video'] = {}
+            result['video']['url'] = parameters.video_url
+            result['video']['image'] = parameters.image_url
+            uri = urlparse(parameters.video_url)
+            if uri.netloc.endswith('youtube.com'):
+                result['video']['source'] = 'youtube'
+                parts = uri.query.split('&')
+                for part in parts:
+                    if part.startswith('v='):
+                        video_id = part[2:]
+                        result['video']['video_id'] = video_id
+                        break
+
+            elif uri.netloc.endswith('vimeo.com'):
+                result['video']['source'] = 'vimeo'
+            else:
+                result['video']['source'] = 'other'
         if parameters.orientation is not None:
             result['orientation'] = parameters.orientation
             result['position_x'] = parameters.position_x if parameters.position_x is not None else 50
