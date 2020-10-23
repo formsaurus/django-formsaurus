@@ -79,11 +79,11 @@
                 <!-- Image -->
                 <div class="custom-control custom-switch">
                     <input type="checkbox" class="custom-control-input" id="show-image-switch"
-                        {% if question.parameters.image_url %}checked{% endif %}>
+                        {% if question.parameters.image_url and not question.parameters.video %}checked{% endif %}>
                     <label class="custom-control-label" for="show-image-switch">Show Image</label>
                 </div>
 
-                <div class="form-group mt-3 {% if not question.parameters.image_url %}d-none{% endif %}" id="show-image-content">
+                <div class="form-group mt-3 {% if not question.parameters.image_url or question.parameters.video %}d-none{% endif %}" id="show-image-content">
                     <div class="input-group input-group-lg">
                         <div class="input-group-prepend">
                             <span class="input-group-text">
@@ -116,7 +116,8 @@
                         <div class="input-group-prepend">
                             <span class="input-group-text">
                                 {% if question.parameters.video %}
-                                    <a href="#" data-target="clearImage"><i class="fas fa-times"></i></a>
+                                    <a href="#" data-toggle="modal" data-target="#videoModal"><img class="img-fluid" style="height:26px" src="{{ question.parameters.image_url }}"/></a>
+                                    <a href="#" data-target="clearImage"><i class="ml-3 pt-1 fas fa-times"></i></a>
                                 {% else %}
                                     {% if survey.has_pexels %}
                                         <a href="#" data-toggle="modal" data-target="#videoModal" style="text-decoration: none!important;">
@@ -128,6 +129,7 @@
                             </span>
                         </div>
                         <input type="url" name="video_url" id="video_url" class="form-control" placeholder="https://youtube.com/" {% if question.parameters.video %}value="{{ question.parameters.video.url }}"{% endif %} />
+                        <input type="hidden" name="image_url" {% if question.parameters.image_url %}value="{{ question.parameters.image_url }}"{% endif %}>
                     </div>
                 </div>
 
@@ -595,7 +597,7 @@
     }
 
     class ImageSelector {
-        preview_url
+        _preview_url
 
         constructor(element, modal, searcher) {
             var obj = this
@@ -606,6 +608,7 @@
             this.input = null
             if (element.find('input[type="url"]').length == 1) {
                 this.input = element.find('input[type="url"]').first()
+                this.secondaryInput = element.find('input[type="hidden"]').first()
             } else {
                 this.input = element.find('input[type="hidden"]').first()
             }
@@ -655,6 +658,15 @@
             }
         }
 
+        set preview_url(url) {
+            console.log('set preview_url(' + url + ')')
+            this._preview_url = url
+            if (this.secondaryInput != null) {
+                this.secondaryInput.val(url)
+            }
+
+        }
+
         onShowModal() {
             this.showingModal = true
             this.searcher.activate(this)
@@ -667,7 +679,7 @@
 
         buildPreview() {
             var obj = this
-            var url = this.preview_url != null ? this.preview_url : this.url
+            var url = this._preview_url != null ? this._preview_url : this.url
             this.modalClicker = $('<a>').attr('href', '#').attr('data-toggle', 'modal').attr('data-target', this.modal).appendTo(this.previewContainer)
             $('<img>').addClass('img-fluid').attr('style', 'height: 26px').attr('src', url).appendTo(this.modalClicker)
             this.modalClicker.click(function(evt) {

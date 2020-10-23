@@ -32,7 +32,7 @@
         </div>
         <div class="col-md-6 order-1 order-md-2">
             <div class="vertical-md-center pr-5">
-                {% if question.parameters.image_url %}
+                {% if question.parameters.image_url and not question.parameters.video %}
                     <img src="{{ question.parameters.image_url }}" class="img-fluid mx-auto" style="object-fit: cover; object-position: {{ question.parameters.position_x}}% {{ question.parameters.position_y }}%; opacity: {{ question.parameters.opacity }}%;">
                 {% elif question.parameters.video %}
                     {% include 'formsaurus/video.html' with style="max-height: 30vh;" %}

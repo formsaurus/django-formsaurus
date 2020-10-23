@@ -9,13 +9,25 @@
             </div>
             <div class="modal-body">
                 <div class="container-fluid">
+                    <div class="row mb-4">
+                        <div class="col">
+                            <ul class="nav nav-tabs" id="image_search_tabs">
+                                {% if survey.has_pexels %}
+                                <li class="nav-item">
+                                  <a class="nav-link" href="#" data-backend="Pexel">Pexel</a>
+                                </li>
+                                {% endif %}
+                            </ul>
+                        </div>
+                    </div>
+
                     <div class="row">
                         <div class="col">
                             <div class="input-group mb-3">
                                 <input type="text" class="form-control" placeholder="Search" aria-label="Search"
                                     aria-describedby="basic-addon1" id="video_search_query">
                                 <div class="input-group-append">
-                                    <span class="input-group-text" id="basic-addon1"><i class="fab fa-unsplash"></i></span>
+                                    <span class="input-group-text" id="basic-addon1"><i class="fas fa-search"></i></span>
                                 </div>
 
                             </div>
