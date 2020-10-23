@@ -111,14 +111,24 @@
                     <label class="custom-control-label" for="show-video-switch">Show Video</label>
                 </div>
 
-                <div class="form-group {% if not question.parameters.video %}d-none{% endif %}"
-                    id="show_video_content">
-                    <input type="url" name="video_url" id="video_url" class="w-100 mb-2 title" placeholder="https://youtube.com/"
-                        {% if question.parameters.video %}value="{{ question.parameters.video.url }}"{% endif %} />
-                    <label for="button_label"><small class="text-muted">Video URL</small></label>
-                    {% if survey.has_pexels %}
-                    <small><a href="#" data-toggle="modal" data-target="#videoModal">Search Videos</a></small>
-                    {% endif %}
+                <div class="form-group mt-3 {% if not question.parameters.video %}d-none{% endif %}" id="show-video-content">
+                    <div class="input-group input-group-lg">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text">
+                                {% if question.parameters.video %}
+                                    <a href="#" data-target="clearImage"><i class="fas fa-times"></i></a>
+                                {% else %}
+                                    {% if survey.has_pexels %}
+                                        <a href="#" data-toggle="modal" data-target="#videoModal" style="text-decoration: none!important;">
+                                            <i class="pt-1 far fa-image mr-2"></i>
+                                            <small><i class="fas fa-plus"></i></small>
+                                        </a>
+                                    {% endif %}
+                                {% endif %}
+                            </span>
+                        </div>
+                        <input type="url" name="video_url" id="video_url" class="form-control" placeholder="https://youtube.com/" {% if question.parameters.video %}value="{{ question.parameters.video.url }}"{% endif %} />
+                    </div>
                 </div>
 
                 <!-- Image/Video Positioning -->
@@ -585,10 +595,13 @@
     }
 
     class ImageSelector {
-        constructor(element, searcher) {
+        preview_url
+
+        constructor(element, modal, searcher) {
             var obj = this
 
             this.element = element
+            this.modal = modal
             this.searcher = searcher
             this.input = null
             if (element.find('input[type="url"]').length == 1) {
@@ -597,7 +610,7 @@
                 this.input = element.find('input[type="hidden"]').first()
             }
             this.previewContainer = element.find('.input-group-text').first()
-            this.modalClicker = element.find('a[data-target="#imageModal"]')
+            this.modalClicker = element.find('a[data-target="' + this.modal + '"]')
             this.clearClicker = element.find('a[data-target="clearImage"]')
             this.showingModal = false
             this.modalClicker.click(function(evt) {
@@ -608,7 +621,7 @@
                 evt.preventDefault()
                 obj.onClear()
             })
-            $('#imageModal').on('hidden.bs.modal', function(evt) {
+            $(this.modal).on('hidden.bs.modal', function(evt) {
                 if (obj.showingModal) {
                     console.log('Hiding modal', obj)
                     obj.showingModal = false
@@ -619,7 +632,7 @@
             this.input.change(function(evt) {
                 console.log('URL changed' + obj.input.val())
             })
-            console.log('Configured Image Selector')
+            console.log('Configured Image Selector ' + this.modal)
             console.log('\tInput', this.input)
             console.log('\tPreview Container', this.previewContainer)
             console.log('\tModal Clicker', this.modalClicker)
@@ -654,8 +667,9 @@
 
         buildPreview() {
             var obj = this
-            this.modalClicker = $('<a>').attr('href', '#').attr('data-toggle', 'modal').attr('data-target', '#imageModal').appendTo(this.previewContainer)
-            $('<img>').addClass('img-fluid').attr('style', 'height: 26px').attr('src', this.url).appendTo(this.modalClicker)
+            var url = this.preview_url != null ? this.preview_url : this.url
+            this.modalClicker = $('<a>').attr('href', '#').attr('data-toggle', 'modal').attr('data-target', this.modal).appendTo(this.previewContainer)
+            $('<img>').addClass('img-fluid').attr('style', 'height: 26px').attr('src', url).appendTo(this.modalClicker)
             this.modalClicker.click(function(evt) {
                 evt.preventDefault()
                 obj.onShowModal()
@@ -671,7 +685,7 @@
         buildEmpty() {
             var obj = this
             this.clearClicker = null
-            this.modalClicker = $('<a>').attr('href', '#').attr('data-toggle', 'modal').attr('data-target', '#imageModal').attr('style', 'text-decoration: none!important;').appendTo(this.previewContainer)
+            this.modalClicker = $('<a>').attr('href', '#').attr('data-toggle', 'modal').attr('data-target', this.modal).attr('style', 'text-decoration: none!important;').appendTo(this.previewContainer)
             this.modalClicker.click(function(evt) {
                 evt.preventDefault()
                 obj.onShowModal()
@@ -700,7 +714,6 @@
             $('#imageModal').on('shown.bs.modal', function(evt) {
                 $('#image_search_query').focus()
             })
-
         }
 
         searchImages(term, page, per_page, backend) {
@@ -769,6 +782,72 @@
             console.log('Selected image ' + url)
             if (this.selector) {
                 this.selector.url = url
+            }
+        }
+    }
+
+    class VideoSearcher {
+        constructor() {
+            var obj = this
+            $('#video_search_query').enterKey(function(evt) {
+                obj.searchVideos($(this).val(), 1, 9)
+            })
+            $('#videoModal').on('shown.bs.modal', function(evt) {
+                $('#video_search_query').focus()
+            })
+        }
+
+        searchVideos(term, page, per_page) {
+            var obj = this
+            $('#video_search_results').empty()
+            $('#video_search_paging').addClass('d-none')
+            $('#video_search_prev').off()
+            $('#video_search_next').off()
+            $.get("{% url 'formsaurus_manage:pexels_search' %}?per_page=" + per_page + "&page=" + page + "&q=" + term, function (data) {
+                console.log(data)
+                $('#video_search_paging').removeClass('d-none')
+                $('#video_search_prev').click(function (evt) {
+                    if (page > 1) {
+                        obj.searchVideos(term, page - 1, per_page)
+                    }
+                })
+                $('#video_search_next').click(function (evt) {
+                    if (page < data.total_pages - 1) {
+                        obj.searchVideos(term, page + 1, per_page)
+                    }
+                })
+
+                data.videos.forEach(function (result) {
+                    var img = $('<div/>').addClass('img-thumbnail m-1').attr('style', 'width: 240px; height: 150px; background-image: url("' + result.image + '"); background-position: center; background-repeat: no-repeat; background-size: cover;')
+                    var a = $('<a/>').attr('href', '#').attr('data-url', result.video_files[0].link).attr('data-preview-url', result.image)
+
+                    a.click(function (evt) {
+                        obj.selectVideo($(this).attr('data-url'), $(this).attr('data-preview-url'))
+                        $('#videoModal').modal('hide')
+                    })
+                    a.append(img)
+                    $('#video_search_results').append(a)
+                })
+            })
+        }
+
+        selectVideo(url, preview_url) {
+            console.log('Selected video ' + url)
+            if (this.selector) {
+                this.selector.preview_url = preview_url
+                this.selector.url = url
+            }
+        }
+
+        activate(selector) {
+            console.log('VideoSearcher.activate', selector)
+            this.selector = selector
+        }
+
+        deactivate(selector) {
+            console.log('VideoSearcher.deactivate', selector)
+            if (this.selector == selector) {
+                this.selector = null
             }
         }
     }
@@ -862,15 +941,18 @@
         }
     }
     var imgsrch
+    var vdsrch
     $(function () {
         imgsrch = new ImageSearcher()
-        var imgslctr = new ImageSelector($('#show-image-content'), imgsrch)
+        vdsrch = new VideoSearcher()
+        var imgslctr = new ImageSelector($('#show-image-content'), '#imageModal', imgsrch)
+        var vdslctr = new ImageSelector($('#show-video-content'), '#videoModal', vdsrch)
         var shps = new Shapes($('#rating-shapes'))
 
         // Picture Choices
         $.each($('#picture-choices').find('div.form-group'), function(index, element) {
             var element = $(element)
-            new ImageSelector(element, imgsrch)
+            new ImageSelector(element, '#imageModal', imgsrch)
         })
 
         // description
@@ -899,11 +981,11 @@
         // video_url
         $('#show-video-switch').change(function (evt) {
             if ($(this).prop('checked')) {
-                $('#show_video_content').removeClass('d-none');
+                $('#show-video-content').removeClass('d-none');
                 $('#show-image-switch').prop('disabled', true)
                 $('#media-positioning').removeClass('d-none')
             } else {
-                $('#show_video_content').addClass('d-none');
+                $('#show-video-content').addClass('d-none');
                 $('#show-image-switch').prop('disabled', false)
                 $('#media-positioning').addClass('d-none')
             }
@@ -1009,46 +1091,6 @@
         }
     })
 
-    $(function () {
-        // video_search
-        $('#video_search_query').enterKey(function(evt) {
-            search_videos($(this).val(), 1, 9)
-        })
-    })
-
-    function search_videos(term, page, per_page) {
-        $('#video_search_results').empty()
-        $('#video_search_paging').addClass('d-none')
-        $('#video_search_prev').off()
-        $('#video_search_next').off()
-        $.get("{% url 'formsaurus_manage:pexels_search' %}?per_page=" + per_page + "&page=" + page + "&q=" + term, function (data) {
-            console.log(data)
-            $('#video_search_paging').removeClass('d-none')
-            $('#video_search_prev').click(function (evt) {
-                if (page > 1) {
-                    search_videos(term, page - 1, per_page)
-                }
-            })
-            $('#video_search_next').click(function (evt) {
-                if (page < data.total_pages - 1) {
-                    search_videos(term, page + 1, per_page)
-                }
-            })
-
-            data.videos.forEach(function (result) {
-                img = $('<div/>').addClass('img-thumbnail m-1').attr('style', 'width: 240px; height: 150px; background-image: url("' + result.image + '"); background-position: center; background-repeat: no-repeat; background-size: cover;')
-                a = $('<a/>').attr('href', '#')
-
-                a.click(function (evt) {
-                    $('#video_url').val(result.video_files[0].link)
-                    $('#videoModal').modal('hide')
-                })
-                a.append(img)
-                $('#video_search_results').append(a)
-            })
-        })
-    }
-
     function addChoice(evt) {
         evt.preventDefault();
         addChoiceImpl($(this))
@@ -1099,7 +1141,7 @@
         evt.preventDefault()
         var cloned = $('#picture-choices').find('.form-group').first().clone().appendTo($('#picture-choices').children().first())
         cloned.find('input[name="label"]').val('').focus().enterKey(addPictureChoice)
-        var selector = new ImageSelector(cloned, imgsrch)
+        var selector = new ImageSelector(cloned, '#imageModal', imgsrch)
         selector.url = ''
         cloned.find('.pc-choice-clear').click(clearPictureChoice)
         return false;
