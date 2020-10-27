@@ -961,6 +961,17 @@
         var vdslctr = new ImageSelector($('#show-video-content'), '#videoModal', vdsrch)
         var shps = new Shapes($('#rating-shapes'))
 
+        $('form').submit(function(evt) {
+            // Clear image_url field if image is not selected
+            if (!$('#show-image-switch').prop('checked')) {
+                $('#show-image-content').find('input[name="image_url"').val('')
+            }
+            if (!$('#show-video-switch').prop('checked')) {
+                $('#show-video-content').find('input[name="video_url"').val('')
+                $('#show-video-content').find('input[name="image_url"').val('')
+            }
+        })
+
         // Picture Choices
         $.each($('#picture-choices').find('div.form-group'), function(index, element) {
             var element = $(element)
@@ -981,13 +992,17 @@
         $('#show-image-switch').change(function (evt) {
             if ($(this).prop('checked')) {
                 $('#show-image-content').removeClass('d-none');
-                $('#show-video-switch').prop('disabled', true)
                 $('#media-positioning').removeClass('d-none')
                 $('#image-url').focus()
+
+                $('#show-video-switch').prop('disabled', true)
+                $('#show-video-content').find('input[name="image_url"').attr('name', 'preview_url')
             } else {
                 $('#show-image-content').addClass('d-none');
-                $('#show-video-switch').prop('disabled', false)
                 $('#media-positioning').addClass('d-none')
+
+                $('#show-video-switch').prop('disabled', false)
+                $('#show-video-content').find('input[name="preview_url"').attr('name', 'image_url')
             }
         })
         // video_url
