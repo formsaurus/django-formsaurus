@@ -19,6 +19,7 @@ from formsaurus.manage.forms import (SurveyForm, HiddenFieldForm, AddQuestionFor
 from formsaurus.manage.unsplash import Unsplash
 from formsaurus.manage.pexels import Pexels
 from formsaurus.manage.tenor import Tenor
+from formsaurus.manage.stats import Stats
 
 logger = logging.getLogger('formsaurus')
 
@@ -965,7 +966,13 @@ class SubmissionsView(ManageBaseView):
         if survey.user != request.user:
             raise Http404
         context = self.context_data()
-        context['survey'] = survey
+        context['survey'] = survey.to_dict()
+        # Stats on answers
+        context['stats'] = Stats.answers(survey)
+        # List of submissions
+        context['survey']['submissions'] = []
+        for submission in survey.submissions:
+            context['survey']['submissions'].append(submission)
         return render(request, self.template_name, context)
 
 

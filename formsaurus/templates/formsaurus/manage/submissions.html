@@ -18,6 +18,26 @@
 
     <div class="row mt-5">
         <div class="col">
+            {% for question in stats.items %}
+            <div class="row">
+                <div class="col">
+                    <h5>{{ question.1.question }}</h5>
+                    <table class="table">
+                        {% for stat in question.1.stats.items %}
+                            <tr>
+                                <td style="width: 250px;">{{ stat.0 }}</td>
+                                <td>{{ stat.1 }}</td>
+                            </tr>
+                        {% endfor %}
+                    </table>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="row mt-5">
+        <div class="col">
             {% if survey.submissions %}
             <h2>Answers</h2>
 

@@ -4,10 +4,11 @@ import secrets
 from datetime import datetime
 from django.contrib.auth import get_user_model
 from django.core.management.base import BaseCommand, CommandError
-from formsaurus.models import (Survey, HiddenField, Question, RuleSet, BooleanCondition, RatingParameters, DateParameters, QuestionParameter)
+from formsaurus.models import (HiddenField, Question, RuleSet, BooleanCondition, RatingParameters, DateParameters, QuestionParameter)
+from formsaurus.utils import get_survey_model
 
 User = get_user_model()
-
+Survey = get_survey_model()
 
 class Command(BaseCommand):
     help = 'Generate a sample Survey'
@@ -19,10 +20,10 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         if 'user_id' in options and options['user_id'] is not None:
-            user = User.objects.get(pk=options['user_id'])        
+            user = User.objects.get(pk=options['user_id'])
         else:
             user = User.objects.get(pk=1)
-        
+
         survey_name = options['title'] if 'title' in options and options['title'] is not None and options['title'] != "" else 'Sample Survey'
         survey = Survey.objects.create(
             name=survey_name,
@@ -83,7 +84,7 @@ class Command(BaseCommand):
             index = 0,
         )
         print(f"RuleSet {r1.id}")
-          
+
         condition = BooleanCondition.objects.create(
             ruleset=r1,
             index=0,
@@ -122,7 +123,7 @@ class Command(BaseCommand):
             'Phone Number',
             description="What's Up Doc?",
             required=True,
-            default_country_code=33,
+            default_country_code='FR',
             image_url='https://images.unsplash.com/photo-1520923642038-b4259acecbd7?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1306&q=80',
             orientation=orientation,
             opacity=opacity,
@@ -227,7 +228,7 @@ class Command(BaseCommand):
             required=True,
             description='How was it?',
             number_of_steps=6,
-            shape=RatingParameters.STAR,
+            shape=RatingParameters.STARS,
             image_url='https://images.unsplash.com/photo-1521967906867-14ec9d64bee8?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1350&q=80',
             orientation=orientation,
             opacity=opacity,
@@ -261,7 +262,7 @@ class Command(BaseCommand):
 
         # question, required=False, description=None, randomize=False, alphabetical=False, choices=[], image_url=None, video_url=None):
         survey.add_dropdown(
-            'Dropdown', 
+            'Dropdown',
             required=True,
             description='Choices',
             choices=['Option 1', 'Option 2'],

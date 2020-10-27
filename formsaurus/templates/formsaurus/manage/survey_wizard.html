@@ -49,13 +49,15 @@
         </div>
     {% endif %}
     <div class="row mt-3">
-        {% if not survey.published %}
+        {% if not survey.published or survey.wizard_actions_template_name %}
         <div class="col-sm-2">
             <div class="row no-gutters">
+                {% if not survey.published %}
                 <div class="col-8 mb-2"><a href="{% url 'formsaurus_manage:survey_add_hidden_field' survey.id %}" class="btn btn-primary btn-wide {% if survey.published %}disabled{% endif %}">Add Field</a></div>
                 <div class="col-8 mb-2"><a href="{% url 'formsaurus_manage:survey_add_question' survey.id %}" class="btn btn-primary btn-wide {% if survey.published %}disabled{% endif %}">Add Question</a></div>
                 <div class="col-8 mb-2"><a href="{% url 'formsaurus_manage:survey_preview' survey.id %}" class="btn btn-secondary btn-wide {% if survey.published %}disabled{% endif %}" target="_blank">Preview <i class="fas fa-external-link"></i></a></div>
                 <div class="col-8 mb-2"><a href="{% url 'formsaurus_manage:survey_delete' survey.id %} " onclick="return confirm('Are you sure you want to delete form {{ survey.name }}?');" class="btn btn-danger btn-wide {% if survey.published %}disabled{% endif %}">Delete</a></div>
+                {% endif %}
                 {% if survey.wizard_actions_template_name %}
                     {% include survey.wizard_actions_template_name %}
                 {% endif %}
