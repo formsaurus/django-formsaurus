@@ -13,7 +13,6 @@
             width: '1280',
             height: '720',
             videoId: '{{ question.parameters.video.video_id }}',
-            playlist: '{{ question.parameters.video.video_id }}',
             playerVars: {
                 'autoplay': 1,
                 'controls': 0,
@@ -21,6 +20,7 @@
                 'fs': 0,
                 'loop': 1,
                 'modestbranding': 1,
+                'playlist': '{{ question.parameters.video.video_id }}',
 
             },
             events: {
