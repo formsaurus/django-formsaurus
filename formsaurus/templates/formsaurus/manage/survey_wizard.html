@@ -3,28 +3,33 @@
 {% block content %}
 {% include navbar_template_name %}
 <div class="container">
+    <!-- Title -->
     <div class="row">
         <div class="col">
-            <h4>
-                <a href="{% url 'formsaurus_manage:surveys' %}">&laquo;</a> {{ survey.name }}
-                <a href="{% url 'formsaurus_manage:survey_edit' survey.id %}" class="ml-2"><small><i class="fas fa-edit"></i></small></a>
-            </h4>
+            <h4 class="m-0"><a href="{% url 'formsaurus_manage:surveys' %}">&laquo;</a> {{ survey.name }}</h4>
         </div>
-        <div class="col-sm-2 pt-1">
-            <div class="custom-control custom-switch">
-                <input type="checkbox" class="custom-control-input" data-url="{% url 'formsaurus_manage:toggle_show_branding' survey.id %}" id="show-branding" {% if survey.show_branding %}checked{% endif %} {% if not survey.can_disable_branding %}disabled{% endif %}>
-                <label class="custom-control-label" for="show-branding">Show Branding</label>
+        <div class="col-sm-1">
+            <div class="dropdown">
+                <a href="#" id="menu-survey" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fas fa-ellipsis-h"></i></a>
+                <div class="dropdown-menu" aria-labelledby="menu-survey">
+                    {% if not survey.published %}
+                        <a href="{% url 'formsaurus_manage:survey_edit' survey.id %}" class="dropdown-item">Edit Name</a>
+                        <a href="{% url 'formsaurus_manage:survey_publish' survey.id %}" id="publish-link" class="dropdown-item">Publish Form</a>
+                        <a href="{% url 'formsaurus_manage:toggle_show_branding' survey.id %}" id="show-branding" class="dropdown-item {% if not survey.can_disable_branding %}disabled{% endif %}">{% if survey.show_branding %}Hide Branding{% else %}Show Branding{% endif %}</a>
+                        <a href="{% url 'formsaurus_manage:survey_delete' survey.id %}" id="delete-link" class="dropdown-item text-danger">Delete</a>
+                    {% endif %}
+                    {% if survey.wizard_actions_template_name %}
+                        <div class="dropdown-divider"></div>
+                        {% include survey.wizard_actions_template_name %}
+                    {% endif %}
+                </div>
             </div>
-        </div>
-        <div class="col-sm-1 pt-1 mr-3">
-            <div class="custom-control custom-switch">
-                <input type="checkbox" class="custom-control-input" id="publish_switch" {% if survey.published %}checked disabled{% endif %}>
-                <label class="custom-control-label" for="publish_switch">{% if survey.published %}Published{% else %}Draft{% endif %}</label>
-            </div>
+
         </div>
     </div>
 
     {% if messages %}
+        <!-- Messages -->
         <div class="row mt-2">
             <div class="col">
                 {% for message in messages %}
@@ -34,32 +39,30 @@
         </div>
     {% endif %}
 
-    {% if survey.published %}
-        <div class="row">
-            <div class="col">
-                <p class="text-muted">
-                    <a href="{% url 'formsaurus:survey' survey.id %}" target="_blank">{{ request.scheme }}://{{ request.META.HTTP_HOST }}{% url 'formsaurus:survey' survey.id %}</a>
-                </p>
-            </div>
+    <!-- Link -->
+    <div class="row">
+        <div class="col">
+            <a href="{% url 'formsaurus:survey' survey.id %}" class="text-muted" target="_blank"><small>{{ request.scheme }}://{{ request.META.HTTP_HOST }}{% url 'formsaurus:survey' survey.id %}?{% if survey.hidden_fields %}{% for field in survey.hidden_fields %}{{ field.name }}={{ field.name }}&amp;{% endfor %}{% endif %}</small></a>
         </div>
+    </div>
+
+    {% if survey.published %}
+        <!-- Tallies -->
         <div class="row mb-3 no-gutters">
             <div class="col-4 border-r"><p class="text-lg text-center m-0"><a href="{% url 'formsaurus_manage:submissions' survey.id %}">{{ submissions.count }}</a></p><p class="mt-0 mb-0 text-sm text-upper text-center">Answers</p></div>
             <div class="col-4 border-r pl-3"><p class="text-lg text-center m-0">{{ submissions.completed }}</p><p class="mt-0 mb-0 text-sm text-upper text-center">Completed</p></div>
             <div class="col-4 pl-3"><p class="text-lg m-0 text-center">{{ submissions.ratio }}%</p><p class="mt-0 mb-0 text-sm text-upper text-center">Completion Rate</p></div>
         </div>
     {% endif %}
+
+    <!-- Fields & Questions -->
     <div class="row mt-3">
-        {% if not survey.published or survey.wizard_actions_template_name %}
+        {% if not survey.published  %}
         <div class="col-sm-2">
             <div class="row no-gutters">
                 {% if not survey.published %}
                 <div class="col-8 mb-2"><a href="{% url 'formsaurus_manage:survey_add_hidden_field' survey.id %}" class="btn btn-primary btn-wide {% if survey.published %}disabled{% endif %}">Add Field</a></div>
                 <div class="col-8 mb-2"><a href="{% url 'formsaurus_manage:survey_add_question' survey.id %}" class="btn btn-primary btn-wide {% if survey.published %}disabled{% endif %}">Add Question</a></div>
-                <div class="col-8 mb-2"><a href="{% url 'formsaurus_manage:survey_preview' survey.id %}" class="btn btn-secondary btn-wide {% if survey.published %}disabled{% endif %}" target="_blank">Preview <i class="fas fa-external-link"></i></a></div>
-                <div class="col-8 mb-2"><a href="{% url 'formsaurus_manage:survey_delete' survey.id %} " onclick="return confirm('Are you sure you want to delete form {{ survey.name }}?');" class="btn btn-danger btn-wide {% if survey.published %}disabled{% endif %}">Delete</a></div>
-                {% endif %}
-                {% if survey.wizard_actions_template_name %}
-                    {% include survey.wizard_actions_template_name %}
                 {% endif %}
             </div>
         </div>
@@ -159,21 +162,27 @@
 </script>
 <script>
 $(function() {
-    $('#publish_switch').change(function(evt) {
-        if ($(this).prop('checked')) {
-            window.location.href = "{% url 'formsaurus_manage:survey_publish' survey.id %}"
-        }
+    $('#publish-link').click(function(evt) {
+        return confirm('Once published you will not be able to make any changes, are you sure you want to publish this form?')
     })
-    $('#show-branding').change(function(evt) {
+    $('#delete-link').click(function(evt) {
+        return confirm('Are you sure you want to delete this form?')
+    })
+
+    $('#show-branding').click(function(evt) {
         evt.preventDefault()
         var element = $(this)
         $.ajax({
             type: 'POST',
-            url: element.attr('data-url'),
+            url: element.attr('href'),
             headers: {'X-CSRFTOKEN': csrftoken},
             success: function(data) {
                 console.log('Success', data)
-                element.checked = data.show_branding
+                if (data.show_branding) {
+                    element.text = 'Hide Branding'
+                } else {
+                    element.text = 'Show Branding'
+                }
             },
         })
     })

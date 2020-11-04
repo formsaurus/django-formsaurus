@@ -99,6 +99,7 @@ class SurveyWizardView(ManageBaseView):
 class AddQuestionView(ManageBaseView):
     template_name = 'formsaurus/manage/survey_add_question.html'
     add_question_url = 'formsaurus_manage:survey_add_question'
+    success_url = 'formsaurus_manage:survey_wizard'
 
     def get(self, request, survey_id, question_type=None):
         survey = get_object_or_404(Survey, pk=survey_id)
@@ -150,7 +151,7 @@ class AddQuestionView(ManageBaseView):
                         opacity=parameters_form.cleaned_data['opacity'],
                     )
                     logger.info('Created Welcome Screen %s', question.id)
-                    return redirect(self.add_question_url, survey.id)
+                    return redirect(self.success_url, survey.id)
                 else:
                     logger.warning(
                         'Failed to validate welcome_screen parameters %s', parameters_form.errors)
@@ -172,7 +173,7 @@ class AddQuestionView(ManageBaseView):
                         opacity=parameters_form.cleaned_data['opacity'],
                     )
                     logger.info('Created Thank You Screen %s', question.id)
-                    return redirect(self.add_question_url, survey.id)
+                    return redirect(self.success_url, survey.id)
                 else:
                     logger.warning(
                         'Failed to validate thank_you_screen parameters %s', parameters_form.errors)
@@ -195,7 +196,7 @@ class AddQuestionView(ManageBaseView):
                         opacity=parameters_form.cleaned_data['opacity'],
                     )
                     logger.info('Created Multiple Choice %s', question.id)
-                    return redirect(self.add_question_url, survey.id)
+                    return redirect(self.success_url, survey.id)
                 else:
                     logger.warning(
                         'Failed to validate multiple_choice parameters %s', parameters_form.errors)
@@ -215,7 +216,7 @@ class AddQuestionView(ManageBaseView):
                         opacity=parameters_form.cleaned_data['opacity'],
                     )
                     logger.info('Created Phone Number %s', question.id)
-                    return redirect(self.add_question_url, survey.id)
+                    return redirect(self.success_url, survey.id)
                 else:
                     logger.warning(
                         'Failed to validate phone_number parameters %s', parameters_form.errors)
@@ -236,7 +237,7 @@ class AddQuestionView(ManageBaseView):
                         opacity=parameters_form.cleaned_data['opacity'],
                     )
                     logger.info('Created Short Text %s', question.id)
-                    return redirect(self.add_question_url, survey.id)
+                    return redirect(self.success_url, survey.id)
                 else:
                     logger.warning(
                         'Failed to validate short_text parameters %s', parameters_form.errors)
@@ -257,7 +258,7 @@ class AddQuestionView(ManageBaseView):
                         opacity=parameters_form.cleaned_data['opacity'],
                     )
                     logger.info('Created Long Text %s', question.id)
-                    return redirect(self.add_question_url, survey.id)
+                    return redirect(self.success_url, survey.id)
                 else:
                     logger.warning(
                         'Failed to validate long_text parameters %s', parameters_form.errors)
@@ -278,7 +279,7 @@ class AddQuestionView(ManageBaseView):
                         opacity=parameters_form.cleaned_data['opacity'],
                     )
                     logger.info('Created Statement %s', question.id)
-                    return redirect(self.add_question_url, survey.id)
+                    return redirect(self.success_url, survey.id)
                 else:
                     logger.warning(
                         'Failed to validate statement parameters %s', parameters_form.errors)
@@ -312,7 +313,7 @@ class AddQuestionView(ManageBaseView):
                         opacity=parameters_form.cleaned_data['opacity'],
                     )
                     logger.info('Created Picture Choice %s', question.id)
-                    return redirect(self.add_question_url, survey.id)
+                    return redirect(self.success_url, survey.id)
                 else:
                     logger.warning(
                         'Failed to validate picture_choice parameters %s', parameters_form.errors)
@@ -332,7 +333,7 @@ class AddQuestionView(ManageBaseView):
                         opacity=parameters_form.cleaned_data['opacity'],
                     )
                     logger.info('Created Yes/No %s', question.id)
-                    return redirect(self.add_question_url, survey.id)
+                    return redirect(self.success_url, survey.id)
                 else:
                     logger.warning(
                         'Failed to validate yes_no parameters %s', parameters_form.errors)
@@ -351,7 +352,7 @@ class AddQuestionView(ManageBaseView):
                         opacity=parameters_form.cleaned_data['opacity'],
                     )
                     logger.info('Created Email %s', question.id)
-                    return redirect(self.add_question_url, survey.id)
+                    return redirect(self.success_url, survey.id)
                 else:
                     logger.warning(
                         'Failed to validate email parameters %s', parameters_form.errors)
@@ -376,7 +377,7 @@ class AddQuestionView(ManageBaseView):
                         opacity=parameters_form.cleaned_data['opacity'],
                     )
                     logger.info('Created Opinion Scale %s', question.id)
-                    return redirect(self.add_question_url, survey.id)
+                    return redirect(self.success_url, survey.id)
                 else:
                     logger.warning(
                         'Failed to validate opinion_scale parameters %s', parameters_form.errors)
@@ -397,7 +398,7 @@ class AddQuestionView(ManageBaseView):
                         opacity=parameters_form.cleaned_data['opacity'],
                     )
                     logger.info('Created Rating %s', question.id)
-                    return redirect(self.add_question_url, survey.id)
+                    return redirect(self.success_url, survey.id)
                 else:
                     logger.warning(
                         'Failed to validate rating parameters %s', parameters_form.errors)
@@ -418,7 +419,7 @@ class AddQuestionView(ManageBaseView):
                         opacity=parameters_form.cleaned_data['opacity'],
                     )
                     logger.info('Created Date %s', question.id)
-                    return redirect(self.add_question_url, survey.id)
+                    return redirect(self.success_url, survey.id)
                 else:
                     logger.warning(
                         'Failed to validate date parameters %s', parameters_form.errors)
@@ -441,7 +442,7 @@ class AddQuestionView(ManageBaseView):
                         opacity=parameters_form.cleaned_data['opacity'],
                     )
                     logger.info('Created Number %s', question.id)
-                    return redirect(self.add_question_url, survey.id)
+                    return redirect(self.success_url, survey.id)
                 else:
                     logger.warning(
                         'Failed to validate number parameters %s', parameters_form.errors)
@@ -463,7 +464,7 @@ class AddQuestionView(ManageBaseView):
                         opacity=parameters_form.cleaned_data['opacity'],
                     )
                     logger.info('Created Dropdown %s', question.id)
-                    return redirect(self.add_question_url, survey.id)
+                    return redirect(self.success_url, survey.id)
                 else:
                     logger.warning(
                         'Failed to validate dropdown parameters %s', parameters_form.errors)
@@ -482,7 +483,7 @@ class AddQuestionView(ManageBaseView):
                         opacity=parameters_form.cleaned_data['opacity'],
                     )
                     logger.info('Created Email %s', question.id)
-                    return redirect(self.add_question_url, survey.id)
+                    return redirect(self.success_url, survey.id)
                 else:
                     logger.warning(
                         'Failed to validate email parameters %s', parameters_form.errors)
@@ -501,7 +502,7 @@ class AddQuestionView(ManageBaseView):
                         opacity=parameters_form.cleaned_data['opacity'],
                     )
                     logger.info('Created File Upload %s', question.id)
-                    return redirect(self.add_question_url, survey.id)
+                    return redirect(self.success_url, survey.id)
             elif question_type == Question.PAYMENT:
                 raise Http404
             elif question_type == Question.WEBSITE:
@@ -519,7 +520,7 @@ class AddQuestionView(ManageBaseView):
                         opacity=parameters_form.cleaned_data['opacity'],
                     )
                     logger.info('Created Email %s', question.id)
-                    return redirect(self.add_question_url, survey.id)
+                    return redirect(self.success_url, survey.id)
                 else:
                     logger.warning(
                         'Failed to validate email parameters %s', parameters_form.errors)

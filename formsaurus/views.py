@@ -24,9 +24,8 @@ class SurveyView(View):
 
     def get(self, request, survey_id):
         survey = get_object_or_404(Survey, pk=survey_id)
-        if not survey.published:
-            if not request.user.is_authenticated or survey.user != request.user:
-                raise Http404
+        if not survey.can_view(request.user):
+            raise Http404
         if not survey.answerable:
             return redirect(self.closed_url, survey.id)
 
@@ -75,9 +74,10 @@ class QuestionView(View):
 
     def get(self, request, survey_id, question_id, submission_id):
         survey = get_object_or_404(Survey, pk=survey_id)
-        if not survey.published:
-            if not request.user.is_authenticated or survey.user != request.user:
-                raise Http404
+        if not survey.can_view(request.user):
+            raise Http404
+        if not survey.answerable:
+            return redirect(self.closed_url, survey.id)
 
         question = get_object_or_404(Question, pk=question_id)
         if question.survey_id != survey_id:
